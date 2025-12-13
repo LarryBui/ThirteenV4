@@ -1,4 +1,12 @@
-package main
+package nakama
+
+const (
+	// RpcQuickMatch is the Nakama RPC id clients call to find or create a lobby-capable match.
+	RpcQuickMatch = "quick_match"
+
+	// MatchNameTienLen is the authoritative match handler name registered with Nakama.
+	MatchNameTienLen = "tienlen_match"
+)
 
 // Op codes for client messages and server events.
 const (

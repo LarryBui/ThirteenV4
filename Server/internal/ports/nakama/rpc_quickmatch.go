@@ -1,4 +1,4 @@
-package main
+package nakama
 
 import (
 	"context"
@@ -14,10 +14,13 @@ type QuickMatchResponse struct {
 	IsNew   bool   `json:"is_new"`
 }
 
-// rpcQuickMatch finds an existing open Tien Len match or creates one when none are available.
+// RegisterRPCs registers Nakama RPC endpoints.
+func RegisterRPCs(initializer runtime.Initializer) error {
+	return initializer.RegisterRpc(RpcQuickMatch, rpcQuickMatch)
+}
+
 func rpcQuickMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, payload string) (string, error) {
 	// Find any match that is open and is our game.
-	// open=true is encoded as T in Nakama query syntax. :contentReference[oaicite:8]{index=8}
 	query := "+label.open:T label.game:tienlen label.phase:lobby"
 
 	limit := 10
@@ -26,7 +29,7 @@ func rpcQuickMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk ru
 	minSize := 1
 	maxSize := 3 // ensure < 4 players
 
-	matches, err := nk.MatchList(ctx, limit, authoritative, "", &minSize, &maxSize, query) // signature per runtime API :contentReference[oaicite:9]{index=9}
+	matches, err := nk.MatchList(ctx, limit, authoritative, "", &minSize, &maxSize, query)
 	if err != nil {
 		logger.Error("MatchList error: %v", err)
 		return "", err
@@ -39,7 +42,7 @@ func rpcQuickMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk ru
 	}
 
 	// Create new match; seat/owner assignment happens in MatchJoin (server-authoritative).
-	matchID, err := nk.MatchCreate(ctx, MatchNameTienLen, map[string]interface{}{}) // :contentReference[oaicite:10]{index=10}
+	matchID, err := nk.MatchCreate(ctx, MatchNameTienLen, map[string]interface{}{})
 	if err != nil {
 		logger.Error("MatchCreate error: %v", err)
 		return "", err
