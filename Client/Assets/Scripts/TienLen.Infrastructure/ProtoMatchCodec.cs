@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Google.Protobuf;
 using Tienlen.V1;
 
-namespace TienLen.Infra.Nakama
+namespace TienLen.Infrastructure
 {
     /// <summary>
     /// Shared Nakama opcodes (must stay in sync with the server).
@@ -98,3 +98,4 @@ namespace TienLen.Infra.Nakama
         }
     }
 }
+

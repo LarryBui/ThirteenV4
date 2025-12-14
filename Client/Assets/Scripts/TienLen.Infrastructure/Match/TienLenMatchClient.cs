@@ -5,7 +5,7 @@ using Google.Protobuf;
 using Nakama;
 using Tienlen.V1;
 
-namespace TienLen.Infra.Nakama.Match
+namespace TienLen.Infrastructure.Match
 {
     /// <summary>
     /// Thin Nakama client wrapper to send/receive Tien Len match messages using protobuf.
@@ -85,3 +85,4 @@ namespace TienLen.Infra.Nakama.Match
         }
     }
 }
+

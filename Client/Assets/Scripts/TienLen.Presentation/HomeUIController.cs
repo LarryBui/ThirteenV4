@@ -30,10 +30,9 @@ namespace TienLen.Presentation
         {
             playButton?.onClick.AddListener(HandlePlayClicked);
             quitButton?.onClick.AddListener(HandleQuitClicked);
-            // Initial state: pretend we're connecting for 2 seconds.
+            // Initial state: wait for real auth bootstrap to complete.
             SetConnecting(true, "Connecting…");
             SetProgress(0f);
-            StartCoroutine(InitialUnlock());
         }
 
         private async void HandlePlayClicked()
@@ -93,25 +92,28 @@ namespace TienLen.Presentation
         {
             if (progressBar)
             {
-            progressBar.gameObject.SetActive(_isConnecting);
-            progressBar.value = Mathf.Clamp01(value);
+                progressBar.gameObject.SetActive(_isConnecting);
+                progressBar.value = Mathf.Clamp01(value);
             }
         }
 
-        private System.Collections.IEnumerator InitialUnlock()
+        // ---- External control for auth/bootstrap phases ----
+        public void ShowAuthProgress(float progress, string message = null)
         {
-            // Simple splash/connecting delay.
-            const float delaySeconds = 2f;
-            var elapsed = 0f;
-            while (elapsed < delaySeconds)
-            {
-                elapsed += Time.deltaTime;
-                SetProgress(Mathf.Clamp01(elapsed / delaySeconds));
-                yield return null;
-            }
+            SetConnecting(true, message ?? statusText?.text ?? "Connecting…");
+            SetProgress(progress);
+        }
 
+        public void OnAuthComplete()
+        {
             SetProgress(1f);
             SetConnecting(false, "");
+        }
+
+        public void OnAuthFailed(string error)
+        {
+            SetProgress(0f);
+            SetConnecting(false, error);
         }
     }
 }
