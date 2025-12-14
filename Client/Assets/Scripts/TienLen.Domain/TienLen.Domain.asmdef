@@ -1,0 +1,16 @@
+{
+    "name": "TienLen.Domain",
+    "rootNamespace": "TienLen.Domain",
+    "references": [
+        "NakamaRuntime"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": true
+}

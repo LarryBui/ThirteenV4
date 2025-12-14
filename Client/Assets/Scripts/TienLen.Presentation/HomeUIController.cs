@@ -31,7 +31,7 @@ namespace TienLen.Presentation
             playButton?.onClick.AddListener(HandlePlayClicked);
             quitButton?.onClick.AddListener(HandleQuitClicked);
             // Initial state: wait for real auth bootstrap to complete.
-            SetConnecting(true, "Connecting…");
+            SetConnecting(true, "Connecting...");
             SetProgress(0f);
         }
 
@@ -40,7 +40,7 @@ namespace TienLen.Presentation
             if (_isConnecting)
                 return;
 
-            SetConnecting(true, "Connecting…");
+            SetConnecting(true, "Connecting...");
             SetProgress(0.15f);
 
             var ok = false;
@@ -100,7 +100,7 @@ namespace TienLen.Presentation
         // ---- External control for auth/bootstrap phases ----
         public void ShowAuthProgress(float progress, string message = null)
         {
-            SetConnecting(true, message ?? statusText?.text ?? "Connecting…");
+            SetConnecting(true, message ?? statusText?.text ?? "Connecting...");
             SetProgress(progress);
         }
 

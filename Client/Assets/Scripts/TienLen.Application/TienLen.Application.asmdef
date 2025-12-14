@@ -1,0 +1,17 @@
+{
+    "name": "TienLen.Application",
+    "rootNamespace": "TienLen.Application",
+    "references": [
+        "TienLen.Domain",
+        "VContainer"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

@@ -1,0 +1,20 @@
+{
+    "name": "TienLen.Infrastructure",
+    "rootNamespace": "TienLen.Infrastructure",
+    "references": [
+        "TienLen.Domain",
+        "TienLen.Application",
+        "NakamaRuntime",
+        "VContainer",
+        "Unity.TextMeshPro"
+    ],
+    "includePlatforms": [],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}
