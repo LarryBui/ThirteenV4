@@ -14,11 +14,18 @@ namespace TienLen.Infra.Nakama.Match
     {
         private readonly ISocket _socket;
         private readonly string _matchId;
+        private readonly Action<IMessage> _onMessage;
 
-        public TienLenMatchClient(ISocket socket, string matchId)
+        /// <summary>
+        /// Create a match client and subscribe to socket match data for this match.
+        /// </summary>
+        public TienLenMatchClient(ISocket socket, string matchId, Action<IMessage> onMessage)
         {
             _socket = socket ?? throw new ArgumentNullException(nameof(socket));
             _matchId = matchId ?? throw new ArgumentNullException(nameof(matchId));
+            _onMessage = onMessage ?? (_ => { });
+
+            _socket.ReceivedMatchState += HandleMatchState;
         }
 
         // --- Send helpers ---
@@ -48,6 +55,20 @@ namespace TienLen.Infra.Nakama.Match
             var payloadSegment = new ArraySegment<byte>(matchData.Data, 0, matchData.Data.Length);
             ProtoMatchCodec.TryDecodeEvent(matchData.OpCode, payloadSegment, out var message);
             return message;
+        }
+
+        private void HandleMatchState(IMatchState state)
+        {
+            if (state == null || state.MatchId != _matchId) return;
+
+            foreach (var m in state.State)
+            {
+                var decoded = TryDecode(m);
+                if (decoded != null)
+                {
+                    _onMessage(decoded);
+                }
+            }
         }
 
         // --- Internals ---

@@ -2,8 +2,9 @@ logger:
   level: info
 
 database:
-  # Postgres DSN for Nakama. Disable SSL for local dev only.
-  address: "postgresql://nakama:localdev@db:5432/nakama?sslmode=disable"
+  # Postgres DSNs for Nakama. Disable SSL for local dev only.
+  address:
+    - "postgresql://nakama:localdev@db:5432/nakama?sslmode=disable"
 
 runtime:
   path: "/nakama/data/modules"
