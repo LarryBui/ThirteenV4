@@ -30,8 +30,10 @@ namespace TienLen.Presentation
         {
             playButton?.onClick.AddListener(HandlePlayClicked);
             quitButton?.onClick.AddListener(HandleQuitClicked);
-            SetConnecting(false, ""); // ensure initial state
+            // Initial state: pretend we're connecting for 2 seconds.
+            SetConnecting(true, "Connecting…");
             SetProgress(0f);
+            StartCoroutine(InitialUnlock());
         }
 
         private async void HandlePlayClicked()
@@ -91,9 +93,25 @@ namespace TienLen.Presentation
         {
             if (progressBar)
             {
-                progressBar.gameObject.SetActive(_isConnecting);
-                progressBar.value = Mathf.Clamp01(value);
+            progressBar.gameObject.SetActive(_isConnecting);
+            progressBar.value = Mathf.Clamp01(value);
             }
+        }
+
+        private System.Collections.IEnumerator InitialUnlock()
+        {
+            // Simple splash/connecting delay.
+            const float delaySeconds = 2f;
+            var elapsed = 0f;
+            while (elapsed < delaySeconds)
+            {
+                elapsed += Time.deltaTime;
+                SetProgress(Mathf.Clamp01(elapsed / delaySeconds));
+                yield return null;
+            }
+
+            SetProgress(1f);
+            SetConnecting(false, "");
         }
     }
 }
