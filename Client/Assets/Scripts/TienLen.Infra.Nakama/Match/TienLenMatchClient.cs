@@ -45,15 +45,15 @@ namespace TienLen.Infra.Nakama.Match
         // --- Receive helper ---
 
         /// <summary>
-        /// Tries to parse an incoming match data message into the expected protobuf type based on opcode.
+        /// Tries to parse an incoming match state message into the expected protobuf type based on opcode.
         /// Returns null if the opcode is unknown or payload is invalid.
         /// </summary>
-        public IMessage TryDecode(IMatchData matchData)
+        public IMessage TryDecode(IMatchState matchState)
         {
-            if (matchData == null) return null;
+            if (matchState == null) return null;
 
-            var payloadSegment = new ArraySegment<byte>(matchData.Data, 0, matchData.Data.Length);
-            ProtoMatchCodec.TryDecodeEvent(matchData.OpCode, payloadSegment, out var message);
+            var payloadSegment = new ArraySegment<byte>(matchState.State, 0, matchState.State.Length);
+            ProtoMatchCodec.TryDecodeEvent(matchState.OpCode, payloadSegment, out var message);
             return message;
         }
 
@@ -61,13 +61,10 @@ namespace TienLen.Infra.Nakama.Match
         {
             if (state == null || state.MatchId != _matchId) return;
 
-            foreach (var m in state.State)
+            var decoded = TryDecode(state);
+            if (decoded != null)
             {
-                var decoded = TryDecode(m);
-                if (decoded != null)
-                {
-                    _onMessage(decoded);
-                }
+                _onMessage(decoded);
             }
         }
 
@@ -84,7 +81,7 @@ namespace TienLen.Infra.Nakama.Match
                 ? payload.AsSpan().ToArray()
                 : content ?? Array.Empty<byte>();
 
-            return _socket.SendMatchDataAsync(_matchId, opcode, buffer);
+            return _socket.SendMatchStateAsync(_matchId, opcode, buffer);
         }
     }
 }
