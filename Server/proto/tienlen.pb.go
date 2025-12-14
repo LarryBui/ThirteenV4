@@ -24,28 +24,25 @@ const (
 type Card_Suit int32
 
 const (
-	Card_SUIT_UNSPECIFIED Card_Suit = 0
-	Card_SUIT_SPADES      Card_Suit = 1
-	Card_SUIT_HEARTS      Card_Suit = 2
-	Card_SUIT_DIAMONDS    Card_Suit = 3
-	Card_SUIT_CLUBS       Card_Suit = 4
+	Card_SUIT_SPADES   Card_Suit = 0
+	Card_SUIT_CLUBS    Card_Suit = 1
+	Card_SUIT_DIAMONDS Card_Suit = 2
+	Card_SUIT_HEARTS   Card_Suit = 3
 )
 
 // Enum value maps for Card_Suit.
 var (
 	Card_Suit_name = map[int32]string{
-		0: "SUIT_UNSPECIFIED",
-		1: "SUIT_SPADES",
-		2: "SUIT_HEARTS",
-		3: "SUIT_DIAMONDS",
-		4: "SUIT_CLUBS",
+		0: "SUIT_SPADES",
+		1: "SUIT_CLUBS",
+		2: "SUIT_DIAMONDS",
+		3: "SUIT_HEARTS",
 	}
 	Card_Suit_value = map[string]int32{
-		"SUIT_UNSPECIFIED": 0,
-		"SUIT_SPADES":      1,
-		"SUIT_HEARTS":      2,
-		"SUIT_DIAMONDS":    3,
-		"SUIT_CLUBS":       4,
+		"SUIT_SPADES":   0,
+		"SUIT_CLUBS":    1,
+		"SUIT_DIAMONDS": 2,
+		"SUIT_HEARTS":   3,
 	}
 )
 
@@ -119,7 +116,7 @@ func (x *Card) GetSuit() Card_Suit {
 	if x != nil {
 		return x.Suit
 	}
-	return Card_SUIT_UNSPECIFIED
+	return Card_SUIT_SPADES
 }
 
 func (x *Card) GetRank() int32 {
@@ -620,17 +617,16 @@ var File_proto_tienlen_proto protoreflect.FileDescriptor
 const file_proto_tienlen_proto_rawDesc = "" +
 	"\n" +
 	"\x13proto/tienlen.proto\x12\n" +
-	"tienlen.v1\"\xa8\x01\n" +
+	"tienlen.v1\"\x92\x01\n" +
 	"\x04Card\x12)\n" +
 	"\x04suit\x18\x01 \x01(\x0e2\x15.tienlen.v1.Card.SuitR\x04suit\x12\x12\n" +
-	"\x04rank\x18\x02 \x01(\x05R\x04rank\"a\n" +
-	"\x04Suit\x12\x14\n" +
-	"\x10SUIT_UNSPECIFIED\x10\x00\x12\x0f\n" +
-	"\vSUIT_SPADES\x10\x01\x12\x0f\n" +
-	"\vSUIT_HEARTS\x10\x02\x12\x11\n" +
-	"\rSUIT_DIAMONDS\x10\x03\x12\x0e\n" +
+	"\x04rank\x18\x02 \x01(\x05R\x04rank\"K\n" +
+	"\x04Suit\x12\x0f\n" +
+	"\vSUIT_SPADES\x10\x00\x12\x0e\n" +
 	"\n" +
-	"SUIT_CLUBS\x10\x04\"\x12\n" +
+	"SUIT_CLUBS\x10\x01\x12\x11\n" +
+	"\rSUIT_DIAMONDS\x10\x02\x12\x0f\n" +
+	"\vSUIT_HEARTS\x10\x03\"\x12\n" +
 	"\x10StartGameRequest\":\n" +
 	"\x10PlayCardsRequest\x12&\n" +
 	"\x05cards\x18\x01 \x03(\v2\x10.tienlen.v1.CardR\x05cards\"\x11\n" +

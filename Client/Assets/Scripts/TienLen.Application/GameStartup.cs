@@ -20,14 +20,15 @@ namespace TienLen.Application
             _ = StartAsync();
         }
 
-        private async Task StartAsync()
+        private Task StartAsync()
         {
             Debug.Log("GameStartup: Starting application flow...");
             
             // This is the "Main" entry point.
-            await _authService.AuthenticateAndConnectAsync();
-            
+            // await _authService.AuthenticateAndConnectAsync();
+            return null;
             Debug.Log("GameStartup: Auth complete. Ready to load next scene or enable UI.");
         }
     }
 }
+

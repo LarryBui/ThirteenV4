@@ -7,11 +7,10 @@ option go_package = "tienlen/proto;pb";
 // Card represents a single Tien Len card.
 message Card {
   enum Suit {
-    SUIT_UNSPECIFIED = 0;
-    SUIT_SPADES = 1;
-    SUIT_HEARTS = 2;
-    SUIT_DIAMONDS = 3;
-    SUIT_CLUBS = 4;
+    SUIT_SPADES = 0;
+    SUIT_CLUBS = 1;
+    SUIT_DIAMONDS = 2;
+    SUIT_HEARTS = 3;
   }
   Suit suit = 1;
   int32 rank = 2; // 0..12 where 3=0, A=11, 2=12

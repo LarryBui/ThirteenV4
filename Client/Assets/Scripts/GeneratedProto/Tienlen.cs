@@ -24,21 +24,21 @@ namespace Tienlen.V1 {
     static TienlenReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChNwcm90by90aWVubGVuLnByb3RvEgp0aWVubGVuLnYxIpwBCgRDYXJkEiMK",
+            "ChNwcm90by90aWVubGVuLnByb3RvEgp0aWVubGVuLnYxIoYBCgRDYXJkEiMK",
             "BHN1aXQYASABKA4yFS50aWVubGVuLnYxLkNhcmQuU3VpdBIMCgRyYW5rGAIg",
-            "ASgFImEKBFN1aXQSFAoQU1VJVF9VTlNQRUNJRklFRBAAEg8KC1NVSVRfU1BB",
-            "REVTEAESDwoLU1VJVF9IRUFSVFMQAhIRCg1TVUlUX0RJQU1PTkRTEAMSDgoK",
-            "U1VJVF9DTFVCUxAEIhIKEFN0YXJ0R2FtZVJlcXVlc3QiMwoQUGxheUNhcmRz",
-            "UmVxdWVzdBIfCgVjYXJkcxgBIAMoCzIQLnRpZW5sZW4udjEuQ2FyZCIRCg9Q",
-            "YXNzVHVyblJlcXVlc3QiFwoVUmVxdWVzdE5ld0dhbWVSZXF1ZXN0IkEKEVBs",
-            "YXllckpvaW5lZEV2ZW50Eg8KB3VzZXJfaWQYASABKAkSDAoEc2VhdBgCIAEo",
-            "BRINCgVvd25lchgDIAEoCCIiCg9QbGF5ZXJMZWZ0RXZlbnQSDwoHdXNlcl9p",
-            "ZBgBIAEoCSIhChBHYW1lU3RhcnRlZEV2ZW50Eg0KBXBoYXNlGAEgASgJIjAK",
-            "DkhhbmREZWFsdEV2ZW50Eh4KBGhhbmQYASADKAsyEC50aWVubGVuLnYxLkNh",
-            "cmQiQwoPQ2FyZFBsYXllZEV2ZW50Eg8KB3VzZXJfaWQYASABKAkSHwoFY2Fy",
-            "ZHMYAiADKAsyEC50aWVubGVuLnYxLkNhcmQiIgoPVHVyblBhc3NlZEV2ZW50",
-            "Eg8KB3VzZXJfaWQYASABKAkiJgoOR2FtZUVuZGVkRXZlbnQSFAoMZmluaXNo",
-            "X29yZGVyGAEgAygJQhJaEHRpZW5sZW4vcHJvdG87cGJiBnByb3RvMw=="));
+            "ASgFIksKBFN1aXQSDwoLU1VJVF9TUEFERVMQABIOCgpTVUlUX0NMVUJTEAES",
+            "EQoNU1VJVF9ESUFNT05EUxACEg8KC1NVSVRfSEVBUlRTEAMiEgoQU3RhcnRH",
+            "YW1lUmVxdWVzdCIzChBQbGF5Q2FyZHNSZXF1ZXN0Eh8KBWNhcmRzGAEgAygL",
+            "MhAudGllbmxlbi52MS5DYXJkIhEKD1Bhc3NUdXJuUmVxdWVzdCIXChVSZXF1",
+            "ZXN0TmV3R2FtZVJlcXVlc3QiQQoRUGxheWVySm9pbmVkRXZlbnQSDwoHdXNl",
+            "cl9pZBgBIAEoCRIMCgRzZWF0GAIgASgFEg0KBW93bmVyGAMgASgIIiIKD1Bs",
+            "YXllckxlZnRFdmVudBIPCgd1c2VyX2lkGAEgASgJIiEKEEdhbWVTdGFydGVk",
+            "RXZlbnQSDQoFcGhhc2UYASABKAkiMAoOSGFuZERlYWx0RXZlbnQSHgoEaGFu",
+            "ZBgBIAMoCzIQLnRpZW5sZW4udjEuQ2FyZCJDCg9DYXJkUGxheWVkRXZlbnQS",
+            "DwoHdXNlcl9pZBgBIAEoCRIfCgVjYXJkcxgCIAMoCzIQLnRpZW5sZW4udjEu",
+            "Q2FyZCIiCg9UdXJuUGFzc2VkRXZlbnQSDwoHdXNlcl9pZBgBIAEoCSImCg5H",
+            "YW1lRW5kZWRFdmVudBIUCgxmaW5pc2hfb3JkZXIYASADKAlCEloQdGllbmxl",
+            "bi9wcm90bztwYmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(null, null, new pbr::GeneratedClrTypeInfo[] {
@@ -111,7 +111,7 @@ namespace Tienlen.V1 {
 
     /// <summary>Field number for the "suit" field.</summary>
     public const int SuitFieldNumber = 1;
-    private global::Tienlen.V1.Card.Types.Suit suit_ = global::Tienlen.V1.Card.Types.Suit.Unspecified;
+    private global::Tienlen.V1.Card.Types.Suit suit_ = global::Tienlen.V1.Card.Types.Suit.Spades;
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public global::Tienlen.V1.Card.Types.Suit Suit {
@@ -160,7 +160,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (Suit != global::Tienlen.V1.Card.Types.Suit.Unspecified) hash ^= Suit.GetHashCode();
+      if (Suit != global::Tienlen.V1.Card.Types.Suit.Spades) hash ^= Suit.GetHashCode();
       if (Rank != 0) hash ^= Rank.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -180,7 +180,7 @@ namespace Tienlen.V1 {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (Suit != global::Tienlen.V1.Card.Types.Suit.Unspecified) {
+      if (Suit != global::Tienlen.V1.Card.Types.Suit.Spades) {
         output.WriteRawTag(8);
         output.WriteEnum((int) Suit);
       }
@@ -198,7 +198,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (Suit != global::Tienlen.V1.Card.Types.Suit.Unspecified) {
+      if (Suit != global::Tienlen.V1.Card.Types.Suit.Spades) {
         output.WriteRawTag(8);
         output.WriteEnum((int) Suit);
       }
@@ -216,7 +216,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (Suit != global::Tienlen.V1.Card.Types.Suit.Unspecified) {
+      if (Suit != global::Tienlen.V1.Card.Types.Suit.Spades) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Suit);
       }
       if (Rank != 0) {
@@ -234,7 +234,7 @@ namespace Tienlen.V1 {
       if (other == null) {
         return;
       }
-      if (other.Suit != global::Tienlen.V1.Card.Types.Suit.Unspecified) {
+      if (other.Suit != global::Tienlen.V1.Card.Types.Suit.Spades) {
         Suit = other.Suit;
       }
       if (other.Rank != 0) {
@@ -305,11 +305,10 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static partial class Types {
       public enum Suit {
-        [pbr::OriginalName("SUIT_UNSPECIFIED")] Unspecified = 0,
-        [pbr::OriginalName("SUIT_SPADES")] Spades = 1,
-        [pbr::OriginalName("SUIT_HEARTS")] Hearts = 2,
-        [pbr::OriginalName("SUIT_DIAMONDS")] Diamonds = 3,
-        [pbr::OriginalName("SUIT_CLUBS")] Clubs = 4,
+        [pbr::OriginalName("SUIT_SPADES")] Spades = 0,
+        [pbr::OriginalName("SUIT_CLUBS")] Clubs = 1,
+        [pbr::OriginalName("SUIT_DIAMONDS")] Diamonds = 2,
+        [pbr::OriginalName("SUIT_HEARTS")] Hearts = 3,
       }
 
     }

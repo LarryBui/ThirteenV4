@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Google.Protobuf;
 using Nakama;
-using Tienlen.V1;
+using TienLen.Domain.ValueObjects;
 
 namespace TienLen.Infrastructure.Match
 {
@@ -31,16 +31,20 @@ namespace TienLen.Infrastructure.Match
         // --- Send helpers ---
 
         public Task SendStartGameAsync()
-            => SendAsync(TienLenOpcodes.StartGame, ProtoMatchCodec.EncodeStartGame());
+            // => SendAsync(TienLenOpcodes.StartGame, ProtoMatchCodec.EncodeStartGame());
+            => throw new NotImplementedException("ProtoMatchCodec is removed.");
 
         public Task SendPlayCardsAsync(IEnumerable<Card> cards)
-            => SendAsync(TienLenOpcodes.PlayCards, ProtoMatchCodec.EncodePlayCards(cards));
+            // => SendAsync(TienLenOpcodes.PlayCards, ProtoMatchCodec.EncodePlayCards(cards));
+            => throw new NotImplementedException("ProtoMatchCodec is removed.");
 
         public Task SendPassTurnAsync()
-            => SendAsync(TienLenOpcodes.PassTurn, ProtoMatchCodec.EncodePassTurn());
+            // => SendAsync(TienLenOpcodes.PassTurn, ProtoMatchCodec.EncodePassTurn());
+            => throw new NotImplementedException("ProtoMatchCodec is removed.");
 
         public Task SendRequestNewGameAsync()
-            => SendAsync(TienLenOpcodes.RequestNewGame, ProtoMatchCodec.EncodeRequestNewGame());
+            // => SendAsync(TienLenOpcodes.RequestNewGame, ProtoMatchCodec.EncodeRequestNewGame());
+            => throw new NotImplementedException("ProtoMatchCodec is removed.");
 
         // --- Receive helper ---
 
@@ -53,8 +57,9 @@ namespace TienLen.Infrastructure.Match
             if (matchState == null) return null;
 
             var payloadSegment = new ArraySegment<byte>(matchState.State, 0, matchState.State.Length);
-            ProtoMatchCodec.TryDecodeEvent(matchState.OpCode, payloadSegment, out var message);
-            return message;
+            // ProtoMatchCodec.TryDecodeEvent(matchState.OpCode, payloadSegment, out var message);
+            // return message;
+            throw new NotImplementedException("ProtoMatchCodec is removed.");
         }
 
         private void HandleMatchState(IMatchState state)
@@ -85,4 +90,3 @@ namespace TienLen.Infrastructure.Match
         }
     }
 }
-
