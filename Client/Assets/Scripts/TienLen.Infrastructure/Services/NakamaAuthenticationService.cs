@@ -31,6 +31,7 @@ namespace TienLen.Infrastructure.Services
 
         internal ISocket Socket => _socket;
         public IClient Client => _client;
+        public ISession Session => _session;
 
         public event Action OnAuthenticated;
         public event Action<string> OnAuthenticationFailed;

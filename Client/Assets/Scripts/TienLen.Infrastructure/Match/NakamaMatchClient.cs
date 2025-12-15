@@ -41,7 +41,7 @@ namespace TienLen.Infrastructure.Match
 
             // 1. Call server-side RPC to find or create a match
             var rpcId = "find_match";
-            var rpcResponse = await Client.RpcAsync(await Client.SessionAsync(), rpcId);
+            var rpcResponse = await Client.RpcAsync(_authService.Session, rpcId);
 
             if (rpcResponse == null || string.IsNullOrEmpty(rpcResponse.Payload))
             {
@@ -69,7 +69,7 @@ namespace TienLen.Infrastructure.Match
             Socket.ReceivedMatchState += HandleMatchState;
             Socket.ReceivedMatchPresence += HandleMatchPresence;
 
-            Debug.Log($"Joined match: {_matchId}");
+            Debug.Log($"MatchClient: Joined match: {_matchId}");
         }
 
         public UniTask SendStartGameAsync()
