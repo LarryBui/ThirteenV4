@@ -29,6 +29,9 @@ namespace TienLen.Infrastructure.Services
         public bool IsAuthenticated => IsSessionValid() && IsSocketConnected();
         public string CurrentUserId => _session?.UserId;
 
+        public event Action OnAuthenticated;
+        public event Action<string> OnAuthenticationFailed;
+
         /// <summary>
         /// Ensures the user is authenticated and a Nakama socket connection is active.
         /// Safe to call multiple times; subsequent calls reuse the existing session/socket.
@@ -40,6 +43,7 @@ namespace TienLen.Infrastructure.Services
             {
                 if (IsAuthenticated)
                 {
+                    OnAuthenticated?.Invoke();
                     return;
                 }
 
@@ -52,6 +56,13 @@ namespace TienLen.Infrastructure.Services
                 }
 
                 await EnsureSocketAsync();
+                OnAuthenticated?.Invoke();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"Authentication failed: {ex.Message}");
+                OnAuthenticationFailed?.Invoke(ex.Message);
+                throw;
             }
             finally
             {

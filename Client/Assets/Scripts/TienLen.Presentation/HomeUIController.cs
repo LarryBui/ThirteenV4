@@ -42,41 +42,46 @@ namespace TienLen.Presentation
         {
             playButton?.onClick.AddListener(HandlePlayClicked);
             quitButton?.onClick.AddListener(HandleQuitClicked);
-            // Initial state: wait for real auth bootstrap to complete.
-            SetConnecting(true, "Connecting...");
-            SetProgress(0f);
+
+            if (_authService != null)
+            {
+                _authService.OnAuthenticated += OnAuthComplete;
+                _authService.OnAuthenticationFailed += OnAuthFailed;
+            }
         }
 
         private void Start()
         {
-            _ = AuthenticateOnStartAsync();
+            // Initial state: connecting. GameStartup will drive the actual logic.
+            SetConnecting(true, "Connecting...");
+            SetProgress(0.1f);
+
+            // Check if already authenticated (race condition handling)
+            if (_authService != null && _authService.IsAuthenticated)
+            {
+                OnAuthComplete();
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_authService != null)
+            {
+                _authService.OnAuthenticated -= OnAuthComplete;
+                _authService.OnAuthenticationFailed -= OnAuthFailed;
+            }
         }
 
         private async void HandlePlayClicked()
         {
-            
-        }
-
-        private async Task AuthenticateOnStartAsync()
-        {
-            if (_authService == null)
+            if (OnPlayAsync != null)
             {
-                Debug.LogWarning("Authentication service not provided; skipping automatic auth.");
-                OnAuthFailed("Authentication unavailable.");
-                return;
-            }
-
-            _connectStartUtc = DateTime.UtcNow;
-            ShowAuthProgress(0.1f, "Connecting...");
-            try
-            {
-                await _authService.LoginAsync();
-                OnAuthComplete();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"Authentication failed: {ex.Message}");
-                OnAuthFailed("Unable to connect. Press Play to retry or Quit.");
+                playButton.interactable = false;
+                bool success = await OnPlayAsync();
+                if (!success)
+                {
+                    playButton.interactable = true;
+                }
             }
         }
 
