@@ -37,8 +37,9 @@ namespace TienLen.Application
         {
             Debug.Log("Handler: Finding an available match...");
             string matchId = await _networkClient.FindMatchAsync();
+            Debug.Log($"Handler: Successfully found match {matchId}.");            
             await JoinMatchAsync(matchId);
-            Debug.Log($"Handler: Successfully found and joined match {matchId}.");
+            Debug.Log($"Handler: Successfully joined match {matchId}.");
         }
 
         public async UniTask JoinMatchAsync(string matchId)

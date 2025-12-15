@@ -29,8 +29,6 @@ namespace TienLen.Infrastructure.Match
         public NakamaMatchClient(NakamaAuthenticationService authService)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
-            // Subscribe to Nakama's matchmaker matched event
-            _authService.Socket.ReceivedMatchmakerMatched += HandleMatchmakerMatched;
         }
 
         private ISocket Socket => _authService.Socket;
@@ -43,20 +41,31 @@ namespace TienLen.Infrastructure.Match
             if (!Socket.IsConnected) throw new InvalidOperationException("Nakama socket is not connected.");
 
             _matchmakerCompletionSource = new UniTaskCompletionSource<string>();
+            Socket.ReceivedMatchmakerMatched += HandleMatchmakerMatched;
 
-            // Add self to matchmaker (2 to 4 players for now)
-            var matched = await Socket.AddMatchmakerAsync("*", 2, 4);
-            _matchmakerTicket = matched.Ticket;
+            try
+            {
+                // Add self to matchmaker (2 to 4 players for now)
+                var matched = await Socket.AddMatchmakerAsync("*", 2, 4);
+                _matchmakerTicket = matched.Ticket;
 
-            // Wait for a match to be found via the HandleMatchmakerMatched event
-            var matchId = await _matchmakerCompletionSource.Task;
+                // Wait for a match to be found via the HandleMatchmakerMatched event
+                var matchId = await _matchmakerCompletionSource.Task;
 
-            // Remove ticket from matchmaker (important for cleanup)
-            await Socket.RemoveMatchmakerAsync(_matchmakerTicket);
-            _matchmakerTicket = null;
-            _matchmakerCompletionSource = null;
+                // Remove ticket from matchmaker (important for cleanup)
+                await Socket.RemoveMatchmakerAsync(_matchmakerTicket);
+                _matchmakerTicket = null;
 
-            return matchId;
+                return matchId;
+            }
+            finally
+            {
+                if (Socket != null)
+                {
+                    Socket.ReceivedMatchmakerMatched -= HandleMatchmakerMatched;
+                }
+                _matchmakerCompletionSource = null;
+            }
         }
 
         public async UniTask SendJoinMatchAsync(string matchId)
