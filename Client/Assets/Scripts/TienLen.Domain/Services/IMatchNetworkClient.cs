@@ -64,5 +64,10 @@ namespace TienLen.Domain.Services
         /// Sends a request to ask for a new game.
         /// </summary>
         UniTask SendRequestNewGameAsync();
+
+        /// <summary>
+        /// Initiates matchmaking and returns the found match ID upon success.
+        /// </summary>
+        UniTask<string> FindMatchAsync();
     }
 }

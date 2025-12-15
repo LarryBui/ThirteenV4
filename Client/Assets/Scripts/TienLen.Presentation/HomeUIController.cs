@@ -1,7 +1,9 @@
 using System;
 using Cysharp.Threading.Tasks;
+using TienLen.Application;
 using TienLen.Domain.Services;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VContainer;
 
@@ -21,21 +23,18 @@ namespace TienLen.Presentation
         [SerializeField] private Text statusText;
         [SerializeField] private Slider progressBar;
 
-        /// <summary>
-        /// Assign this from a bootstrapper to perform the quickmatch/connect flow.
-        /// It should return true on success, false on failure.
-        /// </summary>
-        public Func<UniTask<bool>> OnPlayAsync { get; set; }
-
         private bool _isConnecting;
         private DateTime _connectStartUtc;
-        private const float MinimumConnectSeconds = 5f;
+        private const float MinimumConnectSeconds = 2f; // Reduced for quicker feedback
+        
         private IAuthenticationService _authService;
+        private TienLenMatchHandler _matchHandler;
 
         [Inject]
-        public void Construct(IAuthenticationService authService)
+        public void Construct(IAuthenticationService authService, TienLenMatchHandler matchHandler)
         {
             _authService = authService;
+            _matchHandler = matchHandler;
         }
 
         private void Awake()
@@ -55,11 +54,17 @@ namespace TienLen.Presentation
             // Initial state: connecting. GameStartup will drive the actual logic.
             SetConnecting(true, "Connecting...");
             SetProgress(0.1f);
+            _connectStartUtc = DateTime.UtcNow; // Initialize start time
 
             // Check if already authenticated (race condition handling)
             if (_authService != null && _authService.IsAuthenticated)
             {
                 OnAuthComplete();
+            }
+            else
+            {
+                // Ensure buttons are disabled if not authenticated yet
+                playButton.interactable = false;
             }
         }
 
@@ -74,14 +79,28 @@ namespace TienLen.Presentation
 
         private async void HandlePlayClicked()
         {
-            if (OnPlayAsync != null)
+            if (_matchHandler == null)
             {
-                playButton.interactable = false;
-                bool success = await OnPlayAsync();
-                if (!success)
-                {
-                    playButton.interactable = true;
-                }
+                Debug.LogError("Match Handler not initialized!");
+                return;
+            }
+
+            SetConnecting(true, "Finding Match...");
+            _connectStartUtc = DateTime.UtcNow; // Reset for match connection
+            playButton.interactable = false; // Disable button immediately
+
+            try
+            {
+                await _matchHandler.FindAndJoinMatchAsync();
+                SetConnecting(false, "Match Found!");
+                // Load GameRoom scene upon successful match join
+                SceneManager.LoadScene("GameRoom"); 
+            }
+            catch (Exception ex)
+            {
+                SetConnecting(false, $"Failed to find match: {ex.Message}");
+                Debug.LogError($"Failed to find and join match: {ex.Message}");
+                playButton.interactable = true; // Re-enable button on failure
             }
         }
 
@@ -97,7 +116,7 @@ namespace TienLen.Presentation
         private void SetConnecting(bool connecting, string message)
         {
             _isConnecting = connecting;
-            if (playButton) playButton.interactable = !connecting;
+            if (playButton) playButton.interactable = !connecting && _authService.IsAuthenticated; // Only enable if authenticated
             if (quitButton) quitButton.interactable = !connecting;
             if (connectingOverlay) connectingOverlay.SetActive(connecting);
             if (statusText) statusText.text = message ?? "";
@@ -123,6 +142,7 @@ namespace TienLen.Presentation
         {
             SetProgress(1f);
             HideConnectingAfterMinimumAsync(true, "").Forget();
+            playButton.interactable = true; // Enable play button after successful auth
         }
 
         public void OnAuthFailed(string error)
@@ -143,7 +163,7 @@ namespace TienLen.Presentation
             SetProgress(0f);
             if (connectingOverlay) connectingOverlay.SetActive(false);
             if (statusText) statusText.text = message ?? "";
-            if (playButton) playButton.interactable = success;
+            // playButton.interactable = success; // This line should not control play button state directly, OnAuthComplete/OnAuthFailed should
             if (quitButton) quitButton.interactable = true;
         }
     }
