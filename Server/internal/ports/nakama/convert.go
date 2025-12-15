@@ -38,7 +38,8 @@ func suitToProto(s string) pb.Card_Suit {
 	case "C":
 		return pb.Card_SUIT_CLUBS
 	default:
-		return pb.Card_SUIT_UNSPECIFIED
+		// Fallback to Spades (0) if invalid
+		return pb.Card_SUIT_SPADES
 	}
 }
 
