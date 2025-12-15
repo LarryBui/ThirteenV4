@@ -8,7 +8,7 @@ namespace TienLen.Domain.Aggregates
         public string UserID { get; set; }
         public int Seat { get; set; } // 1-based seat number
         public bool IsOwner { get; set; } // true if match owner
-        public List<Card> Hand { get; set; }
+        public Hand Hand { get; private set; } = new Hand();
         public bool HasPassed { get; set; }
         public bool Finished { get; set; }
     }
