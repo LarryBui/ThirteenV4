@@ -21,6 +21,7 @@ namespace TienLen.Infrastructure.Config
         protected override void Configure(IContainerBuilder builder)
         {
             var deviceId = SystemInfo.deviceUniqueIdentifier;
+            Debug.LogWarning("Device ID: " + deviceId);
             if (string.IsNullOrWhiteSpace(deviceId))
             {
                 deviceId = Guid.NewGuid().ToString();
