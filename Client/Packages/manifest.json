@@ -1,5 +1,6 @@
 {
     "dependencies":  {
+                         "com.cysharp.unitask": "https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask",
                          "com.heroiclabs.nakama-unity":  "https://github.com/heroiclabs/nakama-unity.git?path=/Packages/Nakama",
                          "com.unity.2d.sprite":  "1.0.0",
                          "com.unity.ai.navigation":  "2.0.9",

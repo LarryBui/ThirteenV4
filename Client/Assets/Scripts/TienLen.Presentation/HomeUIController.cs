@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using TienLen.Domain.Services;
 using UnityEngine;
 using UnityEngine.UI;
@@ -25,7 +25,7 @@ namespace TienLen.Presentation
         /// Assign this from a bootstrapper to perform the quickmatch/connect flow.
         /// It should return true on success, false on failure.
         /// </summary>
-        public Func<Task<bool>> OnPlayAsync { get; set; }
+        public Func<UniTask<bool>> OnPlayAsync { get; set; }
 
         private bool _isConnecting;
         private DateTime _connectStartUtc;
@@ -122,21 +122,21 @@ namespace TienLen.Presentation
         public void OnAuthComplete()
         {
             SetProgress(1f);
-            _ = HideConnectingAfterMinimumAsync(true, "");
+            HideConnectingAfterMinimumAsync(true, "").Forget();
         }
 
         public void OnAuthFailed(string error)
         {
             SetProgress(0f);
-            _ = HideConnectingAfterMinimumAsync(false, error);
+            HideConnectingAfterMinimumAsync(false, error).Forget();
         }
 
-        private async Task HideConnectingAfterMinimumAsync(bool success, string message)
+        private async UniTask HideConnectingAfterMinimumAsync(bool success, string message)
         {
             var elapsedSeconds = (float)(DateTime.UtcNow - _connectStartUtc).TotalSeconds;
             if (elapsedSeconds < MinimumConnectSeconds)
             {
-                await Task.Delay(TimeSpan.FromSeconds(MinimumConnectSeconds - elapsedSeconds));
+                await UniTask.Delay(TimeSpan.FromSeconds(MinimumConnectSeconds - elapsedSeconds));
             }
 
             _isConnecting = false;

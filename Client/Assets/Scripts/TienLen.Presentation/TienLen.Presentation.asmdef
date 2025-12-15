@@ -4,7 +4,8 @@
     "references": [
         "TienLen.Domain",
         "TienLen.Application",
-        "VContainer"
+        "VContainer",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -2,7 +2,8 @@
     "name": "TienLen.Domain",
     "rootNamespace": "TienLen.Domain",
     "references": [
-        "NakamaRuntime"
+        "NakamaRuntime",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -1,5 +1,5 @@
 using System;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 
 namespace TienLen.Domain.Services
 {
@@ -31,6 +31,6 @@ namespace TienLen.Domain.Services
         /// <summary>
         /// Authenticates the user and connects to the backend. Safe to call multiple times.
         /// </summary>
-        Task LoginAsync();
+        UniTask LoginAsync();
     }
 }

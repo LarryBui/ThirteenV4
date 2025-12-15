@@ -1,4 +1,4 @@
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using TienLen.Domain.Services;
 using VContainer.Unity;
 using UnityEngine;
@@ -19,10 +19,10 @@ namespace TienLen.Application
 
         public void Start()
         {
-            _ = StartAsync();
+            StartAsync().Forget();
         }
 
-        private async Task StartAsync()
+        private async UniTask StartAsync()
         {
             Debug.Log("GameStartup: Starting application flow...");
 

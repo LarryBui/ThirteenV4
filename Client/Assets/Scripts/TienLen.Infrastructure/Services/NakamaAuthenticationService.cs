@@ -1,6 +1,6 @@
 using System;
 using System.Threading;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Nakama;
 using TienLen.Domain.Services;
 using TienLen.Infrastructure.Config;
@@ -36,7 +36,7 @@ namespace TienLen.Infrastructure.Services
         /// Ensures the user is authenticated and a Nakama socket connection is active.
         /// Safe to call multiple times; subsequent calls reuse the existing session/socket.
         /// </summary>
-        public async Task LoginAsync()
+        public async UniTask LoginAsync()
         {
             await _authLock.WaitAsync();
             try
@@ -51,6 +51,7 @@ namespace TienLen.Infrastructure.Services
 
                 if (!IsSessionValid())
                 {
+                    // AuthenticateDeviceAsync returns a Task, await it directly.
                     _session = await _client.AuthenticateDeviceAsync(_config.DeviceId, create: true);
                     Debug.Log("Authenticated with Nakama using device ID.");
                 }
@@ -75,7 +76,7 @@ namespace TienLen.Infrastructure.Services
             return new Client(_config.Scheme, _config.Host, _config.Port, _config.ServerKey, UnityWebRequestAdapter.Instance);
         }
 
-        private async Task EnsureSocketAsync()
+        private async UniTask EnsureSocketAsync()
         {
             _socket ??= _client.NewSocket();
 
@@ -92,6 +93,7 @@ namespace TienLen.Infrastructure.Services
 
             try
             {
+                // ConnectAsync returns a Task.
                 await _socket.ConnectAsync(_session);
                 Debug.Log("Connected to Nakama realtime socket.");
             }

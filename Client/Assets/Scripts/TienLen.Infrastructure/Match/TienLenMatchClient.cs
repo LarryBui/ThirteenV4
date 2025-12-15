@@ -1,6 +1,6 @@
 using System;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using Cysharp.Threading.Tasks;
 using Google.Protobuf;
 using Nakama;
 using TienLen.Domain.ValueObjects;
@@ -30,19 +30,19 @@ namespace TienLen.Infrastructure.Match
 
         // --- Send helpers ---
 
-        public Task SendStartGameAsync()
+        public UniTask SendStartGameAsync()
             // => SendAsync(TienLenOpcodes.StartGame, ProtoMatchCodec.EncodeStartGame());
             => throw new NotImplementedException("ProtoMatchCodec is removed.");
 
-        public Task SendPlayCardsAsync(IEnumerable<Card> cards)
+        public UniTask SendPlayCardsAsync(IEnumerable<Card> cards)
             // => SendAsync(TienLenOpcodes.PlayCards, ProtoMatchCodec.EncodePlayCards(cards));
             => throw new NotImplementedException("ProtoMatchCodec is removed.");
 
-        public Task SendPassTurnAsync()
+        public UniTask SendPassTurnAsync()
             // => SendAsync(TienLenOpcodes.PassTurn, ProtoMatchCodec.EncodePassTurn());
             => throw new NotImplementedException("ProtoMatchCodec is removed.");
 
-        public Task SendRequestNewGameAsync()
+        public UniTask SendRequestNewGameAsync()
             // => SendAsync(TienLenOpcodes.RequestNewGame, ProtoMatchCodec.EncodeRequestNewGame());
             => throw new NotImplementedException("ProtoMatchCodec is removed.");
 
@@ -75,7 +75,7 @@ namespace TienLen.Infrastructure.Match
 
         // --- Internals ---
 
-        private Task SendAsync(long opcode, ArraySegment<byte> payload)
+        private async UniTask SendAsync(long opcode, ArraySegment<byte> payload)
         {
             var content = payload.Array;
             var length = payload.Count;
@@ -86,7 +86,7 @@ namespace TienLen.Infrastructure.Match
                 ? payload.AsSpan().ToArray()
                 : content ?? Array.Empty<byte>();
 
-            return _socket.SendMatchStateAsync(_matchId, opcode, buffer);
+            await _socket.SendMatchStateAsync(_matchId, opcode, buffer);
         }
     }
 }

@@ -3,7 +3,8 @@
     "rootNamespace": "TienLen.Application",
     "references": [
         "TienLen.Domain",
-        "VContainer"
+        "VContainer",
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
