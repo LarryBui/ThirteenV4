@@ -28,6 +28,8 @@ namespace TienLen.Presentation
         public Func<Task<bool>> OnPlayAsync { get; set; }
 
         private bool _isConnecting;
+        private DateTime _connectStartUtc;
+        private const float MinimumConnectSeconds = 5f;
         private IAuthenticationService _authService;
 
         [Inject]
@@ -64,6 +66,7 @@ namespace TienLen.Presentation
                 return;
             }
 
+            _connectStartUtc = DateTime.UtcNow;
             ShowAuthProgress(0.1f, "Connecting...");
             try
             {
@@ -114,16 +117,28 @@ namespace TienLen.Presentation
         public void OnAuthComplete()
         {
             SetProgress(1f);
-            SetConnecting(false, "");
+            _ = HideConnectingAfterMinimumAsync(true, "");
         }
 
         public void OnAuthFailed(string error)
         {
+            SetProgress(0f);
+            _ = HideConnectingAfterMinimumAsync(false, error);
+        }
+
+        private async Task HideConnectingAfterMinimumAsync(bool success, string message)
+        {
+            var elapsedSeconds = (float)(DateTime.UtcNow - _connectStartUtc).TotalSeconds;
+            if (elapsedSeconds < MinimumConnectSeconds)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(MinimumConnectSeconds - elapsedSeconds));
+            }
+
             _isConnecting = false;
             SetProgress(0f);
             if (connectingOverlay) connectingOverlay.SetActive(false);
-            if (statusText) statusText.text = error ?? "";
-            if (playButton) playButton.interactable = false;
+            if (statusText) statusText.text = message ?? "";
+            if (playButton) playButton.interactable = success;
             if (quitButton) quitButton.interactable = true;
         }
     }
