@@ -44,6 +44,7 @@
   <Project Path="Unity.AI.Navigation.Editor.csproj" />
   <Project Path="NakamaEditor.csproj" />
   <Project Path="Unity.2D.Sprite.Editor.csproj" />
+  <Project Path="TienLen.Domain.csproj" />
   <Project Path="Unity.Multiplayer.Center.Common.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
@@ -61,7 +62,6 @@
   <Project Path="NakamaRuntime.csproj" />
   <Project Path="Unity.RenderPipeline.Universal.ShaderLibrary.csproj" />
   <Project Path="UniTask.Editor.csproj" />
-  <Project Path="TienLen.Domain.csproj" />
   <Project Path="Unity.Rendering.LightTransport.Editor.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />
   <Project Path="Unity.RenderPipelines.Universal.Shaders.csproj" />

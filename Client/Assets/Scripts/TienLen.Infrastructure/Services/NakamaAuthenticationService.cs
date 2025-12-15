@@ -29,6 +29,8 @@ namespace TienLen.Infrastructure.Services
         public bool IsAuthenticated => IsSessionValid() && IsSocketConnected();
         public string CurrentUserId => _session?.UserId;
 
+        internal ISocket Socket => _socket;
+
         public event Action OnAuthenticated;
         public event Action<string> OnAuthenticationFailed;
 
