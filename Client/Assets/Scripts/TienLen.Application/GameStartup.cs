@@ -28,7 +28,7 @@ namespace TienLen.Application
 
             try
             {
-                await _authService.AuthenticateAndConnectAsync();
+                await _authService.LoginAsync();
                 Debug.Log("GameStartup: Auth complete. Ready to load next scene or enable UI.");
             }
             catch (System.Exception ex)

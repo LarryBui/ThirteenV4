@@ -17,34 +17,37 @@ namespace TienLen.Infrastructure.Services
         private readonly SemaphoreSlim _authLock = new(1, 1);
         private bool _socketEventsHooked;
 
+        private ISession _session;
+        private IClient _client;
+        private ISocket _socket;
+
         public NakamaAuthenticationService(ITienLenAppConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public ISession Session { get; private set; }
-        public IClient Client { get; private set; }
-        public ISocket Socket { get; private set; }
+        public bool IsAuthenticated => IsSessionValid() && IsSocketConnected();
+        public string CurrentUserId => _session?.UserId;
 
         /// <summary>
         /// Ensures the user is authenticated and a Nakama socket connection is active.
         /// Safe to call multiple times; subsequent calls reuse the existing session/socket.
         /// </summary>
-        public async Task AuthenticateAndConnectAsync()
+        public async Task LoginAsync()
         {
             await _authLock.WaitAsync();
             try
             {
-                if (IsSessionValid() && IsSocketConnected())
+                if (IsAuthenticated)
                 {
                     return;
                 }
 
-                Client ??= CreateClient();
+                _client ??= CreateClient();
 
                 if (!IsSessionValid())
                 {
-                    Session = await Client.AuthenticateDeviceAsync(_config.DeviceId, create: true);
+                    _session = await _client.AuthenticateDeviceAsync(_config.DeviceId, create: true);
                     Debug.Log("Authenticated with Nakama using device ID.");
                 }
 
@@ -63,11 +66,11 @@ namespace TienLen.Infrastructure.Services
 
         private async Task EnsureSocketAsync()
         {
-            Socket ??= Client.NewSocket();
+            _socket ??= _client.NewSocket();
 
-            if (!_socketEventsHooked && Socket != null)
+            if (!_socketEventsHooked && _socket != null)
             {
-                HookSocketEvents(Socket);
+                HookSocketEvents(_socket);
                 _socketEventsHooked = true;
             }
 
@@ -78,12 +81,12 @@ namespace TienLen.Infrastructure.Services
 
             try
             {
-                await Socket.ConnectAsync(Session);
+                await _socket.ConnectAsync(_session);
                 Debug.Log("Connected to Nakama realtime socket.");
             }
             catch
             {
-                Socket = null;
+                _socket = null;
                 _socketEventsHooked = false;
                 throw;
             }
@@ -95,8 +98,8 @@ namespace TienLen.Infrastructure.Services
             socket.ReceivedError += error => Debug.LogError($"Nakama socket error: {error.Message}");
         }
 
-        private bool IsSessionValid() => Session != null && !Session.IsExpired;
+        private bool IsSessionValid() => _session != null && !_session.IsExpired;
 
-        private bool IsSocketConnected() => Socket != null && Socket.IsConnected;
+        private bool IsSocketConnected() => _socket != null && _socket.IsConnected;
     }
 }

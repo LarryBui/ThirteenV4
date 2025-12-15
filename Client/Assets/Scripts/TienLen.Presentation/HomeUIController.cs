@@ -70,7 +70,7 @@ namespace TienLen.Presentation
             ShowAuthProgress(0.1f, "Connecting...");
             try
             {
-                await _authService.AuthenticateAndConnectAsync();
+                await _authService.LoginAsync();
                 OnAuthComplete();
             }
             catch (Exception ex)
