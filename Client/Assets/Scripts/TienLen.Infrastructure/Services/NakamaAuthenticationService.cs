@@ -30,6 +30,7 @@ namespace TienLen.Infrastructure.Services
         public string CurrentUserId => _session?.UserId;
 
         internal ISocket Socket => _socket;
+        public IClient Client => _client;
 
         public event Action OnAuthenticated;
         public event Action<string> OnAuthenticationFailed;

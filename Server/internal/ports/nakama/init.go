@@ -9,7 +9,7 @@ import (
 
 // InitModule wires RPCs and match handlers for Nakama runtime.
 func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, initializer runtime.Initializer) error {
-	if err := RegisterRPCs(initializer); err != nil {
+	if err := initializer.RegisterRpc("find_match", RpcFindMatch); err != nil {
 		return err
 	}
 
@@ -17,9 +17,7 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 		return err
 	}
 
-	if err := initializer.RegisterMatch(MatchNameTienLen, func(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule) (runtime.Match, error) {
-		return newMatchHandler(), nil
-	}); err != nil {
+	if err := initializer.RegisterMatch(MatchNameTienLen, NewMatch); err != nil {
 		return err
 	}
 

@@ -16,8 +16,6 @@ namespace TienLen.Infrastructure.Match
     {
         private readonly NakamaAuthenticationService _authService;
         private string _matchId;
-        private UniTaskCompletionSource<string> _matchmakerCompletionSource;
-        private string _matchmakerTicket;
 
         // --- IMatchNetworkClient Events ---
         public event Action<string> OnPlayerJoined;
@@ -32,6 +30,7 @@ namespace TienLen.Infrastructure.Match
         }
 
         private ISocket Socket => _authService.Socket;
+        private IClient Client => _authService.Client;
 
         // --- IMatchNetworkClient Implementation ---
 
@@ -40,32 +39,21 @@ namespace TienLen.Infrastructure.Match
             if (Socket == null) throw new InvalidOperationException("Not connected to Nakama socket.");
             if (!Socket.IsConnected) throw new InvalidOperationException("Nakama socket is not connected.");
 
-            _matchmakerCompletionSource = new UniTaskCompletionSource<string>();
-            Socket.ReceivedMatchmakerMatched += HandleMatchmakerMatched;
+            // 1. Call server-side RPC to find or create a match
+            var rpcId = "find_match";
+            var rpcResponse = await Client.RpcAsync(await Client.SessionAsync(), rpcId);
 
-            try
+            if (rpcResponse == null || string.IsNullOrEmpty(rpcResponse.Payload))
             {
-                // Add self to matchmaker (2 to 4 players for now)
-                var matched = await Socket.AddMatchmakerAsync("*", 2, 4);
-                _matchmakerTicket = matched.Ticket;
-
-                // Wait for a match to be found via the HandleMatchmakerMatched event
-                var matchId = await _matchmakerCompletionSource.Task;
-
-                // Remove ticket from matchmaker (important for cleanup)
-                await Socket.RemoveMatchmakerAsync(_matchmakerTicket);
-                _matchmakerTicket = null;
-
-                return matchId;
+                throw new InvalidOperationException($"RPC '{rpcId}' returned no match ID.");
             }
-            finally
-            {
-                if (Socket != null)
-                {
-                    Socket.ReceivedMatchmakerMatched -= HandleMatchmakerMatched;
-                }
-                _matchmakerCompletionSource = null;
-            }
+
+            var matchId = rpcResponse.Payload;
+            
+            // 2. Join the match using the ID returned from the RPC
+            await SendJoinMatchAsync(matchId);
+            
+            return matchId;
         }
 
         public async UniTask SendJoinMatchAsync(string matchId)
@@ -109,25 +97,6 @@ namespace TienLen.Infrastructure.Match
         }
 
         // --- Event Handlers ---
-
-        private void HandleMatchmakerMatched(IMatchmakerMatched matched)
-        {
-            if (matched?.MatchId != null && _matchmakerCompletionSource != null)
-            {
-                _matchmakerCompletionSource.TrySetResult(matched.MatchId);
-            }
-            else if (matched?.MatchId == null && matched?.Token != null && _matchmakerCompletionSource != null)
-            {
-                // Optionally handle match tokens if not directly receiving MatchId
-                // For now, we expect MatchId directly
-                Debug.LogWarning("Received matchmaker token, but expected MatchId. Check Nakama server setup.");
-                _matchmakerCompletionSource.TrySetException(new Exception("Received matchmaker token, but expected MatchId."));
-            }
-            else
-            {
-                Debug.LogWarning("Received matchmaker matched event, but no active matchmaker request or matchId was null.");
-            }
-        }
 
         private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
         {
