@@ -52,7 +52,7 @@ namespace TienLen.Application
             // 2. Initialize Domain state
             // Note: Ideally, the server response would confirm success and give initial state.
             // For now, we assume success if no exception.
-            CurrentMatch = new Match(Guid.Parse(matchId)); // Assuming matchId is Guid, or change Match ctor
+            CurrentMatch = new Match(matchId); // Assuming matchId is Guid, or change Match ctor
             
             // Add self to match
             var selfPlayer = new Player 

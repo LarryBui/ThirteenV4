@@ -10,7 +10,7 @@ namespace TienLen.Domain.Aggregates
     public class Match
     {
         /// <summary>Match identifier.</summary>
-        public Guid Id { get; }
+        public string Id { get; }
         /// <summary>Lifecycle phase (e.g., lobby, playing, ended).</summary>
         public string Phase { get; set; }
         /// <summary>UserId -> Player lookup.</summary>
@@ -35,7 +35,7 @@ namespace TienLen.Domain.Aggregates
         /// </summary>
         /// <param name="id">Match identifier.</param>
         /// <param name="seatCount">Total seats available in the match.</param>
-        public Match(Guid id, int seatCount = 4)
+        public Match(string id, int seatCount = 4)
         {
             Id = id;
             Players = new Dictionary<string, Player>();
