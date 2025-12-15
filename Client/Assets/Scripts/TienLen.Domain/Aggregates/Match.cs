@@ -1,103 +1,79 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using TienLen.Domain.ValueObjects;
 
 namespace TienLen.Domain.Aggregates
 {
+    /// <summary>
+    /// Client-side match state modeled to mirror the server's MatchState.
+    /// </summary>
     public class Match
     {
+        /// <summary>Match identifier.</summary>
         public Guid Id { get; }
-        public List<Hand> PlayerHands { get; }
+        /// <summary>Lifecycle phase (e.g., lobby, playing, ended).</summary>
+        public string Phase { get; set; }
+        /// <summary>UserId -> Player lookup.</summary>
+        public Dictionary<string, Player> Players { get; }
+        /// <summary>Seats indexed 0..N-1 containing userIds or empty strings.</summary>
+        public string[] Seats { get; }
+        /// <summary>UserId of the current owner.</summary>
+        public string OwnerUserID { get; set; }
+        /// <summary>Seat whose turn it is (1-based).</summary>
+        public int CurrentTurnSeat { get; set; }
+        /// <summary>Seat that led the current round (1-based).</summary>
+        public int RoundLeaderSeat { get; set; }
+        /// <summary>Seat that last played cards (1-based).</summary>
+        public int LastPlaySeat { get; set; }
+        /// <summary>Finish order (userIds) as players empty their hands.</summary>
+        public List<string> FinishOrder { get; }
+        /// <summary>Cards currently on the board.</summary>
         public List<Card> CurrentBoard { get; private set; }
-        public int CurrentTurnIndex { get; private set; }
 
-        public Match(Guid id, int playerCount)
+        /// <summary>
+        /// Initialize a new match with the given seat count (defaults to 4, matching server).
+        /// </summary>
+        /// <param name="id">Match identifier.</param>
+        /// <param name="seatCount">Total seats available in the match.</param>
+        public Match(Guid id, int seatCount = 4)
         {
-            Id = id;
-            PlayerHands = new List<Hand>();
-            for (int i = 0; i < playerCount; i++)
-            {
-                PlayerHands.Add(new Hand());
-            }
-            CurrentBoard = new List<Card>();
-            CurrentTurnIndex = 0;
+            throw new NotImplementedException("Match domain model not implemented yet.");
         }
 
+        /// <summary>
+        /// Adds a player to the match, ensuring the seat array mirrors server-side state.
+        /// </summary>
+        /// <param name="player">Player to register.</param>
+        public void RegisterPlayer(Player player)
+        {
+            throw new NotImplementedException("Match.RegisterPlayer not implemented yet.");
+        }
+
+        /// <summary>
+        /// Deals a shuffled deck evenly across occupied seats in seating order.
+        /// </summary>
         public void DealCards()
         {
-            var deck = CreateStandardDeck();
-            Shuffle(deck);
-
-            int playerIndex = 0;
-            foreach (var card in deck)
-            {
-                // Ideally Hand.AddCard taking a single card would be better, but wrapping in list for now
-                PlayerHands[playerIndex].AddCards(new List<Card> { card }); 
-                playerIndex = (playerIndex + 1) % PlayerHands.Count;
-            }
+            throw new NotImplementedException("Match.DealCards not implemented yet.");
         }
 
-        private List<Card> CreateStandardDeck()
+        /// <summary>
+        /// Plays a turn for the specified player.
+        /// </summary>
+        /// <param name="userId">User identifier.</param>
+        /// <param name="cards">Cards to play.</param>
+        public void PlayTurn(string userId, List<Card> cards)
         {
-            var deck = new List<Card>();
-            foreach (Domain.Enums.Rank rank in Enum.GetValues(typeof(Domain.Enums.Rank)))
-            {
-                foreach (Domain.Enums.Suit suit in Enum.GetValues(typeof(Domain.Enums.Suit)))
-                {
-                    deck.Add(new Card(rank, suit));
-                }
-            }
-            return deck;
+            throw new NotImplementedException("Match.PlayTurn not implemented yet.");
         }
 
-        private void Shuffle<T>(List<T> list)
+        /// <summary>
+        /// Skips the turn for the specified player.
+        /// </summary>
+        /// <param name="userId">User identifier.</param>
+        public void SkipTurn(string userId)
         {
-            var rng = new Random();
-            int n = list.Count;
-            while (n > 1)
-            {
-                n--;
-                int k = rng.Next(n + 1);
-                T value = list[k];
-                list[k] = list[n];
-                list[n] = value;
-            }
-        }
-
-        public void PlayTurn(int playerIndex, List<Card> cards)
-        {
-            if (playerIndex != CurrentTurnIndex)
-            {
-                throw new InvalidOperationException("Not your turn.");
-            }
-
-            var hand = PlayerHands[playerIndex];
-            if (!hand.HasCards(cards))
-            {
-                throw new InvalidOperationException("Player does not have specified cards.");
-            }
-
-            // TODO: Add Rule Engine validation here (is this a valid combo? does it beat the board?)
-            
-            hand.RemoveCards(cards);
-            CurrentBoard = cards; 
-            
-            MoveToNextTurn();
-        }
-
-        public void SkipTurn(int playerIndex)
-        {
-             if (playerIndex != CurrentTurnIndex)
-            {
-                throw new InvalidOperationException("Not your turn.");
-            }
-            MoveToNextTurn();
-        }
-
-        private void MoveToNextTurn()
-        {
-            CurrentTurnIndex = (CurrentTurnIndex + 1) % PlayerHands.Count;
+            throw new NotImplementedException("Match.SkipTurn not implemented yet.");
         }
     }
 }
