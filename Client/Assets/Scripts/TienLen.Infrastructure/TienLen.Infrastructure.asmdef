@@ -4,6 +4,7 @@
     "references": [
         "TienLen.Domain",
         "TienLen.Application",
+        "TienLen.Presentation",
         "NakamaRuntime",
         "VContainer",
         "Unity.TextMeshPro"

@@ -5,6 +5,9 @@ using UnityEngine;
 
 namespace TienLen.Application
 {
+    /// <summary>
+    /// Application entry point responsible for bootstrapping backend authentication on load.
+    /// </summary>
     public class GameStartup : IStartable
     {
         private readonly IAuthenticationService _authService;
@@ -16,18 +19,22 @@ namespace TienLen.Application
 
         public void Start()
         {
-            // Fire and forget the startup sequence
             _ = StartAsync();
         }
 
-        private Task StartAsync()
+        private async Task StartAsync()
         {
             Debug.Log("GameStartup: Starting application flow...");
-            
-            // This is the "Main" entry point.
-            // await _authService.AuthenticateAndConnectAsync();
-            return null;
-            Debug.Log("GameStartup: Auth complete. Ready to load next scene or enable UI.");
+
+            try
+            {
+                await _authService.AuthenticateAndConnectAsync();
+                Debug.Log("GameStartup: Auth complete. Ready to load next scene or enable UI.");
+            }
+            catch (System.Exception ex)
+            {
+                Debug.LogError($"GameStartup: Authentication failed - {ex.Message}");
+            }
         }
     }
 }

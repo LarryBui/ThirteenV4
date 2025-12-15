@@ -13,11 +13,11 @@ namespace TienLen.Infrastructure.Services
     /// </summary>
     public sealed class NakamaAuthenticationService : IAuthenticationService
     {
-        private readonly NakamaConfig _config;
+        private readonly ITienLenAppConfig _config;
         private readonly SemaphoreSlim _authLock = new(1, 1);
         private bool _socketEventsHooked;
 
-        public NakamaAuthenticationService(NakamaConfig config)
+        public NakamaAuthenticationService(ITienLenAppConfig config)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }

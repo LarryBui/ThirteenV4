@@ -1,12 +1,15 @@
 using System;
 using System.Threading.Tasks;
+using TienLen.Domain.Services;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace TienLen.Presentation
 {
     /// <summary>
     /// Handles Home screen UX: Play/ Quit buttons and connecting overlay.
+    /// Performs startup authentication via the injected auth service and unlocks controls when ready.
     /// Wire Play to your Nakama quickmatch flow by injecting an async callback.
     /// </summary>
     public sealed class HomeUIController : MonoBehaviour
@@ -25,6 +28,13 @@ namespace TienLen.Presentation
         public Func<Task<bool>> OnPlayAsync { get; set; }
 
         private bool _isConnecting;
+        private IAuthenticationService _authService;
+
+        [Inject]
+        public void Construct(IAuthenticationService authService)
+        {
+            _authService = authService;
+        }
 
         private void Awake()
         {
@@ -35,38 +45,35 @@ namespace TienLen.Presentation
             SetProgress(0f);
         }
 
+        private void Start()
+        {
+            _ = AuthenticateOnStartAsync();
+        }
+
         private async void HandlePlayClicked()
         {
-            if (_isConnecting)
+            
+        }
+
+        private async Task AuthenticateOnStartAsync()
+        {
+            if (_authService == null)
+            {
+                Debug.LogWarning("Authentication service not provided; skipping automatic auth.");
+                OnAuthFailed("Authentication unavailable.");
                 return;
+            }
 
-            SetConnecting(true, "Connecting...");
-            SetProgress(0.15f);
-
-            var ok = false;
+            ShowAuthProgress(0.1f, "Connecting...");
             try
             {
-                if (OnPlayAsync != null)
-                {
-                    ok = await OnPlayAsync.Invoke();
-                }
-                else
-                {
-                    statusText.text = "No OnPlayAsync handler assigned.";
-                }
-                SetProgress(ok ? 1f : 0f);
+                await _authService.AuthenticateAndConnectAsync();
+                OnAuthComplete();
             }
             catch (Exception ex)
             {
-                statusText.text = $"Error: {ex.Message}";
-                SetProgress(0f);
-            }
-            finally
-            {
-                if (!ok)
-                {
-                    SetConnecting(false, ok ? "" : statusText.text);
-                }
+                Debug.LogError($"Authentication failed: {ex.Message}");
+                OnAuthFailed("Unable to connect. Press Play to retry or Quit.");
             }
         }
 
@@ -112,8 +119,12 @@ namespace TienLen.Presentation
 
         public void OnAuthFailed(string error)
         {
+            _isConnecting = false;
             SetProgress(0f);
-            SetConnecting(false, error);
+            if (connectingOverlay) connectingOverlay.SetActive(false);
+            if (statusText) statusText.text = error ?? "";
+            if (playButton) playButton.interactable = false;
+            if (quitButton) quitButton.interactable = true;
         }
     }
 }
