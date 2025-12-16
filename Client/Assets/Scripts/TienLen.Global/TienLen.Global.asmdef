@@ -1,14 +1,13 @@
 {
-    "name": "TienLen.Infrastructure",
-    "rootNamespace": "TienLen.Infrastructure",
+    "name": "TienLen.Global",
+    "rootNamespace": "TienLen.Global",
     "references": [
         "TienLen.Domain",
         "TienLen.Application",
-        "NakamaRuntime",
+        "TienLen.Infrastructure",
+        "TienLen.Presentation",
         "VContainer",
-        "Unity.TextMeshPro",
-        "UniTask",
-        "TienLen.Proto"
+        "UniTask"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

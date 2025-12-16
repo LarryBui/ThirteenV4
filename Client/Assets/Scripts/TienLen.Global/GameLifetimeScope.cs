@@ -1,13 +1,14 @@
 using System;
-using TienLen.Application; // Updated for IMatchNetworkClient and IAuthenticationService
+using TienLen.Application;
 using TienLen.Infrastructure.Config;
 using TienLen.Infrastructure.Match;
 using TienLen.Infrastructure.Services;
+using TienLen.Presentation; // Needed for BootstrapUIController
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
 
-namespace TienLen.Presentation
+namespace TienLen.Global
 {
     public class GameLifetimeScope : LifetimeScope
     {
@@ -41,7 +42,7 @@ namespace TienLen.Presentation
 
             // Register Match Infrastructure
             builder.Register<NakamaMatchClient>(Lifetime.Singleton)
-                .As<IMatchNetworkClient>(); // IMatchNetworkClient is now in TienLen.Application
+                .As<IMatchNetworkClient>();
 
             // Register Application Handler
             builder.Register<TienLenMatchHandler>(Lifetime.Singleton);
