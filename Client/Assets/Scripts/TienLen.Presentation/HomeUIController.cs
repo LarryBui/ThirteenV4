@@ -37,6 +37,11 @@ namespace TienLen.Presentation
             playButton?.onClick.AddListener(HandlePlayClicked);
             quitButton?.onClick.AddListener(HandleQuitClicked);
 
+            // Subscribe to authentication events for resilience.
+            // Even though initial authentication happens in Bootstrap,
+            // these events handle cases like session expiry or network disconnection
+            // while on the Home screen, allowing the UI to react by enabling/disabling
+            // the play button accordingly.
             if (_authService != null)
             {
                 _authService.OnAuthenticated += OnAuthComplete;
@@ -46,7 +51,7 @@ namespace TienLen.Presentation
 
         private void Start()
         {
-            // Initial state check
+            // Initial state check: Assumes authentication is complete from Bootstrap.
             bool isReady = _authService != null && _authService.IsAuthenticated;
             SetPlayInteractable(isReady);
             
@@ -56,6 +61,7 @@ namespace TienLen.Presentation
 
         private void OnDestroy()
         {
+            // Unsubscribe from events to prevent memory leaks.
             if (_authService != null)
             {
                 _authService.OnAuthenticated -= OnAuthComplete;
@@ -99,7 +105,6 @@ namespace TienLen.Presentation
 
         private void SetMatchmakingState(bool isSearching, string message)
         {
-            // No connectingOverlay, just update status text and button interactability
             if (statusText) statusText.text = message;
             
             // Disable buttons while searching
@@ -107,14 +112,25 @@ namespace TienLen.Presentation
             if (quitButton) quitButton.interactable = !isSearching;
         }
 
+        /// <summary>
+        /// Called when authentication is successfully completed (e.g., initial login or re-authentication after disconnect).
+        /// Enables the play button to allow matchmaking.
+        /// </summary>
         private void OnAuthComplete()
         {
             SetPlayInteractable(true);
         }
 
+        /// <summary>
+        /// Called when authentication fails (e.g., session expired, network issues).
+        /// Disables the play button to prevent attempting matchmaking when unauthenticated.
+        /// </summary>
+        /// <param name="error">The error message from the authentication failure.</param>
         private void OnAuthFailed(string error)
         {
+            Debug.LogError($"Authentication failed on Home screen: {error}");
             SetPlayInteractable(false);
+            if (statusText) statusText.text = "Authentication failed. Please restart.";
         }
 
         private void SetPlayInteractable(bool interactable)
