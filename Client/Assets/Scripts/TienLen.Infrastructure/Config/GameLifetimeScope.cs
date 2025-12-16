@@ -47,10 +47,6 @@ namespace TienLen.Infrastructure.Config
             // Register Application Handler
             builder.Register<TienLenMatchHandler>(Lifetime.Singleton);
 
-            // Register Scene Navigator
-            builder.Register<SceneNavigator>(Lifetime.Singleton)
-                .As<ISceneNavigator>();
-            
             // Register Bootstrap UI (Component in Hierarchy) so it receives Injection
             builder.RegisterComponentInHierarchy<BootstrapUIController>();
         }
