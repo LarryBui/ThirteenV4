@@ -30,12 +30,14 @@ namespace TienLen.Presentation
         
         private IAuthenticationService _authService;
         private TienLenMatchHandler _matchHandler;
+        private ISceneNavigator _sceneNavigator;
 
         [Inject]
-        public void Construct(IAuthenticationService authService, TienLenMatchHandler matchHandler)
+        public void Construct(IAuthenticationService authService, TienLenMatchHandler matchHandler, ISceneNavigator sceneNavigator)
         {
             _authService = authService;
             _matchHandler = matchHandler;
+            _sceneNavigator = sceneNavigator;
         }
 
         private void Awake()
@@ -109,8 +111,8 @@ namespace TienLen.Presentation
                 await _matchHandler.FindAndJoinMatchAsync();
                 SetConnecting(false, "Match Found!");
                 
-                // TODO: Revisit this in Step 4 for SceneNavigator
-                SceneManager.LoadScene("GameRoom", LoadSceneMode.Additive); 
+                // Use SceneNavigator to load GameRoom additively
+                await _sceneNavigator.LoadGameRoomAsync();
             }
             catch (Exception ex)
             {
@@ -172,7 +174,16 @@ namespace TienLen.Presentation
             SetProgress(0f);
             if (connectingOverlay) connectingOverlay.SetActive(false);
             if (statusText) statusText.text = message ?? "";
-            if (quitButton) quitButton.interactable = true;
-        }
-    }
-}
+                        if (quitButton) quitButton.interactable = true;
+                    }
+            
+                    public void SetHomeUIVisibility(bool isVisible)
+                    {
+                        if (gameObject.activeSelf != isVisible)
+                        {
+                            gameObject.SetActive(isVisible);
+                        }
+                    }
+                }
+            }
+            
