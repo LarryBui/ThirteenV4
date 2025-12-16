@@ -3,7 +3,6 @@ using TienLen.Application;
 using TienLen.Domain.Services;
 using TienLen.Infrastructure.Match;
 using TienLen.Infrastructure.Services;
-using TienLen.Presentation;
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -18,20 +17,24 @@ namespace TienLen.Infrastructure.Config
         [SerializeField] private int port = NakamaConfig.DefaultPort;
         [SerializeField] private string serverKey = NakamaConfig.DefaultServerKey;
 
+        protected override void Awake()
+        {
+            base.Awake();
+            DontDestroyOnLoad(this.gameObject);
+        }
+
         protected override void Configure(IContainerBuilder builder)
         {
             var deviceId = SystemInfo.deviceUniqueIdentifier;
-            Debug.LogWarning("Device ID: " + deviceId);
             if (string.IsNullOrWhiteSpace(deviceId))
             {
                 deviceId = Guid.NewGuid().ToString();
-                Debug.LogWarning("Device ID is empty; generated a temporary GUID for Nakama auth.");
             }
 
             var nakamaConfig = new NakamaConfig(deviceId, scheme, host, port, serverKey);
             builder.RegisterInstance<ITienLenAppConfig>(nakamaConfig);
 
-            // Register Auth Service as interface and self (so MatchClient can access internal Socket)
+            // Register Auth Service as interface and self
             builder.Register<NakamaAuthenticationService>(Lifetime.Singleton)
                 .As<IAuthenticationService>()
                 .AsSelf();
@@ -43,9 +46,8 @@ namespace TienLen.Infrastructure.Config
             // Register Application Handler
             builder.Register<TienLenMatchHandler>(Lifetime.Singleton);
 
-            builder.RegisterComponentInHierarchy<HomeUIController>();
-
-            builder.RegisterEntryPoint<GameStartup>();
+            // Register Bootstrap Flow (Loads Home Scene)
+            builder.RegisterEntryPoint<BootstrapFlow>();
         }
     }
 }

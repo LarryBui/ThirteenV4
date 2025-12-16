@@ -1,51 +1,12 @@
-<state_snapshot>
-      <overall_goal>
-          Refactor and implement core game logic and infrastructure in the Unity Client using Clean Architecture, integrating Nakama and UniTask, while maintaining a compatible Go Server plugin. The matchmaking system is server-authoritative.
-      </overall_goal>
+Proposed scene/DI restructuring for clearer flow and separation:
 
-      <key_knowledge>
-           - Architecture: Clean Architecture (Domain, Application, Infrastructure, Presentation).
-           - Networking: Nakama (Heroic Labs) v3.22.0.
-           - Server Plugin:
-             - Build: Windows cannot build the plugin directly. Must use Docker: docker run ... golang:1.22.4 ....
-             - Dependency: nakama-common v1.32.0.
-             - Location: Compiled backend.so in build/modules/.
-             - Active Hack: BeforeAuthenticateDevice hook forces new user creation (random UUID) for dev/testing.
-           - Matchmaking (Server-Authoritative):
-             - RPC: find_match RPC (Go) finds or creates a match.
-             - Match Handler: tienlen_match (Go) manages seats, ownership, and label updates.
-             - Match ID: String format (e.g., <UUID>.nakama1), handled as string in Client Domain.
-      </key_knowledge>
-
-      <file_system_state>
-           - Server (Go):
-             - Server/internal/ports/nakama/init.go: Registers find_match RPC, tienlen_match handler, and auth hook.
-             - Server/internal/ports/nakama/match_handler.go: Implements match lifecycle (Init, Join, Leave, Loop).
-             - Server/internal/ports/nakama/rpc.go: Implements RpcFindMatch.
-             - build/modules/backend.so: VERIFIED LOADED in Nakama container.
-           - Client (Unity/C#):
-             - NakamaAuthenticationService.cs: Exposes public ISession Session and public IClient Client.
-             - NakamaMatchClient.cs: Uses find_match RPC to join matches.
-             - Match.cs (Domain): UPDATED Id property type from Guid to string.
-      </file_system_state>
-
-      <recent_actions>
-           - Verified Server: Confirmed via Docker logs that tienlen_match and find_match are registered and running.
-           - Fixed Compilation Error: Exposed ISession in NakamaAuthenticationService and updated NakamaMatchClient to use it for RPC calls.
-           - Fixed Domain Logic: Changed Match.Id from Guid to string in TienLen.Domain.Aggregates.Match to support Nakama ID format.
-      </recent_actions>
-
-      <current_plan>
-           1. [DONE] Refactor IAuthenticationService.
-           2. [DONE] Centralize application flow.
-           3. [DONE] Implement Match.cs domain logic (Client).
-           4. [DONE] Install and integrate UniTask.
-           5. [DONE] Define IMatchNetworkClient and TienLenMatchHandler.
-           6. [DONE] Rename TienLenMatchClient to NakamaMatchClient.
-           7. [DONE] Implement server-authoritative matchmaking (Server & Client wiring).
-           8. [DONE] Fix Server Compilation and Build Plugin via Docker.
-           9. [DONE] Implement "Always Create New User" Server Hook.
-           10. [TODO] Integrate NakamaMatchClient into the Unity Application flow (Authentication -> Matchfinding).
-           11. [TODO] Test full connection flow from Unity Editor to Nakama.
-      </current_plan>
-  </state_snapshot>
+Scene roles: Keep Home lean for auth/UX and GameRoom for match play. Extract a tiny Bootstrap additive scene as the true entry point to own: config load, logging, service container initialization, cross-scene singletons (network client, player/session state, config, audio bus, analytics). Load Home additively after bootstrap.
+Scene loading pattern: Use additive loads for Home → GameRoom, unloading the previous scene’s presentation while keeping the bootstrap scene resident so shared services persist. Centralize scene transitions in a SceneNavigator service (no UI code calling SceneManager directly).
+Auth + matchmaking flow: In Home, UI triggers an AuthController that depends only on an IAuthService (handles token/session refresh) and IMatchmakingService (handles join/create). When Play is clicked: disable UI, call matchmaking, on success instruct SceneNavigator to load GameRoom additively; on failure re-enable UI with error. Carry the match context via a MatchSession model stored in the bootstrap scope.
+GameRoom responsibilities: View-only components talk to a thin GameRoomController that takes IMatchService/IMatchState interfaces. Start Game triggers a command on IMatchService (idempotent). Keep rendering/input separate from network logic; add a MatchStatePresenter that subscribes to match state updates to drive UI.
+DI boundaries: Define interfaces in a shared assembly (e.g., TienLen.Application), concrete implementations in infrastructure assemblies (e.g., Nakama clients). Register in bootstrap: IAuthService, IMatchmakingService, IMatchService, IMatchState, ILogger, IConfig, IScheduler/ITimer, IAudioBus, IAnalytics. Provide factories for scene-scoped controllers (HomeController, GameRoomController) so they resolve dependencies cleanly per scene.
+State management: Maintain a PlayerSession (auth tokens, user id) and MatchSession (match id, slots, rules, reconnection data) as services with clear lifetimes: bootstrap-resident, reset on logout/leave match. Ensure reconnection flow can rehydrate GameRoom without a full app restart.
+Networking: Keep Nakama client lifetime in bootstrap. Expose only domain-facing interfaces to scenes. Use message handlers to push updates into IMatchState; presenters subscribe to that, not directly to sockets.
+Loading/error UX: Standardize loading overlays and error surfaces per scene; avoid duplicated spinners/toasts. SceneNavigator can show a global loading screen during transitions.
+Testing hooks: With DI, controllers and services become unit-testable (auth flow, matchmaking join, start-game command idempotency). No code changes yet; once ready, we can add tests to lock behavior.
+If you want, I can draft a concrete scene/DI layout (bootstrap scene content, service registrations, and per-scene controller wiring) before touching code.

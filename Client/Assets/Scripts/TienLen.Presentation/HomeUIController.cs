@@ -6,6 +6,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VContainer;
+using TMPro; // Added for TextMeshPro components
 
 namespace TienLen.Presentation
 {
@@ -17,15 +18,15 @@ namespace TienLen.Presentation
     public sealed class HomeUIController : MonoBehaviour
     {
         [Header("UI References")]
-        [SerializeField] private Button playButton;
-        [SerializeField] private Button quitButton;
+        [SerializeField] private Button playButton; // Reverted to standard Button
+        [SerializeField] private Button quitButton; // Reverted to standard Button
         [SerializeField] private GameObject connectingOverlay;
-        [SerializeField] private Text statusText;
+        [SerializeField] private TMP_Text statusText; // Kept as TMP_Text
         [SerializeField] private Slider progressBar;
 
         private bool _isConnecting;
         private DateTime _connectStartUtc;
-        private const float MinimumConnectSeconds = 2f; // Reduced for quicker feedback
+        private const float MinimumConnectSeconds = 2f; 
         
         private IAuthenticationService _authService;
         private TienLenMatchHandler _matchHandler;
@@ -51,20 +52,22 @@ namespace TienLen.Presentation
 
         private void Start()
         {
-            // Initial state: connecting. GameStartup will drive the actual logic.
             SetConnecting(true, "Connecting...");
             SetProgress(0.1f);
-            _connectStartUtc = DateTime.UtcNow; // Initialize start time
+            _connectStartUtc = DateTime.UtcNow;
 
-            // Check if already authenticated (race condition handling)
             if (_authService != null && _authService.IsAuthenticated)
             {
                 OnAuthComplete();
             }
+            else if (_authService != null)
+            {
+                // Auto-login logic
+                LoginAndInitialize().Forget();
+            }
             else
             {
-                // Ensure buttons are disabled if not authenticated yet
-                playButton.interactable = false;
+                if (playButton) playButton.interactable = false;
             }
         }
 
@@ -77,6 +80,18 @@ namespace TienLen.Presentation
             }
         }
 
+        private async UniTask LoginAndInitialize()
+        {
+            try
+            {
+                await _authService.LoginAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogError($"HomeUIController: Login failed - {ex.Message}");
+            }
+        }
+
         private async void HandlePlayClicked()
         {
             if (_matchHandler == null)
@@ -86,21 +101,22 @@ namespace TienLen.Presentation
             }
 
             SetConnecting(true, "Finding Match...");
-            _connectStartUtc = DateTime.UtcNow; // Reset for match connection
-            playButton.interactable = false; // Disable button immediately
+            _connectStartUtc = DateTime.UtcNow;
+            playButton.interactable = false;
 
             try
             {
                 await _matchHandler.FindAndJoinMatchAsync();
                 SetConnecting(false, "Match Found!");
-                // Load GameRoom scene upon successful match join
-                SceneManager.LoadScene("GameRoom"); 
+                
+                // TODO: Revisit this in Step 4 for SceneNavigator
+                SceneManager.LoadScene("GameRoom", LoadSceneMode.Additive); 
             }
             catch (Exception ex)
             {
                 SetConnecting(false, $"Failed to find match: {ex.Message}");
                 Debug.LogError($"Failed to find and join match: {ex.Message}");
-                playButton.interactable = true; // Re-enable button on failure
+                playButton.interactable = true;
             }
         }
 
@@ -116,7 +132,7 @@ namespace TienLen.Presentation
         private void SetConnecting(bool connecting, string message)
         {
             _isConnecting = connecting;
-            if (playButton) playButton.interactable = !connecting && _authService.IsAuthenticated; // Only enable if authenticated
+            if (playButton) playButton.interactable = !connecting && (_authService?.IsAuthenticated ?? false);
             if (quitButton) quitButton.interactable = !connecting;
             if (connectingOverlay) connectingOverlay.SetActive(connecting);
             if (statusText) statusText.text = message ?? "";
@@ -131,18 +147,11 @@ namespace TienLen.Presentation
             }
         }
 
-        // ---- External control for auth/bootstrap phases ----
-        public void ShowAuthProgress(float progress, string message = null)
-        {
-            SetConnecting(true, message ?? statusText?.text ?? "Connecting...");
-            SetProgress(progress);
-        }
-
         public void OnAuthComplete()
         {
             SetProgress(1f);
             HideConnectingAfterMinimumAsync(true, "").Forget();
-            playButton.interactable = true; // Enable play button after successful auth
+            playButton.interactable = true;
         }
 
         public void OnAuthFailed(string error)
@@ -163,7 +172,6 @@ namespace TienLen.Presentation
             SetProgress(0f);
             if (connectingOverlay) connectingOverlay.SetActive(false);
             if (statusText) statusText.text = message ?? "";
-            // playButton.interactable = success; // This line should not control play button state directly, OnAuthComplete/OnAuthFailed should
             if (quitButton) quitButton.interactable = true;
         }
     }
