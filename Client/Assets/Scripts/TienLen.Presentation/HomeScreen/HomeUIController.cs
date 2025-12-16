@@ -21,7 +21,7 @@ namespace TienLen.Presentation
         [SerializeField] private Button playButton;
         [SerializeField] private Button quitButton;
         [SerializeField] private TMP_Text statusText;
-        [SerializeField] private GameObject contentRoot; // Optional: To hide everything but keep script running
+        [SerializeField] private GameObject contentRoot; // Mandatory: Used to hide/show the entire Home UI
         
         private IAuthenticationService _authService;
         private TienLenMatchHandler _matchHandler;
@@ -90,7 +90,7 @@ namespace TienLen.Presentation
                 // Load GameRoom Additively
                 await SceneManager.LoadSceneAsync("GameRoom", LoadSceneMode.Additive);
                 
-                // Hide Home Screen
+                // Hide Home Screen UI
                 SetHomeUIVisibility(false);
             }
             catch (Exception ex)
@@ -156,23 +156,18 @@ namespace TienLen.Presentation
             if (playButton) playButton.interactable = interactable;
         }
 
+        /// <summary>
+        /// Sets the visibility of the Home UI. Requires 'contentRoot' to be assigned in the Inspector.
+        /// </summary>
+        /// <param name="isVisible">True to show the UI, false to hide.</param>
         public void SetHomeUIVisibility(bool isVisible)
         {
-            if (contentRoot != null)
+            if (contentRoot == null)
             {
-                contentRoot.SetActive(isVisible);
+                Debug.LogError("HomeUIController: contentRoot is not assigned. Cannot set UI visibility.");
+                return;
             }
-            else
-            {
-                // Fallback: If contentRoot is not assigned, disable/enable all direct children.
-                // Note: Disabling the main GameObject of the HomeUIController would prevent
-                // this script from receiving scene events (like OnSceneUnloaded),
-                // which is why using a contentRoot or iterating children is necessary.
-                foreach (Transform child in transform)
-                {
-                    child.gameObject.SetActive(isVisible);
-                }
-            }
+            contentRoot.SetActive(isVisible);
         }
     }
 }
