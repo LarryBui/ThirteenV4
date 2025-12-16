@@ -44,7 +44,6 @@ namespace TienLen.Infrastructure.Config
             builder.Register<TienLenMatchHandler>(Lifetime.Singleton);
 
             builder.RegisterComponentInHierarchy<HomeUIController>();
-            builder.RegisterComponentInHierarchy<GameRoomController>();
 
             builder.RegisterEntryPoint<GameStartup>();
         }

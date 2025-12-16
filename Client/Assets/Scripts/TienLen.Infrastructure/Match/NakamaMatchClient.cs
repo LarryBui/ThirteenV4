@@ -16,9 +16,6 @@ namespace TienLen.Infrastructure.Match
     /// </summary>
     public sealed class NakamaMatchClient : IMatchNetworkClient
     {
-        private const long OpCodeStartGame = 1;
-        private const long OpCodeMatchStarted = 100;
-
         private readonly NakamaAuthenticationService _authService;
         private string _matchId;
 
@@ -80,7 +77,7 @@ namespace TienLen.Infrastructure.Match
         public async UniTask SendStartGameAsync()
         {
             var request = new Proto.StartGameRequest();
-            await SendAsync(OpCodeStartGame, request.ToByteArray());
+            await SendAsync((long)Proto.OpCode.StartGame, request.ToByteArray());
             Debug.Log("MatchClient: Sent StartGameRequest.");
         }
 
@@ -120,11 +117,11 @@ namespace TienLen.Infrastructure.Match
 
             switch (state.OpCode)
             {
-                case OpCodeMatchStarted:
+                case (long)Proto.OpCode.HandDealt:
                     try 
                     {
                         var payload = Proto.HandDealtEvent.Parser.ParseFrom(state.State);
-                        Debug.Log($"MatchClient: Game Started! Received Hand with {payload.Hand.Count} cards.");
+                        Debug.Log($"MatchClient: Received Hand with {payload.Hand.Count} cards.");
                         
                         // TODO: Map proto cards to domain cards and update local state
                         

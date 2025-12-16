@@ -11,8 +11,8 @@ func NewDeck() []*pb.Card {
 	for suit := 0; suit < 4; suit++ {
 		for rank := 0; rank < 13; rank++ {
 			deck = append(deck, &pb.Card{
-				Suit: pb.Card_Suit(suit),
-				Rank: int32(rank),
+				Suit: pb.Suit(suit),
+				Rank: pb.Rank(rank),
 			})
 		}
 	}

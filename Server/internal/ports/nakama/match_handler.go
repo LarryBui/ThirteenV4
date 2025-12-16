@@ -169,7 +169,7 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 
 	for _, msg := range messages {
 		switch msg.GetOpCode() {
-		case domain.OpCodeStartGame:
+		case int64(pb.OpCode_OP_CODE_START_GAME):
 			mh.handleStartGame(matchState, dispatcher, logger, msg)
 		}
 	}
@@ -217,7 +217,15 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 		}
 	}
 
-	// Send unique HandDealtEvent to each player
+	// 1. Broadcast Game Started Event
+	startEvent := &pb.GameStartedEvent{
+		FirstTurnUserId: "", // TODO: Determine first turn based on 3 of Spades
+		Phase:           pb.GamePhase_PHASE_PLAYING,
+	}
+	startPayload, _ := proto.Marshal(startEvent)
+	dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_GAME_STARTED), startPayload, nil, nil, true)
+
+	// 2. Send unique HandDealtEvent to each player
 	for uid, hand := range hands {
 		presence, exists := state.Presences[uid]
 		if !exists {
@@ -235,11 +243,7 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 			continue
 		}
 
-		// Send OpCodeMatchStarted (which signals game start + contains the hand)
-		// Or separate GameStartedEvent and HandDealtEvent.
-		// For simplicity, let's just send HandDealtEvent on OpCodeMatchStarted.
-		// The client will interpret this as "Game Started and Here is your hand".
-		dispatcher.BroadcastMessage(domain.OpCodeMatchStarted, payload, []runtime.Presence{presence}, nil, true)
+		dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_HAND_DEALT), payload, []runtime.Presence{presence}, nil, true)
 	}
 
 	logger.Info("StartGame: Game started with %d players.", activeCount)
