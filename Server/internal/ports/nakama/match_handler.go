@@ -7,6 +7,9 @@ import (
 	"time"
 
 	"github.com/heroiclabs/nakama-common/runtime"
+	"google.golang.org/protobuf/proto"
+	"tienlen/internal/domain"
+	pb "tienlen/proto"
 )
 
 const (
@@ -14,15 +17,26 @@ const (
 )
 
 type MatchState struct {
-	Seats   [4]string `json:"seats"`    // Array of user IDs, empty string means seat is empty
-	OwnerID string    `json:"owner_id"` // User ID of the match owner
-	Tick    int64     `json:"tick"`     // Current tick of the match for turn-based logic
+	Seats     [4]string                   `json:"seats"`    // Array of user IDs, empty string means seat is empty
+	OwnerID   string                      `json:"owner_id"` // User ID of the match owner
+	Tick      int64                       `json:"tick"`     // Current tick of the match for turn-based logic
+	Presences map[string]runtime.Presence `json:"-"`        // Map UserId -> Presence for targeted messaging
 }
 
 func (ms *MatchState) GetOpenSeatsCount() int {
 	count := 0
 	for _, seat := range ms.Seats {
 		if seat == "" {
+			count++
+		}
+	}
+	return count
+}
+
+func (ms *MatchState) GetOccupiedSeatCount() int {
+	count := 0
+	for _, seat := range ms.Seats {
+		if seat != "" {
 			count++
 		}
 	}
@@ -41,7 +55,8 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 	logger.Debug("MatchInit: Initializing match handler.")
 
 	state := &MatchState{
-		Tick: time.Now().Unix(),
+		Tick:      time.Now().Unix(),
+		Presences: make(map[string]runtime.Presence),
 	}
 
 	// Initial match label: 4 open seats
@@ -79,6 +94,9 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 	}
 
 	for _, p := range presences {
+		// Store presence
+		matchState.Presences[p.GetUserId()] = p
+
 		// Assign seat
 		assigned := false
 		for i, seatUserId := range matchState.Seats {
@@ -101,17 +119,7 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 	}
 
 	// Update match label
-	label := map[string]int{
-		MatchLabelKey_OpenSeats: matchState.GetOpenSeatsCount(),
-	}
-	labelBytes, err := json.Marshal(label)
-	if err != nil {
-		logger.Error("MatchJoin: Failed to marshal label: %v", err)
-	} else {
-		if err := dispatcher.MatchLabelUpdate(string(labelBytes)); err != nil {
-			logger.Error("MatchJoin: Failed to update match label: %v", err)
-		}
-	}
+	mh.updateLabel(matchState, dispatcher, logger)
 
 	return matchState
 }
@@ -125,6 +133,8 @@ func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, d
 	}
 
 	for _, p := range presences {
+		delete(matchState.Presences, p.GetUserId())
+
 		for i, seatUserId := range matchState.Seats {
 			if seatUserId == p.GetUserId() {
 				matchState.Seats[i] = ""
@@ -132,6 +142,7 @@ func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, d
 
 				if matchState.OwnerID == p.GetUserId() {
 					matchState.OwnerID = ""
+					// Assign new owner
 					for _, newOwnerId := range matchState.Seats {
 						if newOwnerId != "" {
 							matchState.OwnerID = newOwnerId
@@ -145,23 +156,107 @@ func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, d
 		}
 	}
 
-	label := map[string]int{
-		MatchLabelKey_OpenSeats: matchState.GetOpenSeatsCount(),
+	mh.updateLabel(matchState, dispatcher, logger)
+
+	return matchState
+}
+
+func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, messages []runtime.MatchData) interface{} {
+	matchState, ok := state.(*MatchState)
+	if !ok {
+		return state
 	}
-	labelBytes, err := json.Marshal(label)
-	if err != nil {
-		logger.Error("MatchLeave: Failed to marshal label: %v", err)
-	} else {
-		if err := dispatcher.MatchLabelUpdate(string(labelBytes)); err != nil {
-			logger.Error("MatchLeave: Failed to update match label: %v", err)
+
+	for _, msg := range messages {
+		switch msg.GetOpCode() {
+		case domain.OpCodeStartGame:
+			mh.handleStartGame(matchState, dispatcher, logger, msg)
 		}
 	}
 
 	return matchState
 }
 
-func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, messages []runtime.MatchData) interface{} {
-	return state
+func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
+	senderID := msg.GetUserId()
+	if senderID != state.OwnerID {
+		logger.Warn("StartGame: User %s tried to start game but is not owner (%s)", senderID, state.OwnerID)
+		return
+	}
+
+	activeCount := state.GetOccupiedSeatCount()
+	if activeCount < 2 {
+		logger.Warn("StartGame: Cannot start with %d players. Need at least 2.", activeCount)
+		// Optionally send error back to sender
+		return
+	}
+
+	// Deal Cards
+	deck := domain.NewDeck()
+	domain.Shuffle(deck)
+
+	hands := make(map[string][]*pb.Card)
+	// Initialize hands for active seats
+	for _, uid := range state.Seats {
+		if uid != "" {
+			hands[uid] = make([]*pb.Card, 0)
+		}
+	}
+
+	// Distribute 13 cards (or as many as possible if deck < 13*players, which shouldn't happen in standard game)
+	// Standard Tien Len: 52 cards. 4 players = 13 each. 2 players = 13 each (26 left over).
+	cardIdx := 0
+	cardsPerPlayer := 13
+
+	for i := 0; i < cardsPerPlayer; i++ {
+		for _, uid := range state.Seats {
+			if uid != "" && cardIdx < len(deck) {
+				hands[uid] = append(hands[uid], deck[cardIdx])
+				cardIdx++
+			}
+		}
+	}
+
+	// Send unique HandDealtEvent to each player
+	for uid, hand := range hands {
+		presence, exists := state.Presences[uid]
+		if !exists {
+			logger.Warn("StartGame: User %s has hand but no presence.", uid)
+			continue
+		}
+
+		event := &pb.HandDealtEvent{
+			Hand: hand,
+		}
+		
+		payload, err := proto.Marshal(event)
+		if err != nil {
+			logger.Error("StartGame: Failed to marshal HandDealtEvent for %s: %v", uid, err)
+			continue
+		}
+
+		// Send OpCodeMatchStarted (which signals game start + contains the hand)
+		// Or separate GameStartedEvent and HandDealtEvent.
+		// For simplicity, let's just send HandDealtEvent on OpCodeMatchStarted.
+		// The client will interpret this as "Game Started and Here is your hand".
+		dispatcher.BroadcastMessage(domain.OpCodeMatchStarted, payload, []runtime.Presence{presence}, nil, true)
+	}
+
+	logger.Info("StartGame: Game started with %d players.", activeCount)
+}
+
+func (mh *matchHandler) updateLabel(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
+	label := map[string]int{
+		MatchLabelKey_OpenSeats: state.GetOpenSeatsCount(),
+	}
+	labelBytes, err := json.Marshal(label)
+	if err != nil {
+		logger.Error("UpdateLabel: Failed to marshal: %v", err)
+		return
+	}
+	if err := dispatcher.MatchLabelUpdate(string(labelBytes)); err != nil {
+		logger.Error("UpdateLabel: Failed to update: %v", err)
+	}
 }
 
 func (mh *matchHandler) MatchTerminate(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, reason int) interface{} {

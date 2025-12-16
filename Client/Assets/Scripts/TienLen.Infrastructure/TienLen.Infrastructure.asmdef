@@ -8,7 +8,8 @@
         "NakamaRuntime",
         "VContainer",
         "Unity.TextMeshPro",
-        "UniTask"
+        "UniTask",
+        "TienLen.Proto"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

@@ -6,6 +6,8 @@ using TienLen.Domain.Services;
 using TienLen.Domain.ValueObjects;
 using TienLen.Infrastructure.Services;
 using UnityEngine;
+using Google.Protobuf;
+using Proto = Tienlen.V1;
 
 namespace TienLen.Infrastructure.Match
 {
@@ -14,6 +16,9 @@ namespace TienLen.Infrastructure.Match
     /// </summary>
     public sealed class NakamaMatchClient : IMatchNetworkClient
     {
+        private const long OpCodeStartGame = 1;
+        private const long OpCodeMatchStarted = 100;
+
         private readonly NakamaAuthenticationService _authService;
         private string _matchId;
 
@@ -72,10 +77,11 @@ namespace TienLen.Infrastructure.Match
             Debug.Log($"MatchClient: Joined match: {_matchId}");
         }
 
-        public UniTask SendStartGameAsync()
+        public async UniTask SendStartGameAsync()
         {
-            // return SendAsync(TienLenOpcodes.StartGame, ProtoMatchCodec.EncodeStartGame());
-            throw new NotImplementedException("ProtoMatchCodec is removed.");
+            var request = new Proto.StartGameRequest();
+            await SendAsync(OpCodeStartGame, request.ToByteArray());
+            Debug.Log("MatchClient: Sent StartGameRequest.");
         }
 
         public UniTask SendPlayCardsAsync(List<Card> cards)
@@ -112,14 +118,24 @@ namespace TienLen.Infrastructure.Match
         {
             if (state.MatchId != _matchId) return;
 
-            // Decode logic would go here.
-            // Example:
-            // if (state.OpCode == TienLenOpcodes.PlayCards) {
-            //    var cards = ProtoMatchCodec.DecodePlayCards(state.State);
-            //    OnCardsPlayed?.Invoke(state.UserPresence.UserId, cards);
-            // }
-
-            // For now, nothing happens because Codec is missing.
+            switch (state.OpCode)
+            {
+                case OpCodeMatchStarted:
+                    try 
+                    {
+                        var payload = Proto.HandDealtEvent.Parser.ParseFrom(state.State);
+                        Debug.Log($"MatchClient: Game Started! Received Hand with {payload.Hand.Count} cards.");
+                        
+                        // TODO: Map proto cards to domain cards and update local state
+                        
+                        OnGameStarted?.Invoke();
+                    } 
+                    catch (Exception e) 
+                    {
+                        Debug.LogError($"Error parsing HandDealtEvent: {e}");
+                    }
+                    break;
+            }
         }
 
         private async UniTask SendAsync(long opcode, byte[] payload)

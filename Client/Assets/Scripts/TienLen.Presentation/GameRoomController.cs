@@ -45,5 +45,18 @@ namespace TienLen.Presentation
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
         }
+
+        public void OnStartGameClicked()
+        {
+            if (_matchClient != null)
+            {
+                Debug.Log("GameRoomController: Requesting Start Game...");
+                _matchClient.SendStartGameAsync().Forget();
+            }
+            else
+            {
+                Debug.LogError("GameRoomController: Cannot start game, Match Client is null.");
+            }
+        }
     }
 }
