@@ -117,19 +117,16 @@ namespace TienLen.Infrastructure.Match
 
             switch (state.OpCode)
             {
-                case (long)Proto.OpCode.HandDealt:
+                case (long)Proto.OpCode.GameStarted:
                     try 
                     {
-                        var payload = Proto.HandDealtEvent.Parser.ParseFrom(state.State);
-                        Debug.Log($"MatchClient: Received Hand with {payload.Hand.Count} cards.");
-                        
-                        // TODO: Map proto cards to domain cards and update local state
-                        
+                        var payload = Proto.GameStartedEvent.Parser.ParseFrom(state.State);
+                        Debug.Log($"MatchClient: Game Started! Phase: {payload.Phase}, First Turn: {payload.FirstTurnUserId}");
                         OnGameStarted?.Invoke();
                     } 
                     catch (Exception e) 
                     {
-                        Debug.LogError($"Error parsing HandDealtEvent: {e}");
+                        Debug.LogError($"Error parsing GameStartedEvent: {e}");
                     }
                     break;
             }
