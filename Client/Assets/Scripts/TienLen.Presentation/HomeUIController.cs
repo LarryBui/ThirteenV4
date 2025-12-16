@@ -3,30 +3,22 @@ using Cysharp.Threading.Tasks;
 using TienLen.Application;
 using TienLen.Domain.Services;
 using UnityEngine;
-using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VContainer;
-using TMPro; // Added for TextMeshPro components
+using TMPro;
 
 namespace TienLen.Presentation
 {
     /// <summary>
-    /// Handles Home screen UX: Play/ Quit buttons and connecting overlay.
-    /// Performs startup authentication via the injected auth service and unlocks controls when ready.
-    /// Wire Play to your Nakama quickmatch flow by injecting an async callback.
+    /// Handles Home screen UX: Play/ Quit buttons and matchmaking status.
+    /// Assumes user is already authenticated (via Bootstrap).
     /// </summary>
     public sealed class HomeUIController : MonoBehaviour
     {
         [Header("UI References")]
-        [SerializeField] private Button playButton; // Reverted to standard Button
-        [SerializeField] private Button quitButton; // Reverted to standard Button
-        [SerializeField] private GameObject connectingOverlay;
-        [SerializeField] private TMP_Text statusText; // Kept as TMP_Text
-        [SerializeField] private Slider progressBar;
-
-        private bool _isConnecting;
-        private DateTime _connectStartUtc;
-        private const float MinimumConnectSeconds = 2f; 
+        [SerializeField] private Button playButton;
+        [SerializeField] private Button quitButton;
+        [SerializeField] private TMP_Text statusText; // Kept to display matchmaking status
         
         private IAuthenticationService _authService;
         private TienLenMatchHandler _matchHandler;
@@ -54,19 +46,12 @@ namespace TienLen.Presentation
 
         private void Start()
         {
-            // By the time Home loads, authentication should be complete via BootstrapFlow.
-            if (_authService != null && _authService.IsAuthenticated)
-            {
-                SetConnecting(false, "");
-                if (playButton) playButton.interactable = true;
-            }
-            else
-            {
-                // Fallback or Error state
-                Debug.LogWarning("HomeUIController: Auth service not ready or not authenticated.");
-                if (playButton) playButton.interactable = false;
-                SetConnecting(false, "Auth Failed");
-            }
+            // Initial state check
+            bool isReady = _authService != null && _authService.IsAuthenticated;
+            SetPlayInteractable(isReady);
+            
+            // Clear status text at start
+            if (statusText) statusText.text = "";
         }
 
         private void OnDestroy()
@@ -86,23 +71,20 @@ namespace TienLen.Presentation
                 return;
             }
 
-            SetConnecting(true, "Finding Match...");
-            _connectStartUtc = DateTime.UtcNow;
-            if (playButton) playButton.interactable = false;
+            SetMatchmakingState(true, "Finding Match...");
 
             try
             {
                 await _matchHandler.FindAndJoinMatchAsync();
-                SetConnecting(false, "Match Found!");
                 
-                // Use SceneNavigator to load GameRoom additively
+                SetMatchmakingState(false, "Match Found!");
                 await _sceneNavigator.LoadGameRoomAsync();
             }
             catch (Exception ex)
             {
-                SetConnecting(false, $"Failed to find match: {ex.Message}");
-                Debug.LogError($"Failed to find and join match: {ex.Message}");
-                if (playButton) playButton.interactable = true;
+                SetMatchmakingState(false, "");
+                Debug.LogError($"Failed to find match: {ex.Message}");
+                if (statusText) statusText.text = "Match failed. Try again.";
             }
         }
 
@@ -115,48 +97,29 @@ namespace TienLen.Presentation
 #endif
         }
 
-        private void SetConnecting(bool connecting, string message)
+        private void SetMatchmakingState(bool isSearching, string message)
         {
-            _isConnecting = connecting;
-            if (playButton) playButton.interactable = !connecting && (_authService?.IsAuthenticated ?? false);
-            if (quitButton) quitButton.interactable = !connecting;
-            if (connectingOverlay) connectingOverlay.SetActive(connecting);
-            if (statusText) statusText.text = message ?? "";
+            // No connectingOverlay, just update status text and button interactability
+            if (statusText) statusText.text = message;
+            
+            // Disable buttons while searching
+            if (playButton) playButton.interactable = !isSearching;
+            if (quitButton) quitButton.interactable = !isSearching;
         }
 
-        private void SetProgress(float value)
+        private void OnAuthComplete()
         {
-            if (progressBar)
-            {
-                progressBar.gameObject.SetActive(_isConnecting);
-                progressBar.value = Mathf.Clamp01(value);
-            }
+            SetPlayInteractable(true);
         }
 
-        public void OnAuthComplete()
+        private void OnAuthFailed(string error)
         {
-            // Optional: Handle re-auth if connection lost/regained
-            if (playButton) playButton.interactable = true;
+            SetPlayInteractable(false);
         }
 
-        public void OnAuthFailed(string error)
+        private void SetPlayInteractable(bool interactable)
         {
-            if (playButton) playButton.interactable = false;
-        }
-
-        private async UniTask HideConnectingAfterMinimumAsync(bool success, string message)
-        {
-            var elapsedSeconds = (float)(DateTime.UtcNow - _connectStartUtc).TotalSeconds;
-            if (elapsedSeconds < MinimumConnectSeconds)
-            {
-                await UniTask.Delay(TimeSpan.FromSeconds(MinimumConnectSeconds - elapsedSeconds));
-            }
-
-            _isConnecting = false;
-            SetProgress(0f);
-            if (connectingOverlay) connectingOverlay.SetActive(false);
-            if (statusText) statusText.text = message ?? "";
-            if (quitButton) quitButton.interactable = true;
+            if (playButton) playButton.interactable = interactable;
         }
 
         public void SetHomeUIVisibility(bool isVisible)
