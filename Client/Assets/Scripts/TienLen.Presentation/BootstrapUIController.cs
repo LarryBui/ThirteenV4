@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 using VContainer;
+using VContainer.Unity; // Required for LifetimeScope
 
 namespace TienLen.Presentation
 {
@@ -15,12 +16,14 @@ namespace TienLen.Presentation
         [SerializeField] private Slider progressBar;
 
         private IAuthenticationService _authService;
+        private LifetimeScope _parentLifetimeScope; // Inject the current scope
 
         [Inject]
-        public void Construct(IAuthenticationService authService)
+        public void Construct(IAuthenticationService authService, LifetimeScope parentLifetimeScope)
         {
             Debug.Log($"BootstrapUIController: Construct called. AuthService is {(authService != null ? "Valid" : "Null")}");
             _authService = authService;
+            _parentLifetimeScope = parentLifetimeScope; // Store the parent scope
         }
 
         private void Start()
@@ -55,7 +58,12 @@ namespace TienLen.Presentation
 
             // 2. Load Home Scene
             Debug.Log("Bootstrap: Loading Home scene...");
-            await SceneManager.LoadSceneAsync("Home", LoadSceneMode.Additive);
+            
+            // Explicitly parent the new Home scene's LifetimeScope to the current (Game) scope
+            using (LifetimeScope.EnqueueParent(_parentLifetimeScope))
+            {
+                await SceneManager.LoadSceneAsync("Home", LoadSceneMode.Additive);
+            }
             Debug.Log("Bootstrap: Home scene loaded...");
 
             
