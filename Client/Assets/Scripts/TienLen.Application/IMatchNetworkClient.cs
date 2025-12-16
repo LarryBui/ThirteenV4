@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
-using TienLen.Domain.ValueObjects;
+using TienLen.Domain.ValueObjects; // Still needed for Card
 
-namespace TienLen.Domain.Services
+namespace TienLen.Application
 {
     /// <summary>
     /// Interface for networking operations related to a game match.
@@ -16,7 +16,7 @@ namespace TienLen.Domain.Services
         /// <summary>
         /// Fired when a player successfully joins the match.
         /// </summary>
-        event Action<string> OnPlayerJoined;
+        event Action<PlayerAvatar> OnPlayerJoined;
 
         /// <summary>
         /// Fired when cards are played by a player in the match.

@@ -1,7 +1,6 @@
 using System;
 using Cysharp.Threading.Tasks;
-using TienLen.Application;
-using TienLen.Domain.Services;
+using TienLen.Application; // Updated
 using UnityEngine;
 using UnityEngine.SceneManagement; // Direct scene management
 using UnityEngine.UI;

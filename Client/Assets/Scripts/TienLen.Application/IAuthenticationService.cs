@@ -1,7 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 
-namespace TienLen.Domain.Services
+namespace TienLen.Application
 {
     /// <summary>
     /// Handles authentication against the backend.
@@ -17,6 +17,16 @@ namespace TienLen.Domain.Services
         /// The User ID of the currently authenticated user. Null if not authenticated.
         /// </summary>
         string CurrentUserId { get; }
+        
+        /// <summary>
+        /// The Display Name of the currently authenticated user. Null if not authenticated.
+        /// </summary>
+        string CurrentUserDisplayName { get; }
+        
+        /// <summary>
+        /// The Avatar Index of the currently authenticated user.
+        /// </summary>
+        int CurrentUserAvatarIndex { get; }
 
         /// <summary>
         /// Fired when authentication completes successfully.

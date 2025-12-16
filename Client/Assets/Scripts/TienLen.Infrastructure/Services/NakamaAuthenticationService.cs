@@ -2,7 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nakama;
-using TienLen.Domain.Services;
+using TienLen.Application; // Updated
 using TienLen.Infrastructure.Config;
 using UnityEngine;
 
@@ -28,6 +28,8 @@ namespace TienLen.Infrastructure.Services
 
         public bool IsAuthenticated => IsSessionValid() && IsSocketConnected();
         public string CurrentUserId => _session?.UserId;
+        public string CurrentUserDisplayName => _session?.Username; // Implemented
+        public int CurrentUserAvatarIndex => GetAvatarIndex(_session?.UserId); // Implemented
 
         internal ISocket Socket => _socket;
         public IClient Client => _client;
@@ -114,6 +116,16 @@ namespace TienLen.Infrastructure.Services
                 _socketEventsHooked = false;
                 throw;
             }
+        }
+
+        private int GetAvatarIndex(string userId)
+        {
+            if (string.IsNullOrEmpty(userId)) return 0;
+            // Simple deterministic avatar selection based on UserId hash
+            // This assumes we have a pool of avatars to pick from (e.g., 0-3 for 4 avatars)
+            // Need to know the total number of available avatars. For now, let's assume 4.
+            int hash = userId.GetHashCode();
+            return Math.Abs(hash % 4); // Example: maps to indices 0, 1, 2, 3
         }
 
         private static void HookSocketEvents(ISocket socket)

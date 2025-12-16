@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Nakama;
-using TienLen.Domain.Services;
+using TienLen.Application; // Updated for IMatchNetworkClient and PlayerAvatar
 using TienLen.Domain.ValueObjects;
 using TienLen.Infrastructure.Services;
 using UnityEngine;
@@ -20,7 +20,7 @@ namespace TienLen.Infrastructure.Match
         private string _matchId;
 
         // --- IMatchNetworkClient Events ---
-        public event Action<string> OnPlayerJoined;
+        public event Action<PlayerAvatar> OnPlayerJoined; // Updated
         public event Action<string, List<Card>> OnCardsPlayed;
         public event Action<string> OnPlayerSkippedTurn;
         public event Action OnGameStarted;
@@ -107,8 +107,23 @@ namespace TienLen.Infrastructure.Match
 
             foreach (var joiner in presenceEvent.Joins)
             {
-                OnPlayerJoined?.Invoke(joiner.UserId);
+                // Extract display name and create a PlayerAvatar
+                string displayName = string.IsNullOrEmpty(joiner.Username) ? $"Player {joiner.UserId.Substring(0, 4)}" : joiner.Username;
+                int avatarIndex = GetAvatarIndex(joiner.UserId); // Deterministic avatar selection
+
+                var playerAvatar = new PlayerAvatar(joiner.UserId, displayName, avatarIndex);
+                OnPlayerJoined?.Invoke(playerAvatar); // Invoke with rich data
             }
+        }
+
+        private int GetAvatarIndex(string userId)
+        {
+            // Simple deterministic avatar selection based on UserId hash
+            // This assumes we have a pool of avatars to pick from (e.g., 0-3 for 4 avatars)
+            // Need to know the total number of available avatars. For now, let's assume 4.
+            // A better solution would be to get this from a configuration or server metadata.
+            int hash = userId.GetHashCode();
+            return Math.Abs(hash % 4); // Example: maps to indices 0, 1, 2, 3
         }
 
         private void HandleMatchState(IMatchState state)

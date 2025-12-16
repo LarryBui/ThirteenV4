@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using TienLen.Domain.Aggregates;
-using TienLen.Domain.Services;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
 
@@ -55,9 +54,13 @@ namespace TienLen.Application
             CurrentMatch = new Match(matchId); // Assuming matchId is Guid, or change Match ctor
             
             // Add self to match
+            // This will be superseded by the first OnPlayerJoined event for the local player
+            // But we need a player object in CurrentMatch for now.
             var selfPlayer = new Player 
             { 
                 UserID = _authService.CurrentUserId,
+                DisplayName = _authService.CurrentUserDisplayName, // Assuming this is available
+                AvatarIndex = _authService.CurrentUserAvatarIndex, // Assuming this is available
                 Seat = 1 // Logic to determine seat needed from server state
             };
             CurrentMatch.RegisterPlayer(selfPlayer);
@@ -100,10 +103,10 @@ namespace TienLen.Application
             _networkClient.OnGameStarted -= HandleMatchStarted;
         }
 
-        private void HandlePlayerJoined(string userId)
+        private void HandlePlayerJoined(PlayerAvatar playerAvatar)
         {
             if (CurrentMatch == null) return;
-            Debug.Log($"Handler: Player {userId} joined.");
+            Debug.Log($"Handler: Player {playerAvatar.DisplayName} ({playerAvatar.UserId}) joined.");
 
             // In a real scenario, we need to know the Seat # from the server.
             // For now, simple sequential seat assignment for demo.
@@ -117,7 +120,13 @@ namespace TienLen.Application
 
             if (nextSeat > 0)
             {
-                var newPlayer = new Player { UserID = userId, Seat = nextSeat };
+                var newPlayer = new Player 
+                { 
+                    UserID = playerAvatar.UserId, 
+                    DisplayName = playerAvatar.DisplayName,
+                    AvatarIndex = playerAvatar.AvatarIndex,
+                    Seat = nextSeat 
+                };
                 CurrentMatch.RegisterPlayer(newPlayer);
             }
         }
