@@ -19,11 +19,14 @@ namespace TienLen.Presentation
         [Inject]
         public void Construct(IAuthenticationService authService)
         {
+            Debug.Log($"BootstrapUIController: Construct called. AuthService is {(authService != null ? "Valid" : "Null")}");
             _authService = authService;
         }
 
         private void Start()
         {
+            Debug.Log($"BootstrapUIController: Start called. _authService is {(_authService != null ? "Valid" : "Null")}");
+            
             if (loadingScreenRoot) loadingScreenRoot.SetActive(true);
             InitializeGameAsync().Forget();
         }
@@ -53,6 +56,9 @@ namespace TienLen.Presentation
             // 2. Load Home Scene
             Debug.Log("Bootstrap: Loading Home scene...");
             await SceneManager.LoadSceneAsync("Home", LoadSceneMode.Additive);
+            Debug.Log("Bootstrap: Home scene loaded...");
+
+            
             UpdateProgress(1.0f);
 
             // 3. Hide Loading Screen

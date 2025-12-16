@@ -42,30 +42,37 @@ namespace TienLen.Infrastructure.Services
         /// </summary>
         public async UniTask LoginAsync()
         {
+            Debug.Log("NakamaAuth: LoginAsync started.");
             await _authLock.WaitAsync();
             try
             {
                 if (IsAuthenticated)
                 {
+                    Debug.Log("NakamaAuth: Already authenticated.");
                     OnAuthenticated?.Invoke();
                     return;
                 }
 
+                Debug.Log("NakamaAuth: Creating client...");
+                if (_config == null) Debug.LogError("NakamaAuth: Config is NULL!");
                 _client ??= CreateClient();
+                if (_client == null) Debug.LogError("NakamaAuth: Client creation failed (null).");
 
                 if (!IsSessionValid())
                 {
+                    Debug.Log($"NakamaAuth: Authenticating device ID: {_config?.DeviceId}...");
                     // AuthenticateDeviceAsync returns a Task, await it directly.
                     _session = await _client.AuthenticateDeviceAsync(_config.DeviceId, create: true);
-                    Debug.Log("Authenticated with Nakama using device ID.");
+                    Debug.Log("NakamaAuth: Authenticated with Nakama using device ID.");
                 }
 
+                Debug.Log("NakamaAuth: Ensuring socket...");
                 await EnsureSocketAsync();
                 OnAuthenticated?.Invoke();
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Authentication failed: {ex.Message}");
+                Debug.LogError($"Authentication failed: {ex.Message} \n {ex.StackTrace}");
                 OnAuthenticationFailed?.Invoke(ex.Message);
                 throw;
             }
