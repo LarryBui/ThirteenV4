@@ -89,7 +89,7 @@ namespace TienLen.Application
         {
             _networkClient.OnPlayerJoined += HandlePlayerJoined;
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
-            _networkClient.OnMatchStarted += HandleMatchStarted;
+            _networkClient.OnGameStarted += HandleMatchStarted;
             // ... other events
         }
 
@@ -97,7 +97,7 @@ namespace TienLen.Application
         {
             _networkClient.OnPlayerJoined -= HandlePlayerJoined;
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
-            _networkClient.OnMatchStarted -= HandleMatchStarted;
+            _networkClient.OnGameStarted -= HandleMatchStarted;
         }
 
         private void HandlePlayerJoined(string userId)

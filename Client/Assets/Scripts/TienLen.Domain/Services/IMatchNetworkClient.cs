@@ -29,9 +29,9 @@ namespace TienLen.Domain.Services
         event Action<string> OnPlayerSkippedTurn; // userId
 
         /// <summary>
-        /// Fired when the match starts (e.g., initial deal).
+        /// Fired when the game starts within the match (e.g., initial deal).
         /// </summary>
-        event Action OnMatchStarted;
+        event Action OnGameStarted;
         
         /// <summary>
         /// Fired when a player finishes their hand.

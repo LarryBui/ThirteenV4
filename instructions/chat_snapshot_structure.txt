@@ -1,0 +1,51 @@
+<state_snapshot>
+      <overall_goal>
+          Refactor and implement core game logic and infrastructure in the Unity Client using Clean Architecture, integrating Nakama and UniTask, while maintaining a compatible Go Server plugin. The matchmaking system is server-authoritative.
+      </overall_goal>
+
+      <key_knowledge>
+           - Architecture: Clean Architecture (Domain, Application, Infrastructure, Presentation).
+           - Networking: Nakama (Heroic Labs) v3.22.0.
+           - Server Plugin:
+             - Build: Windows cannot build the plugin directly. Must use Docker: docker run ... golang:1.22.4 ....
+             - Dependency: nakama-common v1.32.0.
+             - Location: Compiled backend.so in build/modules/.
+             - Active Hack: BeforeAuthenticateDevice hook forces new user creation (random UUID) for dev/testing.
+           - Matchmaking (Server-Authoritative):
+             - RPC: find_match RPC (Go) finds or creates a match.
+             - Match Handler: tienlen_match (Go) manages seats, ownership, and label updates.
+             - Match ID: String format (e.g., <UUID>.nakama1), handled as string in Client Domain.
+      </key_knowledge>
+
+      <file_system_state>
+           - Server (Go):
+             - Server/internal/ports/nakama/init.go: Registers find_match RPC, tienlen_match handler, and auth hook.
+             - Server/internal/ports/nakama/match_handler.go: Implements match lifecycle (Init, Join, Leave, Loop).
+             - Server/internal/ports/nakama/rpc.go: Implements RpcFindMatch.
+             - build/modules/backend.so: VERIFIED LOADED in Nakama container.
+           - Client (Unity/C#):
+             - NakamaAuthenticationService.cs: Exposes public ISession Session and public IClient Client.
+             - NakamaMatchClient.cs: Uses find_match RPC to join matches.
+             - Match.cs (Domain): UPDATED Id property type from Guid to string.
+      </file_system_state>
+
+      <recent_actions>
+           - Verified Server: Confirmed via Docker logs that tienlen_match and find_match are registered and running.
+           - Fixed Compilation Error: Exposed ISession in NakamaAuthenticationService and updated NakamaMatchClient to use it for RPC calls.
+           - Fixed Domain Logic: Changed Match.Id from Guid to string in TienLen.Domain.Aggregates.Match to support Nakama ID format.
+      </recent_actions>
+
+      <current_plan>
+           1. [DONE] Refactor IAuthenticationService.
+           2. [DONE] Centralize application flow.
+           3. [DONE] Implement Match.cs domain logic (Client).
+           4. [DONE] Install and integrate UniTask.
+           5. [DONE] Define IMatchNetworkClient and TienLenMatchHandler.
+           6. [DONE] Rename TienLenMatchClient to NakamaMatchClient.
+           7. [DONE] Implement server-authoritative matchmaking (Server & Client wiring).
+           8. [DONE] Fix Server Compilation and Build Plugin via Docker.
+           9. [DONE] Implement "Always Create New User" Server Hook.
+           10. [TODO] Integrate NakamaMatchClient into the Unity Application flow (Authentication -> Matchfinding).
+           11. [TODO] Test full connection flow from Unity Editor to Nakama.
+      </current_plan>
+  </state_snapshot>

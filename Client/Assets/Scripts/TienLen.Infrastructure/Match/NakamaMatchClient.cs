@@ -21,7 +21,7 @@ namespace TienLen.Infrastructure.Match
         public event Action<string> OnPlayerJoined;
         public event Action<string, List<Card>> OnCardsPlayed;
         public event Action<string> OnPlayerSkippedTurn;
-        public event Action OnMatchStarted;
+        public event Action OnGameStarted;
         public event Action<string> OnPlayerFinished;
 
         public NakamaMatchClient(NakamaAuthenticationService authService)
