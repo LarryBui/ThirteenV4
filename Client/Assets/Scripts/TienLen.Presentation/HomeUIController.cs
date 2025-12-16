@@ -54,22 +54,18 @@ namespace TienLen.Presentation
 
         private void Start()
         {
-            SetConnecting(true, "Connecting...");
-            SetProgress(0.1f);
-            _connectStartUtc = DateTime.UtcNow;
-
+            // By the time Home loads, authentication should be complete via BootstrapFlow.
             if (_authService != null && _authService.IsAuthenticated)
             {
-                OnAuthComplete();
-            }
-            else if (_authService != null)
-            {
-                // Auto-login logic
-                LoginAndInitialize().Forget();
+                SetConnecting(false, "");
+                if (playButton) playButton.interactable = true;
             }
             else
             {
+                // Fallback or Error state
+                Debug.LogWarning("HomeUIController: Auth service not ready or not authenticated.");
                 if (playButton) playButton.interactable = false;
+                SetConnecting(false, "Auth Failed");
             }
         }
 
@@ -79,18 +75,6 @@ namespace TienLen.Presentation
             {
                 _authService.OnAuthenticated -= OnAuthComplete;
                 _authService.OnAuthenticationFailed -= OnAuthFailed;
-            }
-        }
-
-        private async UniTask LoginAndInitialize()
-        {
-            try
-            {
-                await _authService.LoginAsync();
-            }
-            catch (Exception ex)
-            {
-                Debug.LogError($"HomeUIController: Login failed - {ex.Message}");
             }
         }
 
@@ -104,7 +88,7 @@ namespace TienLen.Presentation
 
             SetConnecting(true, "Finding Match...");
             _connectStartUtc = DateTime.UtcNow;
-            playButton.interactable = false;
+            if (playButton) playButton.interactable = false;
 
             try
             {
@@ -118,7 +102,7 @@ namespace TienLen.Presentation
             {
                 SetConnecting(false, $"Failed to find match: {ex.Message}");
                 Debug.LogError($"Failed to find and join match: {ex.Message}");
-                playButton.interactable = true;
+                if (playButton) playButton.interactable = true;
             }
         }
 
@@ -151,15 +135,13 @@ namespace TienLen.Presentation
 
         public void OnAuthComplete()
         {
-            SetProgress(1f);
-            HideConnectingAfterMinimumAsync(true, "").Forget();
-            playButton.interactable = true;
+            // Optional: Handle re-auth if connection lost/regained
+            if (playButton) playButton.interactable = true;
         }
 
         public void OnAuthFailed(string error)
         {
-            SetProgress(0f);
-            HideConnectingAfterMinimumAsync(false, error).Forget();
+            if (playButton) playButton.interactable = false;
         }
 
         private async UniTask HideConnectingAfterMinimumAsync(bool success, string message)
@@ -174,16 +156,15 @@ namespace TienLen.Presentation
             SetProgress(0f);
             if (connectingOverlay) connectingOverlay.SetActive(false);
             if (statusText) statusText.text = message ?? "";
-                        if (quitButton) quitButton.interactable = true;
-                    }
-            
-                    public void SetHomeUIVisibility(bool isVisible)
-                    {
-                        if (gameObject.activeSelf != isVisible)
-                        {
-                            gameObject.SetActive(isVisible);
-                        }
-                    }
-                }
+            if (quitButton) quitButton.interactable = true;
+        }
+
+        public void SetHomeUIVisibility(bool isVisible)
+        {
+            if (gameObject.activeSelf != isVisible)
+            {
+                gameObject.SetActive(isVisible);
             }
-            
+        }
+    }
+}

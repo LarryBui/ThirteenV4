@@ -3,6 +3,7 @@ using TienLen.Application;
 using TienLen.Domain.Services;
 using TienLen.Infrastructure.Match;
 using TienLen.Infrastructure.Services;
+using TienLen.Presentation; // Added
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -49,9 +50,9 @@ namespace TienLen.Infrastructure.Config
             // Register Scene Navigator
             builder.Register<SceneNavigator>(Lifetime.Singleton)
                 .As<ISceneNavigator>();
-
-            // Register Bootstrap Flow (Loads Home Scene)
-            builder.RegisterEntryPoint<BootstrapFlow>();
+            
+            // Register Bootstrap UI (Component in Hierarchy) so it receives Injection
+            builder.RegisterComponentInHierarchy<BootstrapUIController>();
         }
     }
 }
