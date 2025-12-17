@@ -103,6 +103,8 @@ namespace TienLen.Infrastructure.Match
 
         private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
         {
+            Debug.Log("MatchClient: Sent StartGameRequest." + JsonConvert.SerializeObject(presenceEvent));
+
             if (presenceEvent.MatchId != _matchId) return;
 
             foreach (var joiner in presenceEvent.Joins)

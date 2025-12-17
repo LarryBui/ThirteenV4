@@ -26,8 +26,8 @@ namespace TienLen.Presentation.GameRoomScreen
 
             if (_matchClient != null)
             {
-                _matchClient.OnGameStarted += HandleGameStarted;
-                _matchClient.OnPlayerJoined += HandlePlayerJoined;
+                // _matchClient.OnGameStarted += HandleGameStarted;
+                // _matchClient.OnPlayerJoined += HandlePlayerJoined;
             }
             else
             {
@@ -39,8 +39,8 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_matchClient != null)
             {
-                _matchClient.OnGameStarted -= HandleGameStarted;
-                _matchClient.OnPlayerJoined -= HandlePlayerJoined;
+                // _matchClient.OnGameStarted -= HandleGameStarted;
+                // _matchClient.OnPlayerJoined -= HandlePlayerJoined;
             }
         }
 
