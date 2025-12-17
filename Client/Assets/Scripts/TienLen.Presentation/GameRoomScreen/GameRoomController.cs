@@ -1,7 +1,7 @@
 using System;
 using UnityEngine;
 using VContainer;
-using TienLen.Application; // Updated
+using TienLen.Application;
 using Cysharp.Threading.Tasks;
 
 namespace TienLen.Presentation
@@ -10,6 +10,7 @@ namespace TienLen.Presentation
     {
         [Header("Scene References")]
         [SerializeField] private CardDealer _cardDealer;
+        [SerializeField] private PlayerProfileUI[] playerProfileSlots; // Assign these in Inspector (e.g., 4 slots)
 
         private IMatchNetworkClient _matchClient;
 
@@ -21,10 +22,12 @@ namespace TienLen.Presentation
 
         private void Start()
         {
+            ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
+
             if (_matchClient != null)
             {
                 _matchClient.OnGameStarted += HandleGameStarted;
-                _matchClient.OnPlayerJoined += HandlePlayerJoined; // Subscribed to player joined event
+                _matchClient.OnPlayerJoined += HandlePlayerJoined;
             }
             else
             {
@@ -37,7 +40,7 @@ namespace TienLen.Presentation
             if (_matchClient != null)
             {
                 _matchClient.OnGameStarted -= HandleGameStarted;
-                _matchClient.OnPlayerJoined -= HandlePlayerJoined; // Unsubscribed
+                _matchClient.OnPlayerJoined -= HandlePlayerJoined;
             }
         }
 
@@ -51,7 +54,30 @@ namespace TienLen.Presentation
         private void HandlePlayerJoined(PlayerAvatar playerAvatar)
         {
             Debug.Log($"GameRoomController: Player {playerAvatar.DisplayName} (ID: {playerAvatar.UserId}, Avatar: {playerAvatar.AvatarIndex}) joined the match.");
-            // Later: Spawn/update UI for player avatar
+
+            // Assign to the first available player profile slot
+            for (int i = 0; i < playerProfileSlots.Length; i++)
+            {
+                if (playerProfileSlots[i] != null && !playerProfileSlots[i].gameObject.activeSelf)
+                {
+                    playerProfileSlots[i].SetProfile(playerAvatar.DisplayName, playerAvatar.AvatarIndex);
+                    playerProfileSlots[i].SetActive(true);
+                    return;
+                }
+            }
+            Debug.LogWarning($"GameRoomController: No available player profile slots for {playerAvatar.DisplayName}.");
+        }
+
+        private void ClearAllPlayerProfiles()
+        {
+            foreach (var slot in playerProfileSlots)
+            {
+                if (slot != null)
+                {
+                    slot.ClearProfile();
+                    slot.SetActive(false); // Hide the slot
+                }
+            }
         }
 
         public void OnStartGameClicked()

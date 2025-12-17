@@ -7,7 +7,7 @@ using UnityEngine.UI;
 using VContainer;
 using VContainer.Unity; // Required for LifetimeScope
 
-namespace TienLen.Presentation
+namespace TienLen.Presentation.BootstrapScreen
 {
     public class BootstrapUIController : MonoBehaviour
     {

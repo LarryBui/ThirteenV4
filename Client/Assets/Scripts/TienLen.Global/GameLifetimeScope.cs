@@ -3,7 +3,7 @@ using TienLen.Application;
 using TienLen.Infrastructure.Config;
 using TienLen.Infrastructure.Match;
 using TienLen.Infrastructure.Services;
-using TienLen.Presentation; // Needed for BootstrapUIController
+using TienLen.Presentation.BootstrapScreen; // Needed for BootstrapUIController
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
