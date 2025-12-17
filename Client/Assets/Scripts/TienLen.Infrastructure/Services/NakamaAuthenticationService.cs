@@ -127,6 +127,7 @@ namespace TienLen.Infrastructure.Services
 
         private int GetAvatarIndex(string userId)
         {
+            return 0; // Placeholder implementation
             if (string.IsNullOrEmpty(userId)) return 0;
             // Simple deterministic avatar selection based on UserId hash
             // This assumes we have a pool of avatars to pick from (e.g., 0-3 for 4 avatars)

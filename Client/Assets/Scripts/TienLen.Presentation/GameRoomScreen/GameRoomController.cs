@@ -12,36 +12,26 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private CardDealer _cardDealer;
         [SerializeField] private PlayerProfileUI[] playerProfileSlots; // Assign these in Inspector (e.g., 4 slots)
 
-        private IMatchNetworkClient _matchClient;
+        private TienLenMatchHandler _matchHandler;
 
         [Inject]
-        public void Construct(IMatchNetworkClient matchClient)
+        public void Construct(TienLenMatchHandler matchHandler)
         {
-            _matchClient = matchClient;
+            _matchHandler = matchHandler;
         }
 
         private void Start()
         {
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
 
-            if (_matchClient != null)
+            if (_matchHandler == null)
             {
-                // _matchClient.OnGameStarted += HandleGameStarted;
-                // _matchClient.OnPlayerJoined += HandlePlayerJoined;
-            }
-            else
-            {
-                Debug.LogWarning("GameRoomController: IMatchNetworkClient not injected.");
+                Debug.LogWarning("GameRoomController: TienLenMatchHandler not injected.");
             }
         }
 
         private void OnDestroy()
         {
-            if (_matchClient != null)
-            {
-                // _matchClient.OnGameStarted -= HandleGameStarted;
-                // _matchClient.OnPlayerJoined -= HandlePlayerJoined;
-            }
         }
 
         private void HandleGameStarted()
@@ -82,14 +72,14 @@ namespace TienLen.Presentation.GameRoomScreen
 
         public void OnStartGameClicked()
         {
-            if (_matchClient != null)
+            if (_matchHandler != null)
             {
                 Debug.Log("GameRoomController: Requesting Start Game...");
-                _matchClient.SendStartGameAsync().Forget();
+                _matchHandler.StartGameAsync().Forget();
             }
             else
             {
-                Debug.LogError("GameRoomController: Cannot start game, Match Client is null.");
+                Debug.LogError("GameRoomController: Cannot start game, Match Handler is null.");
             }
         }
     }
