@@ -8,6 +8,8 @@ using TienLen.Infrastructure.Services;
 using UnityEngine;
 using Google.Protobuf;
 using Proto = Tienlen.V1;
+using Newtonsoft.Json;
+
 
 namespace TienLen.Infrastructure.Match
 {
@@ -103,7 +105,7 @@ namespace TienLen.Infrastructure.Match
 
         private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
         {
-            Debug.Log("MatchClient: Sent StartGameRequest." + JsonConvert.SerializeObject(presenceEvent));
+            Debug.Log("MatchClient: Received Match Join/Leave Event." + JsonConvert.SerializeObject(presenceEvent));
 
             if (presenceEvent.MatchId != _matchId) return;
 
@@ -116,6 +118,8 @@ namespace TienLen.Infrastructure.Match
                 var playerAvatar = new PlayerAvatar(joiner.UserId, displayName, avatarIndex);
                 OnPlayerJoined?.Invoke(playerAvatar); // Invoke with rich data
             }
+
+            // Handle leaves if necessary
         }
 
         private int GetAvatarIndex(string userId)
