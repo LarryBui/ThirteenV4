@@ -16,14 +16,15 @@ const (
 	MatchLabelKey_OpenSeats = "open" // Key for the open seats in the match label
 )
 
-type MatchState struct {
+// MatchRuntimeState holds the authoritative runtime state for the Nakama match handler.
+type MatchRuntimeState struct {
 	Seats     [4]string                   `json:"seats"`    // Array of user IDs, empty string means seat is empty
 	OwnerID   string                      `json:"owner_id"` // User ID of the match owner
 	Tick      int64                       `json:"tick"`     // Current tick of the match for turn-based logic
 	Presences map[string]runtime.Presence `json:"-"`        // Map UserId -> Presence for targeted messaging
 }
 
-func (ms *MatchState) GetOpenSeatsCount() int {
+func (ms *MatchRuntimeState) GetOpenSeatsCount() int {
 	count := 0
 	for _, seat := range ms.Seats {
 		if seat == "" {
@@ -33,7 +34,7 @@ func (ms *MatchState) GetOpenSeatsCount() int {
 	return count
 }
 
-func (ms *MatchState) GetOccupiedSeatCount() int {
+func (ms *MatchRuntimeState) GetOccupiedSeatCount() int {
 	count := 0
 	for _, seat := range ms.Seats {
 		if seat != "" {
@@ -54,7 +55,7 @@ type matchHandler struct{}
 func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, params map[string]interface{}) (interface{}, int, string) {
 	logger.Debug("MatchInit: Initializing match handler.")
 
-	state := &MatchState{
+	state := &MatchRuntimeState{
 		Tick:      time.Now().Unix(),
 		Presences: make(map[string]runtime.Presence),
 	}
@@ -74,7 +75,7 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 }
 
 func (mh *matchHandler) MatchJoinAttempt(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, presence runtime.Presence, metadata map[string]string) (interface{}, bool, string) {
-	matchState, ok := state.(*MatchState)
+	matchState, ok := state.(*MatchRuntimeState)
 	if !ok {
 		return state, false, "state not found"
 	}
@@ -87,7 +88,7 @@ func (mh *matchHandler) MatchJoinAttempt(ctx context.Context, logger runtime.Log
 }
 
 func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, presences []runtime.Presence) interface{} {
-	matchState, ok := state.(*MatchState)
+	matchState, ok := state.(*MatchRuntimeState)
 	if !ok {
 		logger.Error("MatchJoin: state not found")
 		return state
@@ -142,7 +143,7 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 
 // MatchLeave is called when one or more players leave the match.
 func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, presences []runtime.Presence) interface{} {
-	matchState, ok := state.(*MatchState)
+	matchState, ok := state.(*MatchRuntimeState)
 	if !ok {
 		logger.Error("MatchLeave: state not found")
 		return state
@@ -178,7 +179,7 @@ func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, d
 }
 
 func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, messages []runtime.MatchData) interface{} {
-	matchState, ok := state.(*MatchState)
+	matchState, ok := state.(*MatchRuntimeState)
 	if !ok {
 		return state
 	}
@@ -193,7 +194,7 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 	return matchState
 }
 
-func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
+func (mh *matchHandler) handleStartGame(state *MatchRuntimeState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
 	senderID := msg.GetUserId()
 	if senderID != state.OwnerID {
 		logger.Warn("StartGame: User %s tried to start game but is not owner (%s)", senderID, state.OwnerID)
@@ -210,6 +211,10 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 	// Deal Cards
 	deck := domain.NewDeck()
 	domain.Shuffle(deck)
+	pbDeck := make([]*pb.Card, len(deck))
+	for i, card := range deck {
+		pbDeck[i] = toProtoCard(card)
+	}
 
 	hands := make(map[string][]*pb.Card)
 	// Initialize hands for active seats
@@ -226,8 +231,8 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 
 	for i := 0; i < cardsPerPlayer; i++ {
 		for _, uid := range state.Seats {
-			if uid != "" && cardIdx < len(deck) {
-				hands[uid] = append(hands[uid], deck[cardIdx])
+			if uid != "" && cardIdx < len(pbDeck) {
+				hands[uid] = append(hands[uid], pbDeck[cardIdx])
 				cardIdx++
 			}
 		}
@@ -265,7 +270,25 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 	logger.Info("StartGame: Game started with %d players.", activeCount)
 }
 
-func (mh *matchHandler) updateLabel(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
+// toProtoCard maps a domain card to the protobuf card representation.
+func toProtoCard(card domain.Card) *pb.Card {
+	suit := pb.Suit_SUIT_SPADES
+	switch card.Suit {
+	case "C":
+		suit = pb.Suit_SUIT_CLUBS
+	case "D":
+		suit = pb.Suit_SUIT_DIAMONDS
+	case "H":
+		suit = pb.Suit_SUIT_HEARTS
+	}
+
+	return &pb.Card{
+		Suit: suit,
+		Rank: pb.Rank(card.Rank),
+	}
+}
+
+func (mh *matchHandler) updateLabel(state *MatchRuntimeState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
 	label := map[string]int{
 		MatchLabelKey_OpenSeats: state.GetOpenSeatsCount(),
 	}
