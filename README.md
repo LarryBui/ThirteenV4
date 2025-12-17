@@ -7,7 +7,7 @@
   - `OpPlayCards` -> `PlayCardsRequest`
   - `OpPassTurn` -> `PassTurnRequest` (empty)
   - `OpRequestNewGame` -> `RequestNewGameRequest` (empty)
-  - `OpPlayerJoined` -> `PlayerJoinedEvent`
+  - `OpPlayerJoined` -> `MatchState` (JSON: `seats`, `owner_id`, `tick`)
   - `OpPlayerLeft` -> `PlayerLeftEvent`
   - `OpGameStarted` -> `GameStartedEvent`
   - `OpHandDealt` -> `HandDealtEvent`

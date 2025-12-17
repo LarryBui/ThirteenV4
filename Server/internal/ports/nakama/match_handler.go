@@ -121,6 +121,17 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 	// Update match label
 	mh.updateLabel(matchState, dispatcher, logger)
 
+	snapshotPayload, err := json.Marshal(matchState)
+	if err != nil {
+		logger.Error("MatchJoin: Failed to marshal match state snapshot: %v", err)
+		return matchState
+	}
+
+	// Broadcast the current match state to all presences after join.
+	if err := dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_PLAYER_JOINED), snapshotPayload, nil, nil, true); err != nil {
+		logger.Error("MatchJoin: Failed to broadcast player joined snapshot: %v", err)
+	}
+
 	return matchState
 }
 
@@ -236,7 +247,7 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 		event := &pb.HandDealtEvent{
 			Hand: hand,
 		}
-		
+
 		payload, err := proto.Marshal(event)
 		if err != nil {
 			logger.Error("StartGame: Failed to marshal HandDealtEvent for %s: %v", uid, err)
