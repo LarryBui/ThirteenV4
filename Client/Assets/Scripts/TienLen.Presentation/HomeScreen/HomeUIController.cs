@@ -5,6 +5,7 @@ using UnityEngine;
 using UnityEngine.SceneManagement; // Direct scene management
 using UnityEngine.UI;
 using VContainer;
+using VContainer.Unity; // Required for LifetimeScope
 using TMPro;
 
 namespace TienLen.Presentation
@@ -24,12 +25,14 @@ namespace TienLen.Presentation
         
         private IAuthenticationService _authService;
         private TienLenMatchHandler _matchHandler;
+        private LifetimeScope _currentScope; // Inject the current scope (HomeLifetimeScope)
 
         [Inject]
-        public void Construct(IAuthenticationService authService, TienLenMatchHandler matchHandler)
+        public void Construct(IAuthenticationService authService, TienLenMatchHandler matchHandler, LifetimeScope currentScope)
         {
             _authService = authService;
             _matchHandler = matchHandler;
+            _currentScope = currentScope;
         }
 
         private void Awake()
@@ -86,8 +89,12 @@ namespace TienLen.Presentation
                 
                 SetMatchmakingState(false, "Match Found!");
                 
-                // Load GameRoom Additively
-                await SceneManager.LoadSceneAsync("GameRoom", LoadSceneMode.Additive);
+                // Load GameRoom Additively, parenting its scope to the current (Home) scope
+                // This allows GameRoom to inherit services from Home (and transitively from Game/Global)
+                using (LifetimeScope.EnqueueParent(_currentScope))
+                {
+                    await SceneManager.LoadSceneAsync("GameRoom", LoadSceneMode.Additive);
+                }
                 
                 // Hide Home Screen UI
                 SetHomeUIVisibility(false);
