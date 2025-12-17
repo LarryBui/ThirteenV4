@@ -1,5 +1,6 @@
 using System;
 using TienLen.Application;
+using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
 using TienLen.Infrastructure.Match;
 using TienLen.Infrastructure.Services;
@@ -34,6 +35,10 @@ namespace TienLen.Global
 
             var nakamaConfig = new NakamaConfig(deviceId, scheme, host, port, serverKey);
             builder.RegisterInstance<ITienLenAppConfig>(nakamaConfig);
+
+            // Register Session Context
+            builder.Register<GameSessionContext>(Lifetime.Singleton)
+                .As<IGameSessionContext>();
 
             // Register Auth Service as interface and self
             builder.Register<NakamaAuthenticationService>(Lifetime.Singleton)

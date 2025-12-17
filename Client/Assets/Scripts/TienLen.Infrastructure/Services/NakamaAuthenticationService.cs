@@ -2,9 +2,11 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Nakama;
-using TienLen.Application; // Updated
+using TienLen.Application;
+using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace TienLen.Infrastructure.Services
 {
@@ -14,6 +16,7 @@ namespace TienLen.Infrastructure.Services
     public sealed class NakamaAuthenticationService : IAuthenticationService
     {
         private readonly ITienLenAppConfig _config;
+        private readonly IGameSessionContext _gameSessionContext; // Injected
         private readonly SemaphoreSlim _authLock = new(1, 1);
         private bool _socketEventsHooked;
 
@@ -21,15 +24,16 @@ namespace TienLen.Infrastructure.Services
         private IClient _client;
         private ISocket _socket;
 
-        public NakamaAuthenticationService(ITienLenAppConfig config)
+        public NakamaAuthenticationService(ITienLenAppConfig config, IGameSessionContext gameSessionContext)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
+            _gameSessionContext = gameSessionContext ?? throw new ArgumentNullException(nameof(gameSessionContext));
         }
 
         public bool IsAuthenticated => IsSessionValid() && IsSocketConnected();
         public string CurrentUserId => _session?.UserId;
-        public string CurrentUserDisplayName => _session?.Username; // Implemented
-        public int CurrentUserAvatarIndex => GetAvatarIndex(_session?.UserId); // Implemented
+        public string CurrentUserDisplayName => _session?.Username;
+        public int CurrentUserAvatarIndex => GetAvatarIndex(_session?.UserId);
 
         internal ISocket Socket => _socket;
         public IClient Client => _client;
@@ -65,10 +69,13 @@ namespace TienLen.Infrastructure.Services
                     Debug.Log($"NakamaAuth: Authenticating device ID: {_config?.DeviceId}...");
                     // AuthenticateDeviceAsync returns a Task, await it directly.
                     _session = await _client.AuthenticateDeviceAsync(_config.DeviceId, create: true);
-                    Debug.Log("NakamaAuth: Authenticated with Nakama using device ID.");
+                    
+                    // Update Game Session Context
+                    _gameSessionContext.SetIdentity(_session.UserId, _session.Username, GetAvatarIndex(_session.UserId));
+                    
+                    Debug.Log("NakamaAuth: Authenticated with Nakama using device ID." + JsonConvert.SerializeObject(_session));
                 }
 
-                Debug.Log("NakamaAuth: Ensuring socket...");
                 await EnsureSocketAsync();
                 OnAuthenticated?.Invoke();
             }

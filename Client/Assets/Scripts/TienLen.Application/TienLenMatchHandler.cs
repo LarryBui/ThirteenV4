@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using TienLen.Application.Session;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
@@ -15,13 +16,15 @@ namespace TienLen.Application
     {
         private readonly IMatchNetworkClient _networkClient;
         private readonly IAuthenticationService _authService;
+        private readonly IGameSessionContext _gameSessionContext; // Injected
 
         public Match CurrentMatch { get; private set; }
 
-        public TienLenMatchHandler(IMatchNetworkClient networkClient, IAuthenticationService authService)
+        public TienLenMatchHandler(IMatchNetworkClient networkClient, IAuthenticationService authService, IGameSessionContext gameSessionContext)
         {
             _networkClient = networkClient;
             _authService = authService;
+            _gameSessionContext = gameSessionContext ?? throw new ArgumentNullException(nameof(gameSessionContext));
             SubscribeToNetworkEvents();
         }
 
@@ -53,6 +56,10 @@ namespace TienLen.Application
             // For now, we assume success if no exception.
             CurrentMatch = new Match(matchId); // Assuming matchId is Guid, or change Match ctor
             
+            // Update Session Context
+            // Seat is unknown (-1) until confirmed by server/logic
+            _gameSessionContext.SetMatch(matchId, -1); 
+
             // Add self to match
             // This will be superseded by the first OnPlayerJoined event for the local player
             // But we need a player object in CurrentMatch for now.
