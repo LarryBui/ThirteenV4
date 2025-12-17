@@ -253,8 +253,8 @@ func (mh *matchHandler) handlePlayCards(state *MatchState, dispatcher runtime.Ma
 	domainCards := make([]domain.Card, len(request.GetCards()))
 	for i, card := range request.GetCards() {
 		domainCards[i] = domain.Card{
-			Suit: card.GetSuit().String(),
-			Rank: int(card.GetRank()),
+			Suit: int32(card.GetSuit()),
+			Rank: int32(card.GetRank()),
 		}
 	}
 
@@ -299,9 +299,10 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 	switch ev.Kind {
 	case app.EventGameStarted:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_STARTED)
+		p := ev.Payload.(app.GameStartedPayload)
 		payload = &pb.GameStartedEvent{
-			Phase: pb.GamePhase_PHASE_PLAYING,
-			// FirstTurnUserId: ... // This should come from the event payload if available
+			Phase:           pb.GamePhase_PHASE_PLAYING,
+			FirstTurnUserId: p.FirstTurnUserID,
 		}
 	case app.EventHandDealt:
 		opCode = int64(pb.OpCode_OP_CODE_HAND_DEALT)
@@ -313,14 +314,16 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		opCode = int64(pb.OpCode_OP_CODE_CARD_PLAYED)
 		p := ev.Payload.(app.CardPlayedPayload)
 		payload = &pb.CardPlayedEvent{
-			UserId: p.UserID,
-			Cards:  toProtoCards(p.Cards),
+			UserId:         p.UserID,
+			Cards:          toProtoCards(p.Cards),
+			NextTurnUserId: p.NextTurnUserID,
 		}
 	case app.EventTurnPassed:
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
 		p := ev.Payload.(app.TurnPassedPayload)
 		payload = &pb.TurnPassedEvent{
-			UserId: p.UserID,
+			UserId:         p.UserID,
+			NextTurnUserId: p.NextTurnUserID,
 		}
 	case app.EventGameEnded:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_ENDED)
@@ -362,18 +365,8 @@ func toProtoCards(domainCards []domain.Card) []*pb.Card {
 
 // toProtoCard maps a domain card to the protobuf card representation.
 func toProtoCard(card domain.Card) *pb.Card {
-	suit := pb.Suit_SUIT_SPADES
-	switch card.Suit {
-	case "C":
-		suit = pb.Suit_SUIT_CLUBS
-	case "D":
-		suit = pb.Suit_SUIT_DIAMONDS
-	case "H":
-		suit = pb.Suit_SUIT_HEARTS
-	}
-
 	return &pb.Card{
-		Suit: suit,
+		Suit: pb.Suit(card.Suit),
 		Rank: pb.Rank(card.Rank),
 	}
 }

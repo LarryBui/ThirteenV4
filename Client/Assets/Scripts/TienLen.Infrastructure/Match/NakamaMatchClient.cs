@@ -209,6 +209,8 @@ namespace TienLen.Infrastructure.Match
                     }
                     break;
                 case (long)Proto.OpCode.GameStarted:
+                        Debug.LogError($"MatchClient opcode GameStarted: {TrySerializeForDebug(state)}  ");
+
                     try
                     {
                         var payload = Proto.GameStartedEvent.Parser.ParseFrom(state.State);

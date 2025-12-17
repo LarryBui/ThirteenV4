@@ -14,8 +14,8 @@ const (
 
 // Card represents a standard playing card in domain terms.
 type Card struct {
-	Suit string
-	Rank int
+	Suit int32
+	Rank int32
 }
 
 // Player holds the domain state for a player in a match.

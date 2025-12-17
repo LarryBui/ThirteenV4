@@ -59,7 +59,7 @@ func (s *Service) StartGame(playerIDs []string) (*domain.Game, []Event, error) {
 	}
 
 	deck := domain.NewDeck()
-	s.shuffle(deck)
+	deck = domain.ShuffleDeck(deck)
 
 	game := &domain.Game{
 		Phase:   domain.PhasePlaying,
@@ -73,7 +73,7 @@ func (s *Service) StartGame(playerIDs []string) (*domain.Game, []Event, error) {
 	for _, userID := range seats { // Iterate in seat order
 		pl := activePlayers[userID]
 		pl.Hand = append([]domain.Card{}, deck[cardIdx:cardIdx+13]...)
-		domain.SortCards(pl.Hand) // Sort hand after dealing
+		domain.SortHand(pl.Hand) // Sort hand after dealing
 		pl.HasPassed = false
 		pl.Finished = false
 		cardIdx += 13
@@ -92,7 +92,7 @@ func (s *Service) StartGame(playerIDs []string) (*domain.Game, []Event, error) {
 	firstTurnUserID := ""
 	for _, pl := range game.Players {
 		for _, card := range pl.Hand {
-			if card.Suit == "S" && card.Rank == 0 { // 3 of Spades
+			if card.Suit == 0 && card.Rank == 0 { // 3 of Spades
 				firstTurnUserID = pl.UserID
 				break
 			}
@@ -147,14 +147,14 @@ func (s *Service) PlayCards(game *domain.Game, actorUserID string, cards []domai
 
 	// 3. Validate against previous play
 	if game.LastPlayedCombination.Type != domain.Invalid { // If there was a previous play
-		if !domain.CanBeat(playedCombo, game.LastPlayedCombination) {
+		if !domain.CanBeat(game.LastPlayedCombination.Cards, playedCombo.Cards) {
 			return nil, ErrCannotBeat
 		}
 	} else {
 		// First play of the game must be 3 of Spades
 		has3Spades := false
 		for _, c := range pl.Hand {
-			if c.Suit == "S" && c.Rank == 0 {
+			if c.Suit == 0 && c.Rank == 0 {
 				has3Spades = true
 				break
 			}
@@ -163,7 +163,7 @@ func (s *Service) PlayCards(game *domain.Game, actorUserID string, cards []domai
 		if has3Spades {
 			played3Spades := false
 			for _, c := range cards {
-				if c.Suit == "S" && c.Rank == 0 {
+				if c.Suit == 0 && c.Rank == 0 {
 					played3Spades = true
 					break
 				}
@@ -314,8 +314,4 @@ func (s *Service) findNextPlayer(game *domain.Game, currentPlayerID string, allP
 	}
 
 	return currentPlayerID // Fallback
-}
-
-func (s *Service) shuffle(deck []domain.Card) {
-	s.rng.Shuffle(len(deck), func(i, j int) { deck[i], deck[j] = deck[j], deck[i] })
 }

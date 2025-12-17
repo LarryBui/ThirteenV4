@@ -2,28 +2,35 @@ package domain
 
 import (
 	"math/rand"
-	"time"
+	"sort"
 )
 
-// NewDeck returns a standard 52-card deck in domain format.
+// NewDeck returns a sorted 52-card deck.
 func NewDeck() []Card {
-	suits := []string{"S", "C", "D", "H"}
 	deck := make([]Card, 0, 52)
-	for _, suit := range suits {
-		for rank := 0; rank < 13; rank++ {
-			deck = append(deck, Card{
-				Suit: suit,
-				Rank: rank,
-			})
+	for r := int32(0); r <= 12; r++ {
+		for s := int32(0); s <= 3; s++ {
+			deck = append(deck, Card{Rank: r, Suit: s})
 		}
 	}
 	return deck
 }
 
-// Shuffle randomizes the deck order in-place.
-func Shuffle(deck []Card) {
-	rng := rand.New(rand.NewSource(time.Now().UnixNano()))
-	rng.Shuffle(len(deck), func(i, j int) {
-		deck[i], deck[j] = deck[j], deck[i]
+// ShuffleDeck returns a shuffled copy of the given deck.
+func ShuffleDeck(deck []Card) []Card {
+	out := make([]Card, len(deck))
+	copy(out, deck)
+	rand.Shuffle(len(out), func(i, j int) { out[i], out[j] = out[j], out[i] })
+	return out
+}
+
+// SortHand orders a hand by ascending power.
+func SortHand(cards []Card) {
+	sort.Slice(cards, func(i, j int) bool {
+		return cardPower(cards[i]) < cardPower(cards[j])
 	})
+}
+
+func cardPower(c Card) int32 {
+	return c.Rank*4 + c.Suit
 }

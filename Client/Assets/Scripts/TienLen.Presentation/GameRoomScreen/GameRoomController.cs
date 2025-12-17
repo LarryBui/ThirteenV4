@@ -5,6 +5,7 @@ using UnityEngine;
 using VContainer;
 using TienLen.Application;
 using Cysharp.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace TienLen.Presentation.GameRoomScreen
 {
@@ -69,6 +70,8 @@ namespace TienLen.Presentation.GameRoomScreen
         private void RefreshGameRoomUI()
         {
             var match = _matchHandler?.CurrentMatch;
+            Debug.Log($"RefreshGameRoomUI: {JsonConvert.SerializeObject(match)}");
+
             if (match == null || match.Seats == null || match.Seats.Length < SeatCount)
             {
                 ClearAllPlayerProfiles();

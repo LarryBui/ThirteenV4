@@ -1,8 +1,6 @@
 package domain
 
-import (
-	"sort"
-)
+import "sort"
 
 // CardCombinationType represents the type of card combination.
 type CardCombinationType int
@@ -14,164 +12,246 @@ const (
 	Triple
 	Quad
 	Straight // Sequence of 3 or more cards
-	Bomb     // 3 pairs / 4 pairs in a sequence. Not a standard rule, but a variant. For now consider it a sequence of a single rank (e.g. four of a kind).
+	Bomb     // Specific variants like consecutive pairs
 )
 
 // CardCombination represents a detected combination of cards.
 type CardCombination struct {
 	Type  CardCombinationType
 	Cards []Card // The cards forming the combination, sorted
-	Value int    // The "rank" or "strength" of the combination (e.g., highest card in a straight, rank of a pair)
+	Value int32  // The "power" of the highest card in the combination
 	Count int    // Number of cards in the combination
 }
 
-// CompareRanks compares two ranks, accounting for Tien Len's special rank order (3 smallest, 2 largest).
-func CompareRanks(rank1, rank2 int) int {
-	// 3 is 0, 4 is 1, ..., Ace is 11, 2 is 12
-	// If the difference is 0, ranks are equal.
-	if rank1 == rank2 {
-		return 0
+// IsValidSet checks if the cards form a legal Tien Len combination.
+func IsValidSet(cards []Card) bool {
+	if len(cards) == 0 {
+		return false
 	}
-	// 2 is the highest rank
-	if rank1 == 12 { // rank1 is 2
-		return 1
+	if len(cards) == 1 {
+		return true
 	}
-	if rank2 == 12 { // rank2 is 2
-		return -1
+
+	// Same-rank sets: pair, triple, quad (bomb)
+	if allSameRank(cards) {
+		return len(cards) <= 4
 	}
-	if rank1 > rank2 {
-		return 1
+
+	// Straights (sanh): length >= 3, ranks consecutive, cannot contain 2 (rank 12), no duplicates.
+	if isStraight(cards) {
+		return true
 	}
-	return -1
+
+	// Consecutive pairs (doi thong): even length >= 6, pairs of same rank, ranks consecutive, cannot contain 2.
+	if isConsecutivePairs(cards) {
+		return true
+	}
+
+	return false
 }
 
-// SortCards sorts a slice of cards primarily by rank (Tien Len order) and then by suit.
-func SortCards(cards []Card) {
-	sort.Slice(cards, func(i, j int) bool {
-		cmpRank := CompareRanks(cards[i].Rank, cards[j].Rank)
-		if cmpRank != 0 {
-			return cmpRank < 0 // ascending rank
+// CanBeat determines if newCards can beat prevCards according to Tien Len rules.
+// Includes full "Pig Chopping" logic for Quads and Consecutive Pairs (Pine/Thong).
+func CanBeat(prevCards, newCards []Card) bool {
+	// Identify types for chopping logic
+	isNewQuad := isQuad(newCards)
+	isNew3Pine := isThreeConsecutivePairs(newCards)
+	isNew4Pine := isFourConsecutivePairs(newCards)
+	isNew5Pine := isFiveConsecutivePairs(newCards)
+
+	// Identify prev types
+	isPrevSingle2 := len(prevCards) == 1 && prevCards[0].Rank == 12
+	isPrevPair2 := len(prevCards) == 2 && allSameRank(prevCards) && prevCards[0].Rank == 12
+	isPrevQuad := isQuad(prevCards)
+	isPrev3Pine := isThreeConsecutivePairs(prevCards)
+	isPrev4Pine := isFourConsecutivePairs(prevCards)
+	isPrev5Pine := isFiveConsecutivePairs(prevCards)
+
+	// --- 5 Pairs of Consecutive Sequence (5-Pine) ---
+	// Beats: Single 2, Pair 2, Quad, 4-Pine, Smaller 5-Pine
+	if isNew5Pine {
+		if isPrevSingle2 || isPrevPair2 || isPrevQuad || isPrev4Pine || isPrev3Pine {
+			return true
 		}
-		// If ranks are equal, sort by suit (S < C < D < H, or any consistent order)
-		return cards[i].Suit < cards[j].Suit
-	})
+		if isPrev5Pine {
+			return getMaxPower(newCards) > getMaxPower(prevCards)
+		}
+	}
+
+	// --- 4 Pairs of Consecutive Sequence (4-Pine) ---
+	// Beats: Single 2, Pair 2, Quad, Smaller 4-Pine
+	if isNew4Pine {
+		if isPrevSingle2 || isPrevPair2 || isPrevQuad || isPrev3Pine {
+			return true
+		}
+		if isPrev4Pine {
+			return getMaxPower(newCards) > getMaxPower(prevCards)
+		}
+	}
+
+	// --- Quad (Four of a Kind) ---
+	// Beats: Single 2, Pair 2, Smaller Quad, 3-Pine
+	if isNewQuad {
+		if isPrevSingle2 || isPrevPair2 || isPrev3Pine {
+			return true
+		}
+		if isPrevQuad {
+			return newCards[0].Rank > prevCards[0].Rank
+		}
+	}
+
+	// --- 3 Pairs of Consecutive Sequence (3-Pine) ---
+	// Beats: Single 2, Smaller 3-Pine
+	if isNew3Pine {
+		if isPrevSingle2 {
+			return true
+		}
+		if isPrev3Pine {
+			return getMaxPower(newCards) > getMaxPower(prevCards)
+		}
+	}
+
+	// --- Standard Rules ---
+	// 1. Must be same length
+	if len(prevCards) != len(newCards) {
+		return false
+	}
+
+	// 2. Must be same type (e.g. Pair vs Pair, Triple vs Triple)
+	// (Validation of 'isType' is assumed handled by IsValidSet before calling CanBeat,
+	// but we implicitly rely on structure similarity here).
+
+	// 3. Compare highest card power
+	return getMaxPower(newCards) > getMaxPower(prevCards)
 }
 
 // IdentifyCombination analyzes a set of cards and returns the strongest valid Tien Len combination.
 func IdentifyCombination(cards []Card) CardCombination {
-	n := len(cards)
-	if n == 0 {
+	if !IsValidSet(cards) {
 		return CardCombination{Type: Invalid}
 	}
 
-	SortCards(cards)
+	SortHand(cards)
+	n := len(cards)
 
-	// Check for single card
 	if n == 1 {
-		return CardCombination{Type: Single, Cards: cards, Value: cards[0].Rank, Count: 1}
+		return CardCombination{Type: Single, Cards: cards, Value: cardPower(cards[0]), Count: 1}
 	}
 
-	// Group cards by rank
-	rankCounts := make(map[int]int)
-	for _, card := range cards {
-		rankCounts[card.Rank]++
-	}
-
-	// Check for Pair, Triple, Quad
-	if n >= 2 && n <= 4 {
-		isGroup := true
-		rank := cards[0].Rank
-		for _, card := range cards {
-			if card.Rank != rank {
-				isGroup = false
-				break
-			}
-		}
-		if isGroup {
-			switch n {
-			case 2:
-				return CardCombination{Type: Pair, Cards: cards, Value: rank, Count: 2}
-			case 3:
-				return CardCombination{Type: Triple, Cards: cards, Value: rank, Count: 3}
-			case 4:
-				// Ensure all 4 cards are different suits (possible for a Bomb "Four of a kind")
-				if len(rankCounts) == 1 && rankCounts[rank] == 4 {
-					return CardCombination{Type: Bomb, Cards: cards, Value: rank, Count: 4}
-				}
-			}
+	if allSameRank(cards) {
+		val := cardPower(cards[n-1])
+		switch n {
+		case 2:
+			return CardCombination{Type: Pair, Cards: cards, Value: val, Count: 2}
+		case 3:
+			return CardCombination{Type: Triple, Cards: cards, Value: val, Count: 3}
+		case 4:
+			return CardCombination{Type: Bomb, Cards: cards, Value: val, Count: 4}
 		}
 	}
 
-	// Check for Straight (3 or more cards in sequence)
-	if n >= 3 {
-		isStraight := true
-		currentRank := cards[0].Rank
-		// All cards must have unique ranks and be sequential
-		for i := 1; i < n; i++ {
-			expectedRank := (currentRank + 1) % 13 // Handles wrap-around from King (10) to Ace (11), then 2 (12)
-			if cards[i].Rank != expectedRank {
-				isStraight = false
-				break
-			}
-			// Special handling for 2s in straights: a straight cannot end with a 2 (Tien Len rule)
-			if cards[i].Rank == 12 { // If the current card is a 2
-				isStraight = false
-				break
-			}
-			currentRank = cards[i].Rank
-		}
-
-		if isStraight {
-			return CardCombination{Type: Straight, Cards: cards, Value: cards[n-1].Rank, Count: n} // Value is the highest card's rank
-		}
+	if isStraight(cards) {
+		return CardCombination{Type: Straight, Cards: cards, Value: cardPower(cards[n-1]), Count: n}
 	}
 
-	// More complex combinations (e.g., three pairs, four pairs, specific bomb types)
-	// These rules are highly variant. For now, prioritize simpler combinations.
+	if isConsecutivePairs(cards) {
+		return CardCombination{Type: Bomb, Cards: cards, Value: cardPower(cards[n-1]), Count: n}
+	}
 
 	return CardCombination{Type: Invalid}
 }
 
-// CanBeat checks if 'newCombo' can legally beat 'lastCombo' according to Tien Len rules.
-func CanBeat(newCombo, lastCombo CardCombination) bool {
-	if newCombo.Type == Invalid || lastCombo.Type == Invalid {
+func isQuad(cards []Card) bool {
+	return len(cards) == 4 && allSameRank(cards)
+}
+
+func isThreeConsecutivePairs(cards []Card) bool {
+	return len(cards) == 6 && isConsecutivePairs(cards)
+}
+
+func isFourConsecutivePairs(cards []Card) bool {
+	return len(cards) == 8 && isConsecutivePairs(cards)
+}
+
+func isFiveConsecutivePairs(cards []Card) bool {
+	return len(cards) == 10 && isConsecutivePairs(cards)
+}
+
+func getMaxPower(cards []Card) int32 {
+	maxP := int32(-1)
+	for _, c := range cards {
+		p := cardPower(c)
+		if p > maxP {
+			maxP = p
+		}
+	}
+	return maxP
+}
+
+func allSameRank(cards []Card) bool {
+	if len(cards) == 0 {
 		return false
 	}
-
-	// Special rule: If previous play was a Bomb, only a higher Bomb can beat it.
-	// For this simplified version, let's assume a Bomb is a Four of a Kind.
-	if lastCombo.Type == Bomb {
-		if newCombo.Type == Bomb {
-			return CompareRanks(newCombo.Value, lastCombo.Value) > 0 // Higher rank bomb
+	r := cards[0].Rank
+	for _, c := range cards {
+		if c.Rank != r {
+			return false
 		}
-		return false // Only another bomb can beat a bomb
 	}
+	return true
+}
 
-	// Straight beats anything of lower combination type or a lower straight of same length
-	if newCombo.Type == Straight && lastCombo.Type != Bomb {
-		if newCombo.Count == lastCombo.Count { // Must be same length
-			return CompareRanks(newCombo.Value, lastCombo.Value) > 0
+func isStraight(cards []Card) bool {
+	if len(cards) < 3 {
+		return false
+	}
+	ranks := make([]int32, len(cards))
+	for i, c := range cards {
+		if c.Rank == 12 { // 2 cannot be in a straight
+			return false
 		}
-		// A longer straight can beat a shorter one only if specifically allowed by house rules,
-		// generally straights must be of the same length to beat each other.
-		return false // Default: must be same length
+		ranks[i] = c.Rank
+	}
+	sort.Slice(ranks, func(i, j int) bool { return ranks[i] < ranks[j] })
+
+	for i := 1; i < len(ranks); i++ {
+		if ranks[i] == ranks[i-1] {
+			return false // duplicate rank not allowed
+		}
+		if ranks[i] != ranks[i-1]+1 {
+			return false // not consecutive
+		}
+	}
+	return true
+}
+
+func isConsecutivePairs(cards []Card) bool {
+	if len(cards) < 6 || len(cards)%2 != 0 {
+		return false
+	}
+	ranks := make([]int32, len(cards))
+	for i, c := range cards {
+		if c.Rank == 12 { // 2 cannot be part of consecutive pairs
+			return false
+		}
+		ranks[i] = c.Rank
+	}
+	sort.Slice(ranks, func(i, j int) bool { return ranks[i] < ranks[j] })
+
+	// Check that cards are grouped in pairs of the same rank.
+	pairRanks := make([]int32, 0, len(ranks)/2)
+	for i := 0; i < len(ranks); i += 2 {
+		if ranks[i] != ranks[i+1] {
+			return false
+		}
+		pairRanks = append(pairRanks, ranks[i])
 	}
 
-	// Pair beats a lower pair
-	if newCombo.Type == Pair && lastCombo.Type == Pair {
-		return CompareRanks(newCombo.Value, lastCombo.Value) > 0
+	// Check consecutive ranks across pairs.
+	for i := 1; i < len(pairRanks); i++ {
+		if pairRanks[i] != pairRanks[i-1]+1 {
+			return false
+		}
 	}
-
-	// Triple beats a lower triple
-	if newCombo.Type == Triple && lastCombo.Type == Triple {
-		return CompareRanks(newCombo.Value, lastCombo.Value) > 0
-	}
-
-	// Single beats a lower single
-	if newCombo.Type == Single && lastCombo.Type == Single {
-		return CompareRanks(newCombo.Value, lastCombo.Value) > 0
-	}
-
-	// Default: combinations must be of the same type and size to beat each other (excluding bombs)
-	return false
+	return true
 }
