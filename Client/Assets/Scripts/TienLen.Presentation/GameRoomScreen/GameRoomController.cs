@@ -4,7 +4,7 @@ using VContainer;
 using TienLen.Application;
 using Cysharp.Threading.Tasks;
 
-namespace TienLen.Presentation
+namespace TienLen.Presentation.GameRoomScreen
 {
     public class GameRoomController : MonoBehaviour
     {

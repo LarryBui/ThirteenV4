@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using UnityEngine;
 
-namespace TienLen.Presentation
+namespace TienLen.Presentation.GameRoomScreen
 {
     public class CardDealer : MonoBehaviour
     {

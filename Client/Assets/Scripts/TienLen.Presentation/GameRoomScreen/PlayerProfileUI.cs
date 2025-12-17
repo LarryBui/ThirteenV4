@@ -2,7 +2,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TienLen.Presentation
+namespace TienLen.Presentation.GameRoomScreen
 {
     public class PlayerProfileUI : MonoBehaviour
     {
