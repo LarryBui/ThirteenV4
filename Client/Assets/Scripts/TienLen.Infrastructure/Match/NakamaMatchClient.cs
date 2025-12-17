@@ -9,6 +9,7 @@ using TienLen.Infrastructure.Services;
 using UnityEngine;
 using Google.Protobuf;
 using Proto = Tienlen.V1;
+using Newtonsoft.Json;
 
 
 namespace TienLen.Infrastructure.Match
@@ -18,6 +19,12 @@ namespace TienLen.Infrastructure.Match
     /// </summary>
     public sealed class NakamaMatchClient : IMatchNetworkClient
     {
+        private static readonly JsonSerializerSettings DebugJsonSettings = new()
+        {
+            ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+            NullValueHandling = NullValueHandling.Ignore
+        };
+
         private readonly NakamaAuthenticationService _authService;
         private string _matchId;
         private ISocket _subscribedSocket;
@@ -81,6 +88,10 @@ namespace TienLen.Infrastructure.Match
                 // Join the match on Nakama.
                 var match = await Socket.JoinMatchAsync(matchId);
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log("MatchClient: JoinMatchAsync response: " + TrySerializeForDebug(match));
+#endif
+
                 // Use returned id when available; otherwise fall back to the requested match id.
                 _matchId = string.IsNullOrEmpty(match?.Id) ? matchId : match.Id;
 
@@ -126,11 +137,19 @@ namespace TienLen.Infrastructure.Match
         /// <param name="presenceEvent"></param>
         private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.Log("MatchClient: Received MatchPresenceEvent: " + TrySerializeForDebug(presenceEvent));
+#endif
+
             if (presenceEvent.MatchId != _matchId) return;
 
             foreach (var joiner in presenceEvent.Joins)
             {
                 UpsertPresence(joiner, isInMatch: true);
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log("MatchClient: Joiner presence: " + TrySerializeForDebug(joiner));
+#endif
 
                 // Extract display name and create a PlayerAvatar
                 string displayName = string.IsNullOrEmpty(joiner.Username) ? $"Player {joiner.UserId.Substring(0, 4)}" : joiner.Username;
@@ -138,6 +157,10 @@ namespace TienLen.Infrastructure.Match
 
                 var playerAvatar = new PlayerAvatar(joiner.UserId, displayName, avatarIndex);
                 OnPlayerJoined?.Invoke(playerAvatar); // Invoke with rich data
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log("MatchClient: Raised OnPlayerJoined with PlayerAvatar: " + TrySerializeForDebug(playerAvatar));
+#endif
             }
 
             foreach (var leaver in presenceEvent.Leaves)
@@ -166,14 +189,20 @@ namespace TienLen.Infrastructure.Match
                     try
                     {
                         var payload = Proto.MatchStateSnapshot.Parser.ParseFrom(state.State);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        Debug.Log("MatchClient Opcode50: MatchStateSnapshot payload: " + TrySerializeForDebug(payload));
+#endif
                         var seats = new string[payload.Seats.Count];
                         payload.Seats.CopyTo(seats, 0);
                         var snapshot = new MatchStateSnapshot(seats, payload.OwnerId, payload.Tick);
                         OnPlayerJoinedOP?.Invoke(snapshot);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        Debug.Log("MatchClient Opcode50: Raised OnPlayerJoinedOP with snapshot: " + TrySerializeForDebug(snapshot));
+#endif
                     }
                     catch (Exception e)
                     {
-                        Debug.LogWarning($"MatchClient: Failed to parse match state payload: {e}");
+                        Debug.LogWarning($"MatchClient opcode50: Failed to parse match state payload: {e}");
                     }
                     break;
                 case (long)Proto.OpCode.GameStarted:
@@ -187,6 +216,20 @@ namespace TienLen.Infrastructure.Match
                         Debug.LogError($"Error parsing GameStartedEvent: {e}");
                     }
                     break;
+            }
+        }
+
+        private static string TrySerializeForDebug(object value)
+        {
+            if (value == null) return "null";
+
+            try
+            {
+                return JsonConvert.SerializeObject(value, DebugJsonSettings);
+            }
+            catch (Exception ex)
+            {
+                return $"<json-serialize-failed: {ex.GetType().Name}: {ex.Message}>";
             }
         }
 

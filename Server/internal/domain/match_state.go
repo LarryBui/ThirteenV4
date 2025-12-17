@@ -35,6 +35,7 @@ type Game struct {
 	FinishOrder           []string
 	CurrentTurn           string
 	LastPlayedCombination CardCombination // The last valid combination played on the table
+	LastPlayerToPlay      string          // The UserID of the player who played the last combination
 }
 
 // CountPlayersWithCards returns the number of active players with cards remaining.

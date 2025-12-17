@@ -5,6 +5,7 @@ using TienLen.Application.Session;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
+using Newtonsoft.Json;
 
 namespace TienLen.Application
 {
@@ -122,7 +123,7 @@ namespace TienLen.Application
             _networkClient.OnPlayerJoined += HandlePlayerJoined;
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
             _networkClient.OnGameStarted += HandleMatchStarted;
-            _networkClient.OnPlayerJoinedOP += HandleMatchStateUpdated;
+            _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
             // ... other events
         }
 
@@ -131,7 +132,7 @@ namespace TienLen.Application
             _networkClient.OnPlayerJoined -= HandlePlayerJoined;
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
             _networkClient.OnGameStarted -= HandleMatchStarted;
-            _networkClient.OnPlayerJoinedOP -= HandleMatchStateUpdated;
+            _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
         }
 
         private void HandlePlayerJoined(PlayerAvatar playerAvatar)
@@ -139,6 +140,10 @@ namespace TienLen.Application
             if (string.IsNullOrWhiteSpace(playerAvatar.UserId)) return;
 
             _playerAvatarsByUserId[playerAvatar.UserId] = playerAvatar;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.Log("Handler: PlayerJoined event payload: " + JsonConvert.SerializeObject(playerAvatar));
+#endif
 
             if (CurrentMatch == null)
             {
@@ -177,9 +182,13 @@ namespace TienLen.Application
             CurrentMatch.DealCards();
         }
 
-        private void HandleMatchStateUpdated(MatchStateSnapshot snapshot)
+        private void HandlePlayerJoinedOP(MatchStateSnapshot snapshot)
         {
             if (CurrentMatch == null) return;
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.Log("Handler op50: MatchStateSnapshot received: " + JsonConvert.SerializeObject(snapshot));
+#endif
 
             Array.Clear(CurrentMatch.Seats, 0, CurrentMatch.Seats.Length);
             var seatsToCopy = Math.Min(snapshot.Seats.Length, CurrentMatch.Seats.Length);
@@ -195,7 +204,7 @@ namespace TienLen.Application
         {
             if (snapshot.Seats.Length > MaxPlayers)
             {
-                Debug.LogWarning($"Handler: Server snapshot has {snapshot.Seats.Length} seats, but GameRoom supports a maximum of {MaxPlayers} players. Extra seats will be ignored.");
+                Debug.LogWarning($"Handler op50: Server snapshot has {snapshot.Seats.Length} seats, but GameRoom supports a maximum of {MaxPlayers} players. Extra seats will be ignored.");
             }
 
             var activeUserIds = new HashSet<string>();
