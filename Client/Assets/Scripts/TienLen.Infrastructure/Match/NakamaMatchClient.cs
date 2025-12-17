@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Nakama;
@@ -20,6 +21,10 @@ namespace TienLen.Infrastructure.Match
     {
         private readonly NakamaAuthenticationService _authService;
         private string _matchId;
+        private ISocket _subscribedSocket;
+
+        private readonly object _presenceLock = new();
+        private readonly Dictionary<string, PresenceInfo> _presenceByUserId = new();
 
         // --- IMatchNetworkClient Events ---
         public event Action<PlayerAvatar> OnPlayerJoined; // Updated
@@ -63,17 +68,33 @@ namespace TienLen.Infrastructure.Match
         {
             if (Socket == null) throw new InvalidOperationException("Not connected to Nakama socket.");
             if (!Socket.IsConnected) throw new InvalidOperationException("Nakama socket is not connected.");
+            if (string.IsNullOrWhiteSpace(matchId)) throw new ArgumentException("Match id is required.", nameof(matchId));
 
-            // Join the match on Nakama
-            var match = await Socket.JoinMatchAsync(matchId);
-            Debug.Log("MatchClient: Await Joined match: " + JsonConvert.SerializeObject(match));
-            _matchId = match.Id;
+            var previousMatchId = _matchId;
+            try
+            {
+                // Subscribe before awaiting JoinMatchAsync to avoid missing early state broadcasts.
+                EnsureSocketEventSubscriptions(Socket);
 
-            // Subscribe to events specific to this match
-            Socket.ReceivedMatchState += HandleMatchState;
-            Socket.ReceivedMatchPresence += HandleMatchPresence;
+                _matchId = matchId;
+                ClearPresenceCache();
 
-            Debug.Log($"MatchClient: Joined match: {_matchId}");
+                // Join the match on Nakama.
+                var match = await Socket.JoinMatchAsync(matchId);
+                Debug.Log("MatchClient: Await Joined match: " + JsonConvert.SerializeObject(match));
+
+                // Use returned id when available; otherwise fall back to the requested match id.
+                _matchId = string.IsNullOrEmpty(match?.Id) ? matchId : match.Id;
+
+                SeedPresenceCacheFromJoinMatchResponse(match);
+
+                Debug.Log($"MatchClient: Joined match: {_matchId}");
+            }
+            catch
+            {
+                _matchId = previousMatchId;
+                throw;
+            }
         }
 
         public async UniTask SendStartGameAsync()
@@ -116,6 +137,8 @@ namespace TienLen.Infrastructure.Match
 
             foreach (var joiner in presenceEvent.Joins)
             {
+                UpsertPresence(joiner, isInMatch: true);
+
                 // Extract display name and create a PlayerAvatar
                 string displayName = string.IsNullOrEmpty(joiner.Username) ? $"Player {joiner.UserId.Substring(0, 4)}" : joiner.Username;
                 int avatarIndex = GetAvatarIndex(joiner.UserId); // Deterministic avatar selection
@@ -124,7 +147,10 @@ namespace TienLen.Infrastructure.Match
                 OnPlayerJoined?.Invoke(playerAvatar); // Invoke with rich data
             }
 
-            // Handle leaves if necessary
+            foreach (var leaver in presenceEvent.Leaves)
+            {
+                UpsertPresence(leaver, isInMatch: false);
+            }
         }
 
         private int GetAvatarIndex(string userId)
@@ -177,6 +203,149 @@ namespace TienLen.Infrastructure.Match
         {
             if (Socket == null || !Socket.IsConnected) return;
             await Socket.SendMatchStateAsync(_matchId, opcode, payload);
+        }
+
+        /// <summary>
+        /// Subscribes to socket match events once per socket instance.
+        /// This prevents losing early broadcasts (e.g., lobby snapshot after join) and avoids duplicate handlers.
+        /// </summary>
+        /// <param name="socket">Socket instance used for realtime communication.</param>
+        private void EnsureSocketEventSubscriptions(ISocket socket)
+        {
+            if (socket == null) throw new ArgumentNullException(nameof(socket));
+
+            if (ReferenceEquals(_subscribedSocket, socket))
+            {
+                return;
+            }
+
+            if (_subscribedSocket != null)
+            {
+                _subscribedSocket.ReceivedMatchState -= HandleMatchState;
+                _subscribedSocket.ReceivedMatchPresence -= HandleMatchPresence;
+            }
+
+            socket.ReceivedMatchState += HandleMatchState;
+            socket.ReceivedMatchPresence += HandleMatchPresence;
+            _subscribedSocket = socket;
+        }
+
+        /// <summary>
+        /// Clears all cached presence information for the current match.
+        /// </summary>
+        private void ClearPresenceCache()
+        {
+            lock (_presenceLock)
+            {
+                _presenceByUserId.Clear();
+            }
+        }
+
+        /// <summary>
+        /// Seeds the presence cache from the JoinMatchAsync response to capture existing players immediately.
+        /// </summary>
+        private void SeedPresenceCacheFromJoinMatchResponse(object match)
+        {
+            if (match == null) return;
+
+            // Property names are taken from Nakama's IMatch shape, but we read via reflection
+            // to keep the client resilient to SDK changes (e.g., missing properties or different names).
+            var self = TryGetUserPresenceProperty(match, "Self") ?? TryGetUserPresenceProperty(match, "SelfPresence");
+            UpsertPresence(self, isInMatch: true);
+
+            foreach (var presence in TryGetUserPresenceEnumerableProperty(match, "Presences"))
+            {
+                UpsertPresence(presence, isInMatch: true);
+            }
+        }
+
+        private void UpsertPresence(IUserPresence presence, bool isInMatch)
+        {
+            if (presence == null) return;
+            if (string.IsNullOrWhiteSpace(presence.UserId)) return;
+
+            var now = DateTimeOffset.UtcNow;
+            var sessionId = TryGetStringProperty(presence, "SessionId");
+            var node = TryGetStringProperty(presence, "Node");
+            var status = TryGetStringProperty(presence, "Status");
+
+            lock (_presenceLock)
+            {
+                if (!_presenceByUserId.TryGetValue(presence.UserId, out var info))
+                {
+                    info = new PresenceInfo(presence.UserId);
+                    _presenceByUserId.Add(presence.UserId, info);
+                }
+
+                info.Update(
+                    username: presence.Username,
+                    sessionId: sessionId,
+                    node: node,
+                    status: status,
+                    isInMatch: isInMatch,
+                    updatedUtc: now);
+            }
+        }
+
+        private static IUserPresence TryGetUserPresenceProperty(object instance, string propertyName)
+        {
+            var propertyInfo = instance.GetType().GetProperty(propertyName);
+            if (propertyInfo == null) return null;
+            return propertyInfo.GetValue(instance) as IUserPresence;
+        }
+
+        private static IEnumerable<IUserPresence> TryGetUserPresenceEnumerableProperty(object instance, string propertyName)
+        {
+            var propertyInfo = instance.GetType().GetProperty(propertyName);
+            if (propertyInfo == null) yield break;
+
+            if (propertyInfo.GetValue(instance) is not IEnumerable enumerable) yield break;
+
+            foreach (var item in enumerable)
+            {
+                if (item is IUserPresence presence)
+                {
+                    yield return presence;
+                }
+            }
+        }
+
+        private static string TryGetStringProperty(object instance, string propertyName)
+        {
+            if (instance == null) return null;
+            var propertyInfo = instance.GetType().GetProperty(propertyName);
+            if (propertyInfo == null) return null;
+            if (propertyInfo.PropertyType != typeof(string)) return null;
+            return propertyInfo.GetValue(instance) as string;
+        }
+
+        /// <summary>
+        /// Captures best-effort metadata about a user presence for lobby synchronization and debugging.
+        /// </summary>
+        private sealed class PresenceInfo
+        {
+            public string UserId { get; }
+            public string Username { get; private set; }
+            public string SessionId { get; private set; }
+            public string Node { get; private set; }
+            public string Status { get; private set; }
+            public DateTimeOffset LastUpdatedUtc { get; private set; }
+            public bool IsInMatch { get; private set; }
+
+            public PresenceInfo(string userId)
+            {
+                UserId = userId;
+            }
+
+            public void Update(string username, string sessionId, string node, string status, bool isInMatch, DateTimeOffset updatedUtc)
+            {
+                if (!string.IsNullOrWhiteSpace(username)) Username = username;
+                if (!string.IsNullOrWhiteSpace(sessionId)) SessionId = sessionId;
+                if (!string.IsNullOrWhiteSpace(node)) Node = node;
+                if (status != null) Status = status;
+                IsInMatch = isInMatch;
+                LastUpdatedUtc = updatedUtc;
+            }
         }
     }
 }

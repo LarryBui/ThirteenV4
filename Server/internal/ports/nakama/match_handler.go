@@ -8,6 +8,7 @@ import (
 
 	"github.com/heroiclabs/nakama-common/runtime"
 	"google.golang.org/protobuf/proto"
+	"tienlen/internal/app"
 	"tienlen/internal/domain"
 	pb "tienlen/proto"
 )
@@ -22,6 +23,7 @@ type MatchRuntimeState struct {
 	OwnerID   string                      `json:"owner_id"` // User ID of the match owner
 	Tick      int64                       `json:"tick"`     // Current tick of the match for turn-based logic
 	Presences map[string]runtime.Presence `json:"-"`        // Map UserId -> Presence for targeted messaging
+	App       *app.Service                `json:"-"`        // TienLen app service with game logic
 }
 
 func (ms *MatchRuntimeState) GetOpenSeatsCount() int {
@@ -58,6 +60,7 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 	state := &MatchRuntimeState{
 		Tick:      time.Now().Unix(),
 		Presences: make(map[string]runtime.Presence),
+		App:       app.NewService(nil), // Initialize the app service
 	}
 
 	// Initial match label: 4 open seats
@@ -188,6 +191,12 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 		switch msg.GetOpCode() {
 		case int64(pb.OpCode_OP_CODE_START_GAME):
 			mh.handleStartGame(matchState, dispatcher, logger, msg)
+		case int64(pb.OpCode_OP_CODE_PLAY_CARDS):
+			mh.handlePlayCards(matchState, dispatcher, logger, msg)
+		case int64(pb.OpCode_OP_CODE_PASS_TURN):
+			mh.handlePassTurn(matchState, dispatcher, logger, msg)
+		default:
+			logger.Warn("MatchLoop: Unknown opcode received: %d", msg.GetOpCode())
 		}
 	}
 
@@ -268,6 +277,140 @@ func (mh *matchHandler) handleStartGame(state *MatchRuntimeState, dispatcher run
 	}
 
 	logger.Info("StartGame: Game started with %d players.", activeCount)
+}
+
+func (mh *matchHandler) handlePlayCards(state *MatchRuntimeState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
+	senderID := msg.GetUserId()
+	logger.Debug("handlePlayCards: User %s wants to play cards.", senderID)
+
+	// Convert Nakama's MatchRuntimeState into app's domain.MatchState
+	// For now, only phase and players are needed for app.Service
+	appMatchState := &domain.MatchState{
+		Phase:   domain.Phase(state.Tick), // TODO: Use actual game phase from MatchRuntimeState
+		Players: make(map[string]*domain.Player),
+	}
+	for _, presence := range state.Presences {
+		// This mapping is incomplete. You need to properly map
+		// Nakama's MatchRuntimeState player data to domain.Player
+		// Including hand, hasPassed, etc. which are currently in app.Service's state.
+		appMatchState.Players[presence.GetUserId()] = &domain.Player{
+			UserID: presence.GetUserId(),
+			// Populate other fields from a more comprehensive MatchRuntimeState if they exist
+		}
+	}
+
+	// Unmarshal client request
+	request := &pb.PlayCardsRequest{}
+	if err := proto.Unmarshal(msg.GetData(), request); err != nil {
+		logger.Error("handlePlayCards: Failed to unmarshal PlayCardsRequest: %v", err)
+		return
+	}
+
+	domainCards := make([]domain.Card, len(request.GetCards()))
+	for i, card := range request.GetCards() {
+		domainCards[i] = domain.Card{
+			Suit: card.GetSuit().String(), // Assuming string conversion is consistent
+			Rank: int(card.GetRank()),
+		}
+	}
+
+	// Call app service
+	// IMPORTANT: This currently uses a placeholder appMatchState.
+	// The full domain.MatchState needs to be reconstructed from MatchRuntimeState
+	// or MatchRuntimeState needs to fully contain domain.MatchState.
+	events, err := state.App.PlayCards(appMatchState, senderID, domainCards)
+	if err != nil {
+		logger.Warn("handlePlayCards: User %s failed to play cards: %v", senderID, err)
+		// TODO: Send error back to client
+		return
+	}
+
+	// Broadcast events
+	for _, ev := range events {
+		payload, err := proto.Marshal(toProtoEvent(ev))
+		if err != nil {
+			logger.Error("handlePlayCards: Failed to marshal event: %v", err)
+			continue
+		}
+		// TODO: Determine recipients based on event type and app.Service events
+		dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_CARD_PLAYED), payload, nil, nil, true)
+	}
+}
+
+func (mh *matchHandler) handlePassTurn(state *MatchRuntimeState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
+	senderID := msg.GetUserId()
+	logger.Debug("handlePassTurn: User %s wants to pass turn.", senderID)
+
+	// Convert Nakama's MatchRuntimeState into app's domain.MatchState
+	appMatchState := &domain.MatchState{
+		Phase:   domain.Phase(state.Tick), // TODO: Use actual game phase from MatchRuntimeState
+		Players: make(map[string]*domain.Player),
+	}
+	for _, presence := range state.Presences {
+		// This mapping is incomplete. You need to properly map
+		// Nakama's MatchRuntimeState player data to domain.Player
+		// Including hand, hasPassed, etc. which are currently in app.Service's state.
+		appMatchState.Players[presence.GetUserId()] = &domain.Player{
+			UserID: presence.GetUserId(),
+			// Populate other fields from a more comprehensive MatchRuntimeState if they exist
+		}
+	}
+
+	// Unmarshal client request (PassTurnRequest might be empty or contain context)
+	// For now, assuming no specific payload for PassTurnRequest
+	// If a payload exists, unmarshal it here.
+
+	// Call app service
+	// IMPORTANT: This currently uses a placeholder appMatchState.
+	// The full domain.MatchState needs to be reconstructed from MatchRuntimeState
+	// or MatchRuntimeState needs to fully contain domain.MatchState.
+	events, err := state.App.PassTurn(appMatchState, senderID)
+	if err != nil {
+		logger.Warn("handlePassTurn: User %s failed to pass turn: %v", senderID, err)
+		// TODO: Send error back to client
+		return
+	}
+
+	// Broadcast events
+	for _, ev := range events {
+		payload, err := proto.Marshal(toProtoEvent(ev))
+		if err != nil {
+			logger.Error("handlePassTurn: Failed to marshal event: %v", err)
+			continue
+		}
+		// TODO: Determine recipients based on event type and app.Service events
+		dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_TURN_PASSED), payload, nil, nil, true)
+	}
+}
+
+// TODO: This is a placeholder. You need to implement a proper conversion
+// from app.Event to a protobuf event that clients understand.
+func toProtoEvent(ev app.Event) proto.Message {
+	switch ev.Kind {
+	case app.EventCardPlayed:
+		// Example conversion, adapt to your proto definition
+		payload := ev.Payload.(app.CardPlayedPayload)
+		return &pb.CardPlayedEvent{
+			UserId: payload.UserID,
+			Cards:  toProtoCards(payload.Cards),
+		}
+	case app.EventTurnPassed:
+		// Example conversion
+		payload := ev.Payload.(app.TurnPassedPayload)
+		return &pb.TurnPassedEvent{
+			UserId: payload.UserID,
+		}
+	default:
+		return nil
+	}
+}
+
+func toProtoCards(domainCards []domain.Card) []*pb.Card {
+	protoCards := make([]*pb.Card, len(domainCards))
+	for i, card := range domainCards {
+		protoCards[i] = toProtoCard(card)
+	}
+	return protoCards
 }
 
 // toProtoCard maps a domain card to the protobuf card representation.
