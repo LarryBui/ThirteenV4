@@ -114,28 +114,7 @@ namespace TienLen.Application
         {
             if (CurrentMatch == null) return;
             Debug.Log($"Handler: Player {playerAvatar.DisplayName} ({playerAvatar.UserId}) joined.");
-
-            // In a real scenario, we need to know the Seat # from the server.
-            // For now, simple sequential seat assignment for demo.
-            int nextSeat = 0;
-            for(int i=0; i<CurrentMatch.Seats.Length; i++) {
-                if(string.IsNullOrEmpty(CurrentMatch.Seats[i])) {
-                    nextSeat = i + 1;
-                    break;
-                }
-            }
-
-            if (nextSeat > 0)
-            {
-                var newPlayer = new Player 
-                { 
-                    UserID = playerAvatar.UserId, 
-                    DisplayName = playerAvatar.DisplayName,
-                    AvatarIndex = playerAvatar.AvatarIndex,
-                    Seat = nextSeat 
-                };
-                CurrentMatch.RegisterPlayer(newPlayer);
-            }
+            // should use onMatchState for full data sync
         }
 
         private void HandleCardsPlayed(string userId, List<Card> cards)

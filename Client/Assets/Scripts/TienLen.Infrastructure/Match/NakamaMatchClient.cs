@@ -53,10 +53,7 @@ namespace TienLen.Infrastructure.Match
             }
 
             var matchId = rpcResponse.Payload;
-            
-            // 2. Join the match using the ID returned from the RPC
-            await SendJoinMatchAsync(matchId);
-            
+
             return matchId;
         }
 
@@ -67,8 +64,9 @@ namespace TienLen.Infrastructure.Match
 
             // Join the match on Nakama
             var match = await Socket.JoinMatchAsync(matchId);
+            Debug.Log("MatchClient: Await Joined match: " + JsonConvert.SerializeObject(match));
             _matchId = match.Id;
-            
+
             // Subscribe to events specific to this match
             Socket.ReceivedMatchState += HandleMatchState;
             Socket.ReceivedMatchPresence += HandleMatchPresence;
@@ -91,8 +89,8 @@ namespace TienLen.Infrastructure.Match
 
         public UniTask SendPassTurnAsync()
         {
-             // return SendAsync(TienLenOpcodes.PassTurn, ProtoMatchCodec.EncodePassTurn());
-             throw new NotImplementedException("ProtoMatchCodec is removed.");
+            // return SendAsync(TienLenOpcodes.PassTurn, ProtoMatchCodec.EncodePassTurn());
+            throw new NotImplementedException("ProtoMatchCodec is removed.");
         }
 
         public UniTask SendRequestNewGameAsync()
@@ -103,6 +101,11 @@ namespace TienLen.Infrastructure.Match
 
         // --- Event Handlers ---
 
+        /// <summary>
+        /// Handles match presence events (players joining/leaving).
+        /// This is only used for setting up new player flag. use onMatchState for more rich data
+        /// </summary>
+        /// <param name="presenceEvent"></param>
         private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
         {
             Debug.Log("MatchClient: Received Match Join/Leave Event." + JsonConvert.SerializeObject(presenceEvent));
@@ -139,13 +142,13 @@ namespace TienLen.Infrastructure.Match
             switch (state.OpCode)
             {
                 case (long)Proto.OpCode.GameStarted:
-                    try 
+                    try
                     {
                         var payload = Proto.GameStartedEvent.Parser.ParseFrom(state.State);
                         Debug.Log($"MatchClient: Game Started! Phase: {payload.Phase}, First Turn: {payload.FirstTurnUserId}");
                         OnGameStarted?.Invoke();
-                    } 
-                    catch (Exception e) 
+                    }
+                    catch (Exception e)
                     {
                         Debug.LogError($"Error parsing GameStartedEvent: {e}");
                     }
