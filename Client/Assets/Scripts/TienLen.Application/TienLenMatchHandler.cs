@@ -100,6 +100,7 @@ namespace TienLen.Application
             _networkClient.OnPlayerJoined += HandlePlayerJoined;
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
             _networkClient.OnGameStarted += HandleMatchStarted;
+            _networkClient.OnPlayerJoinedOP += HandleMatchStateUpdated;
             // ... other events
         }
 
@@ -108,6 +109,7 @@ namespace TienLen.Application
             _networkClient.OnPlayerJoined -= HandlePlayerJoined;
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
             _networkClient.OnGameStarted -= HandleMatchStarted;
+            _networkClient.OnPlayerJoinedOP -= HandleMatchStateUpdated;
         }
 
         private void HandlePlayerJoined(PlayerAvatar playerAvatar)
@@ -138,6 +140,17 @@ namespace TienLen.Application
             if (CurrentMatch == null) return;
             Debug.Log("Handler: Match started.");
             CurrentMatch.DealCards();
+        }
+
+        private void HandleMatchStateUpdated(MatchStateSnapshot snapshot)
+        {
+            if (CurrentMatch == null) return;
+            Debug.Log($"Handler: Match state updated. Owner: {snapshot.OwnerId}, Tick: {snapshot.Tick}");
+
+            Array.Clear(CurrentMatch.Seats, 0, CurrentMatch.Seats.Length);
+            var seatsToCopy = Math.Min(snapshot.Seats.Length, CurrentMatch.Seats.Length);
+            Array.Copy(snapshot.Seats, CurrentMatch.Seats, seatsToCopy);
+            CurrentMatch.OwnerUserID = snapshot.OwnerId;
         }
     }
 }

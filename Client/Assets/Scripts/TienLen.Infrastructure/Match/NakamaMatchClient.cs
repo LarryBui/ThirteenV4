@@ -26,6 +26,8 @@ namespace TienLen.Infrastructure.Match
         public event Action<string, List<Card>> OnCardsPlayed;
         public event Action<string> OnPlayerSkippedTurn;
         public event Action OnGameStarted;
+        /// <inheritdoc />
+        public event Action<MatchStateSnapshot> OnPlayerJoinedOP;
         public event Action<string> OnPlayerFinished;
 
         public NakamaMatchClient(NakamaAuthenticationService authService)
@@ -141,6 +143,21 @@ namespace TienLen.Infrastructure.Match
 
             switch (state.OpCode)
             {
+                case (long)Proto.OpCode.PlayerJoined:
+                    try
+                    {
+                        var payload = Proto.MatchStateSnapshot.Parser.ParseFrom(state.State);
+                        var seats = new string[payload.Seats.Count];
+                        payload.Seats.CopyTo(seats, 0);
+                        var snapshot = new MatchStateSnapshot(seats, payload.OwnerId, payload.Tick);
+                        OnPlayerJoinedOP?.Invoke(snapshot);
+                        Debug.Log($"MatchClient: Match state updated. Owner: {snapshot.OwnerId}, Tick: {snapshot.Tick}, Seats: [{string.Join(", ", snapshot.Seats)}]");
+                    }
+                    catch (Exception e)
+                    {
+                        Debug.LogWarning($"MatchClient: Failed to parse match state payload: {e}");
+                    }
+                    break;
                 case (long)Proto.OpCode.GameStarted:
                     try
                     {

@@ -89,6 +89,13 @@ message PlayerLeftEvent {
   string user_id = 1;
 }
 
+// Snapshot of lobby state broadcast after a player joins.
+message MatchStateSnapshot {
+  repeated string seats = 1;
+  string owner_id = 2;
+  int64 tick = 3;
+}
+
 message GameStartedEvent {
   string first_turn_user_id = 1;
   GamePhase phase = 2;

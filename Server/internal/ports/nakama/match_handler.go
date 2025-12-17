@@ -121,7 +121,12 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 	// Update match label
 	mh.updateLabel(matchState, dispatcher, logger)
 
-	snapshotPayload, err := json.Marshal(matchState)
+	snapshot := &pb.MatchStateSnapshot{
+		Seats:   matchState.Seats[:],
+		OwnerId: matchState.OwnerID,
+		Tick:    matchState.Tick,
+	}
+	snapshotPayload, err := proto.Marshal(snapshot)
 	if err != nil {
 		logger.Error("MatchJoin: Failed to marshal match state snapshot: %v", err)
 		return matchState

@@ -2,10 +2,10 @@ package nakama
 
 import (
 	"context"
-	"encoding/json"
 	"testing"
 
 	"github.com/heroiclabs/nakama-common/runtime"
+	"google.golang.org/protobuf/proto"
 	pb "tienlen/proto"
 )
 
@@ -109,16 +109,21 @@ func TestMatchJoin_BroadcastsPlayerJoinedSnapshot(t *testing.T) {
 		t.Fatalf("expected broadcast to all presences, got %v", call.presences)
 	}
 
-	var payloadState MatchState
-	if err := json.Unmarshal(call.data, &payloadState); err != nil {
+	var payloadState pb.MatchStateSnapshot
+	if err := proto.Unmarshal(call.data, &payloadState); err != nil {
 		t.Fatalf("failed to unmarshal match state: %v", err)
 	}
 
-	if payloadState.OwnerID != "user-1" {
-		t.Fatalf("expected payload owner user-1, got %q", payloadState.OwnerID)
+	if payloadState.OwnerId != "user-1" {
+		t.Fatalf("expected payload owner user-1, got %q", payloadState.OwnerId)
 	}
-	if payloadState.Seats != matchState.Seats {
-		t.Fatalf("expected payload seats %v, got %v", matchState.Seats, payloadState.Seats)
+	if len(payloadState.Seats) != len(matchState.Seats) {
+		t.Fatalf("expected %d seats, got %d", len(matchState.Seats), len(payloadState.Seats))
+	}
+	for i, seat := range matchState.Seats {
+		if payloadState.Seats[i] != seat {
+			t.Fatalf("expected seat %d to be %q, got %q", i, seat, payloadState.Seats[i])
+		}
 	}
 	if payloadState.Tick != matchState.Tick {
 		t.Fatalf("expected payload tick %d, got %d", matchState.Tick, payloadState.Tick)
