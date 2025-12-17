@@ -28,29 +28,18 @@ type Player struct {
 	Finished  bool
 }
 
-// MatchState captures the domain state for a single match instance.
-type MatchState struct {
+// Game captures the pure domain state for a single game instance (playing phase).
+type Game struct {
 	Phase       Phase
 	Players     map[string]*Player
-	Seats       [4]string
-	OwnerUserID string
 	FinishOrder []string
-}
-
-// LowestAvailableSeat returns the lowest index of an empty seat.
-func LowestAvailableSeat(seats *[4]string) int {
-	for i, userID := range seats {
-		if userID == "" {
-			return i
-		}
-	}
-	panic("no available seats")
+	CurrentTurn string
 }
 
 // CountPlayersWithCards returns the number of active players with cards remaining.
-func CountPlayersWithCards(state *MatchState) int {
+func CountPlayersWithCards(game *Game) int {
 	count := 0
-	for _, player := range state.Players {
+	for _, player := range game.Players {
 		if !player.Finished && len(player.Hand) > 0 {
 			count++
 		}

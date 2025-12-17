@@ -78,16 +78,16 @@ func (d *fakeDispatcher) MatchLabelUpdate(label string) error {
 func TestMatchJoin_BroadcastsPlayerJoinedSnapshot(t *testing.T) {
 	handler := &matchHandler{}
 	dispatcher := &fakeDispatcher{}
-	state := &MatchRuntimeState{
+	state := &MatchState{
 		Tick:      123,
 		Presences: make(map[string]runtime.Presence),
 	}
 	presence := testPresence{userID: "user-1"}
 
 	got := handler.MatchJoin(context.Background(), fakeLogger{}, nil, nil, dispatcher, 0, state, []runtime.Presence{presence})
-	matchState, ok := got.(*MatchRuntimeState)
+	matchState, ok := got.(*MatchState)
 	if !ok {
-		t.Fatalf("expected MatchRuntimeState, got %T", got)
+		t.Fatalf("expected MatchState, got %T", got)
 	}
 
 	if matchState.Seats[0] != "user-1" {
