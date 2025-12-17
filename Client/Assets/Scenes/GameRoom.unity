@@ -1172,11 +1172,10 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cardDealer: {fileID: 1130013618}
-  playerProfileSlots:
-  - {fileID: 16907759}
-  - {fileID: 1640944418}
-  - {fileID: 778642234}
-  - {fileID: 1059197322}
+  localPlayerProfile: {fileID: 16907759}
+  opponentProfile_1: {fileID: 1059197322}
+  opponentProfile_2: {fileID: 778642234}
+  opponentProfile_3: {fileID: 1640944418}
 --- !u!4 &1130013620
 Transform:
   m_ObjectHideFlags: 0

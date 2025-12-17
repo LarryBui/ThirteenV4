@@ -181,6 +181,9 @@ namespace TienLen.Infrastructure.Match
 
         private void HandleMatchState(IMatchState state)
         {
+
+                        Debug.Log("MatchClient opcode Matchstate... " + TrySerializeForDebug(state));
+
             if (state.MatchId != _matchId) return;
 
             switch (state.OpCode)

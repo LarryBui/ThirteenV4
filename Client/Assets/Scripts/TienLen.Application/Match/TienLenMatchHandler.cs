@@ -184,11 +184,11 @@ namespace TienLen.Application
 
         private void HandlePlayerJoinedOP(MatchStateSnapshot snapshot)
         {
-            if (CurrentMatch == null) return;
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log("Handler op50: MatchStateSnapshot received: " + JsonConvert.SerializeObject(snapshot));
 #endif
+            if (CurrentMatch == null) return;
 
             Array.Clear(CurrentMatch.Seats, 0, CurrentMatch.Seats.Length);
             var seatsToCopy = Math.Min(snapshot.Seats.Length, CurrentMatch.Seats.Length);

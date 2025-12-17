@@ -1,4 +1,6 @@
 using System;
+using TienLen.Application.Session;
+using TienLen.Domain.Aggregates;
 using UnityEngine;
 using VContainer;
 using TienLen.Application;
@@ -8,16 +10,25 @@ namespace TienLen.Presentation.GameRoomScreen
 {
     public class GameRoomController : MonoBehaviour
     {
+        private const int SeatCount = 4;
+
         [Header("Scene References")]
         [SerializeField] private CardDealer _cardDealer;
-        [SerializeField] private PlayerProfileUI[] playerProfileSlots; // Assign these in Inspector (e.g., 4 slots)
+
+        [Header("Player Profiles")]
+        [SerializeField] private PlayerProfileUI localPlayerProfile;
+        [SerializeField] private PlayerProfileUI opponentProfile_1;
+        [SerializeField] private PlayerProfileUI opponentProfile_2;
+        [SerializeField] private PlayerProfileUI opponentProfile_3;
 
         private TienLenMatchHandler _matchHandler;
+        private IGameSessionContext _gameSessionContext;
 
         [Inject]
-        public void Construct(TienLenMatchHandler matchHandler)
+        public void Construct(TienLenMatchHandler matchHandler, IGameSessionContext gameSessionContext)
         {
             _matchHandler = matchHandler;
+            _gameSessionContext = gameSessionContext;
         }
 
         private void Start()
@@ -55,84 +66,97 @@ namespace TienLen.Presentation.GameRoomScreen
             RefreshGameRoomUI();
         }
 
-        private void HandlePlayerJoined(PlayerAvatar playerAvatar)
-        {
-            // Assign to the first available player profile slot
-            for (int i = 0; i < playerProfileSlots.Length; i++)
-            {
-                if (playerProfileSlots[i] != null && !playerProfileSlots[i].gameObject.activeSelf)
-                {
-                    playerProfileSlots[i].SetProfile(playerAvatar.DisplayName, playerAvatar.AvatarIndex);
-                    playerProfileSlots[i].SetActive(true);
-                    return;
-                }
-            }
-            Debug.LogWarning($"GameRoomController: No available player profile slots for {playerAvatar.DisplayName}.");
-        }
-
         private void RefreshGameRoomUI()
         {
-            if (playerProfileSlots == null || playerProfileSlots.Length == 0)
-            {
-                return;
-            }
-
             var match = _matchHandler?.CurrentMatch;
-            if (match == null || match.Seats == null)
+            if (match == null || match.Seats == null || match.Seats.Length < SeatCount)
             {
                 ClearAllPlayerProfiles();
                 return;
             }
 
-            for (int seatIndex = 0; seatIndex < playerProfileSlots.Length; seatIndex++)
+            var localSeatIndex = ResolveLocalSeatIndex(match.Seats);
+            if (localSeatIndex < 0 || localSeatIndex >= SeatCount)
             {
-                var slot = playerProfileSlots[seatIndex];
-                if (slot == null) continue;
-
-                if (seatIndex >= match.Seats.Length)
-                {
-                    slot.ClearProfile();
-                    slot.SetActive(false);
-                    continue;
-                }
-
-                var userId = match.Seats[seatIndex];
-                if (string.IsNullOrEmpty(userId))
-                {
-                    slot.ClearProfile();
-                    slot.SetActive(false);
-                    continue;
-                }
-
-                if (match.Players != null && match.Players.TryGetValue(userId, out var player))
-                {
-                    slot.SetProfile(player.DisplayName, player.AvatarIndex);
-                }
-                else
-                {
-                    var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
-                    slot.SetProfile($"Player {suffix}", 0);
-                }
-
-                slot.SetActive(true);
+                // Fallback to "seat 0 is local" until we can resolve the actual local seat index.
+                localSeatIndex = 0;
             }
+
+            RenderSeat(localPlayerProfile, match, localSeatIndex);
+            RenderSeat(opponentProfile_1, match, (localSeatIndex + 1) % SeatCount);
+            RenderSeat(opponentProfile_2, match, (localSeatIndex + 2) % SeatCount);
+            RenderSeat(opponentProfile_3, match, (localSeatIndex + 3) % SeatCount);
         }
 
         private void ClearAllPlayerProfiles()
         {
-            if (playerProfileSlots == null)
+            ClearProfileSlot(localPlayerProfile);
+            ClearProfileSlot(opponentProfile_1);
+            ClearProfileSlot(opponentProfile_2);
+            ClearProfileSlot(opponentProfile_3);
+        }
+
+        private static void ClearProfileSlot(PlayerProfileUI slot)
+        {
+            if (slot == null) return;
+            slot.ClearProfile();
+            slot.SetActive(false);
+        }
+
+        private int ResolveLocalSeatIndex(string[] seats)
+        {
+            var seatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
+            if (seatIndex >= 0)
             {
+                return seatIndex;
+            }
+
+            var localUserId = _gameSessionContext?.Identity?.UserId;
+            if (string.IsNullOrEmpty(localUserId) || seats == null)
+            {
+                return -1;
+            }
+
+            for (int i = 0; i < seats.Length; i++)
+            {
+                if (seats[i] == localUserId)
+                {
+                    return i;
+                }
+            }
+
+            return -1;
+        }
+
+        private static void RenderSeat(PlayerProfileUI slot, Match match, int seatIndex)
+        {
+            if (slot == null) return;
+
+            if (match == null || match.Seats == null || seatIndex < 0 || seatIndex >= match.Seats.Length)
+            {
+                slot.ClearProfile();
+                slot.SetActive(false);
                 return;
             }
 
-            foreach (var slot in playerProfileSlots)
+            var userId = match.Seats[seatIndex];
+            if (string.IsNullOrEmpty(userId))
             {
-                if (slot != null)
-                {
-                    slot.ClearProfile();
-                    slot.SetActive(false); // Hide the slot
-                }
+                slot.ClearProfile();
+                slot.SetActive(false);
+                return;
             }
+
+            if (match.Players != null && match.Players.TryGetValue(userId, out var player))
+            {
+                slot.SetProfile(player.DisplayName, player.AvatarIndex);
+                slot.SetActive(true);
+                return;
+            }
+
+            var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
+            slot.SetProfile($"Player {suffix}", avatarIndex: 0);
+            slot.SetActive(true);
         }
 
         public void OnStartGameClicked()
