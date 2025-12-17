@@ -38,6 +38,7 @@ build/modules/
 [Bb]uildReport*/
 *.csproj
 *.sln
+!Client/Client.sln
 *.user
 *.userprefs
 *.pidb
