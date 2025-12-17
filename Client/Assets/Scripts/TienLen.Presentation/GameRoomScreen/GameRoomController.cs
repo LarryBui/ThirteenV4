@@ -46,7 +46,6 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleGameStarted()
         {
-            Debug.Log("GameRoomController: Game Started! Triggering Deal Animation.");
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
         }
@@ -58,8 +57,6 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandlePlayerJoined(PlayerAvatar playerAvatar)
         {
-            Debug.Log($"GameRoomController: Player {playerAvatar.DisplayName} (ID: {playerAvatar.UserId}, Avatar: {playerAvatar.AvatarIndex}) joined the match.");
-
             // Assign to the first available player profile slot
             for (int i = 0; i < playerProfileSlots.Length; i++)
             {
@@ -142,7 +139,6 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_matchHandler != null)
             {
-                Debug.Log("GameRoomController: Requesting Start Game...");
                 _matchHandler.StartGameAsync().Forget();
             }
             else

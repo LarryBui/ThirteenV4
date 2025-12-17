@@ -46,16 +46,12 @@ namespace TienLen.Application
 
         public async UniTask FindAndJoinMatchAsync()
         {
-            Debug.Log("Handler: Finding an available match...");
             string matchId = await _networkClient.FindMatchAsync();
-            Debug.Log($"Handler: Successfully found match {matchId}.");            
             await JoinMatchAsync(matchId);
-            Debug.Log($"Handler: Successfully joined match {matchId}.");
         }
 
         public async UniTask JoinMatchAsync(string matchId)
         {
-            Debug.Log($"Handler: Joining match {matchId}...");
             if (string.IsNullOrWhiteSpace(matchId)) throw new ArgumentException("Match id is required.", nameof(matchId));
             
             var previousMatch = CurrentMatch;
@@ -84,8 +80,6 @@ namespace TienLen.Application
 
                 // Send request to network.
                 await _networkClient.SendJoinMatchAsync(matchId);
-
-                Debug.Log("Handler: Joined match locally.");
             }
             catch
             {
@@ -148,11 +142,8 @@ namespace TienLen.Application
 
             if (CurrentMatch == null)
             {
-                Debug.Log($"Handler: Player {playerAvatar.DisplayName} ({playerAvatar.UserId}) joined.");
                 return;
             }
-
-            Debug.Log($"Handler: Player {playerAvatar.DisplayName} ({playerAvatar.UserId}) joined.");
 
             if (CurrentMatch.Players.TryGetValue(playerAvatar.UserId, out var player))
             {
@@ -168,7 +159,6 @@ namespace TienLen.Application
         private void HandleCardsPlayed(string userId, List<Card> cards)
         {
             if (CurrentMatch == null) return;
-            Debug.Log($"Handler: Player {userId} played {cards.Count} cards.");
             
             try
             {
@@ -184,14 +174,12 @@ namespace TienLen.Application
         private void HandleMatchStarted()
         {
             if (CurrentMatch == null) return;
-            Debug.Log("Handler: Match started.");
             CurrentMatch.DealCards();
         }
 
         private void HandleMatchStateUpdated(MatchStateSnapshot snapshot)
         {
             if (CurrentMatch == null) return;
-            Debug.Log($"Handler: Match state updated. Owner: {snapshot.OwnerId}, Tick: {snapshot.Tick}");
 
             Array.Clear(CurrentMatch.Seats, 0, CurrentMatch.Seats.Length);
             var seatsToCopy = Math.Min(snapshot.Seats.Length, CurrentMatch.Seats.Length);

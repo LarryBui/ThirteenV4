@@ -21,15 +21,12 @@ namespace TienLen.Presentation.BootstrapScreen
         [Inject]
         public void Construct(IAuthenticationService authService, LifetimeScope parentLifetimeScope)
         {
-            Debug.Log($"BootstrapUIController: Construct called. AuthService is {(authService != null ? "Valid" : "Null")}");
             _authService = authService;
             _parentLifetimeScope = parentLifetimeScope; // Store the parent scope
         }
 
         private void Start()
         {
-            Debug.Log($"BootstrapUIController: Start called. _authService is {(_authService != null ? "Valid" : "Null")}");
-            
             if (loadingScreenRoot) loadingScreenRoot.SetActive(true);
             InitializeGameAsync().Forget();
         }
@@ -41,12 +38,10 @@ namespace TienLen.Presentation.BootstrapScreen
             // 1. Authenticate
             try
             {
-                Debug.Log("Bootstrap: Logging in...");
                 UpdateProgress(0.3f);
                 
                 await _authService.LoginAsync();
                 
-                Debug.Log("Bootstrap: Login successful.");
                 UpdateProgress(0.8f);
             }
             catch (Exception ex)
@@ -57,14 +52,11 @@ namespace TienLen.Presentation.BootstrapScreen
             }
 
             // 2. Load Home Scene
-            Debug.Log("Bootstrap: Loading Home scene...");
-            
             // Explicitly parent the new Home scene's LifetimeScope to the current (Game) scope
             using (LifetimeScope.EnqueueParent(_parentLifetimeScope))
             {
                 await SceneManager.LoadSceneAsync("Home", LoadSceneMode.Additive);
             }
-            Debug.Log("Bootstrap: Home scene loaded...");
 
             
             UpdateProgress(1.0f);
@@ -73,8 +65,6 @@ namespace TienLen.Presentation.BootstrapScreen
             await UniTask.Delay(500);
             
             if (loadingScreenRoot) loadingScreenRoot.SetActive(false);
-            
-            Debug.Log("Bootstrap: Initialization complete.");
         }
 
         private void UpdateProgress(float progress)

@@ -30,10 +30,11 @@ type Player struct {
 
 // Game captures the pure domain state for a single game instance (playing phase).
 type Game struct {
-	Phase       Phase
-	Players     map[string]*Player
-	FinishOrder []string
-	CurrentTurn string
+	Phase                 Phase
+	Players               map[string]*Player
+	FinishOrder           []string
+	CurrentTurn           string
+	LastPlayedCombination CardCombination // The last valid combination played on the table
 }
 
 // CountPlayersWithCards returns the number of active players with cards remaining.

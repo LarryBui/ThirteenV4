@@ -111,7 +111,6 @@ namespace TienLen.Presentation
         {
             if (scene.name == "GameRoom")
             {
-                Debug.Log("HomeUIController: GameRoom unloaded. Showing Home.");
                 SetHomeUIVisibility(true);
                 // Reset status
                 if (statusText) statusText.text = "";
@@ -124,7 +123,7 @@ namespace TienLen.Presentation
 #if UNITY_EDITOR
             UnityEditor.EditorApplication.isPlaying = false;
 #else
-            Application.Quit();
+            UnityEngine.Application.Quit();
 #endif
         }
 

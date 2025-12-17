@@ -9,7 +9,6 @@ using TienLen.Infrastructure.Services;
 using UnityEngine;
 using Google.Protobuf;
 using Proto = Tienlen.V1;
-using Newtonsoft.Json;
 
 
 namespace TienLen.Infrastructure.Match
@@ -81,14 +80,11 @@ namespace TienLen.Infrastructure.Match
 
                 // Join the match on Nakama.
                 var match = await Socket.JoinMatchAsync(matchId);
-                Debug.Log("MatchClient: Await Joined match: " + JsonConvert.SerializeObject(match));
 
                 // Use returned id when available; otherwise fall back to the requested match id.
                 _matchId = string.IsNullOrEmpty(match?.Id) ? matchId : match.Id;
 
                 SeedPresenceCacheFromJoinMatchResponse(match);
-
-                Debug.Log($"MatchClient: Joined match: {_matchId}");
             }
             catch
             {
@@ -101,7 +97,6 @@ namespace TienLen.Infrastructure.Match
         {
             var request = new Proto.StartGameRequest();
             await SendAsync((long)Proto.OpCode.StartGame, request.ToByteArray());
-            Debug.Log("MatchClient: Sent StartGameRequest.");
         }
 
         public UniTask SendPlayCardsAsync(List<Card> cards)
@@ -131,8 +126,6 @@ namespace TienLen.Infrastructure.Match
         /// <param name="presenceEvent"></param>
         private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
         {
-            Debug.Log("MatchClient: Received Match Join/Leave Event." + JsonConvert.SerializeObject(presenceEvent));
-
             if (presenceEvent.MatchId != _matchId) return;
 
             foreach (var joiner in presenceEvent.Joins)
@@ -177,7 +170,6 @@ namespace TienLen.Infrastructure.Match
                         payload.Seats.CopyTo(seats, 0);
                         var snapshot = new MatchStateSnapshot(seats, payload.OwnerId, payload.Tick);
                         OnPlayerJoinedOP?.Invoke(snapshot);
-                        Debug.Log($"MatchClient: Match state updated. Owner: {snapshot.OwnerId}, Tick: {snapshot.Tick}, Seats: [{string.Join(", ", snapshot.Seats)}]");
                     }
                     catch (Exception e)
                     {
@@ -188,7 +180,6 @@ namespace TienLen.Infrastructure.Match
                     try
                     {
                         var payload = Proto.GameStartedEvent.Parser.ParseFrom(state.State);
-                        Debug.Log($"MatchClient: Game Started! Phase: {payload.Phase}, First Turn: {payload.FirstTurnUserId}");
                         OnGameStarted?.Invoke();
                     }
                     catch (Exception e)

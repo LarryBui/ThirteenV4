@@ -6,7 +6,6 @@ using TienLen.Application;
 using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
 using UnityEngine;
-using Newtonsoft.Json;
 
 namespace TienLen.Infrastructure.Services
 {
@@ -48,32 +47,26 @@ namespace TienLen.Infrastructure.Services
         /// </summary>
         public async UniTask LoginAsync()
         {
-            Debug.Log("NakamaAuth: LoginAsync started.");
             await _authLock.WaitAsync();
             try
             {
                 if (IsAuthenticated)
                 {
-                    Debug.Log("NakamaAuth: Already authenticated.");
                     OnAuthenticated?.Invoke();
                     return;
                 }
 
-                Debug.Log("NakamaAuth: Creating client...");
                 if (_config == null) Debug.LogError("NakamaAuth: Config is NULL!");
                 _client ??= CreateClient();
                 if (_client == null) Debug.LogError("NakamaAuth: Client creation failed (null).");
 
                 if (!IsSessionValid())
                 {
-                    Debug.Log($"NakamaAuth: Authenticating device ID: {_config?.DeviceId}...");
                     // AuthenticateDeviceAsync returns a Task, await it directly.
                     _session = await _client.AuthenticateDeviceAsync(_config.DeviceId, create: true);
                     
                     // Update Game Session Context
                     _gameSessionContext.SetIdentity(_session.UserId, _session.Username, GetAvatarIndex(_session.UserId));
-                    
-                    Debug.Log("NakamaAuth: Authenticated with Nakama using device ID." + JsonConvert.SerializeObject(_session));
                 }
 
                 await EnsureSocketAsync();
@@ -115,7 +108,6 @@ namespace TienLen.Infrastructure.Services
             {
                 // ConnectAsync returns a Task.
                 await _socket.ConnectAsync(_session);
-                Debug.Log("Connected to Nakama realtime socket.");
             }
             catch
             {
@@ -138,7 +130,7 @@ namespace TienLen.Infrastructure.Services
 
         private static void HookSocketEvents(ISocket socket)
         {
-            socket.Closed += reason => Debug.Log($"Nakama socket closed: {reason}");
+            socket.Closed += reason => Debug.LogWarning($"Nakama socket closed: {reason}");
             socket.ReceivedError += error => Debug.LogError($"Nakama socket error: {error.Message}");
         }
 
