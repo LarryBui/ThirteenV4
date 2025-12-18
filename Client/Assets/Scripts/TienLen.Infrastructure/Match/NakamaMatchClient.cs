@@ -281,12 +281,7 @@ namespace TienLen.Infrastructure.Match
         private async UniTask SendAsync(long opcode, byte[] payload)
         {
             if (Socket == null || !Socket.IsConnected) return;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            if (opcode == (long)Proto.OpCode.StartGame)
-            {
-                Debug.Log($"MatchClient: Sending match state (matchId={_matchId ?? "<null>"}, opcode={opcode}, bytes={(payload?.Length ?? 0)})");
-            }
-#endif
+
             await Socket.SendMatchStateAsync(_matchId, opcode, payload);
         }
 

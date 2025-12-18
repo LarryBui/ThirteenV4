@@ -247,8 +247,8 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 	}
 
 	activeCount := state.GetOccupiedSeatCount()
-	if activeCount < 1 {
-		logger.Warn("StartGame: Cannot start with %d players. Need at least 2.", activeCount)
+	if activeCount < app.MinPlayersToStartGame {
+		logger.Warn("StartGame: Cannot start with %d players. Need at least %d.", activeCount, app.MinPlayersToStartGame)
 		return
 	}
 
