@@ -142,6 +142,12 @@ namespace TienLen.Presentation.GameRoomScreen
                 image.raycastTarget = false;
             }
 
+            if (cardObject.TryGetComponent<FrontCardView>(out var frontCardView))
+            {
+                frontCardView.SetCard(card);
+                return;
+            }
+
             var label = cardObject.GetComponentInChildren<TextMeshProUGUI>(includeInactive: true);
             if (label == null)
             {
@@ -201,7 +207,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private static Color ToSuitColor(Suit suit)
         {
-            return suit is Suit.Diamonds or Suit.Hearts ? new Color(0.85f, 0.1f, 0.1f, 1f) : Color.white;
+            return suit is Suit.Diamonds or Suit.Hearts ? new Color(0.85f, 0.1f, 0.1f, 1f) : new Color(0.1f, 0.1f, 0.1f, 1f);
         }
     }
 }
