@@ -212,7 +212,20 @@ namespace TienLen.Infrastructure.Match
                         var payload = Proto.MatchStateSnapshot.Parser.ParseFrom(state.State);
                         var seats = new string[payload.Seats.Count];
                         payload.Seats.CopyTo(seats, 0);
-                        var snapshot = new MatchStateSnapshot(seats, payload.OwnerId, payload.Tick);
+
+                        var players = new List<PlayerStateDTO>();
+                        foreach (var p in payload.Players)
+                        {
+                            players.Add(new PlayerStateDTO(
+                                p.UserId,
+                                p.Seat,
+                                p.IsOwner,
+                                p.CardsRemaining,
+                                p.DisplayName,
+                                p.AvatarIndex));
+                        }
+
+                        var snapshot = new MatchStateSnapshot(seats, payload.OwnerId, payload.Tick, players);
                         OnPlayerJoinedOP?.Invoke(snapshot);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse MatchStateSnapshot: {e}"); }

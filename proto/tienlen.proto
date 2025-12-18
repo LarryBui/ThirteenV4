@@ -65,6 +65,8 @@ message PlayerState {
     int32 seat = 2;
     bool is_owner = 3;
     int32 cards_remaining = 4; // Public info
+    string display_name = 5;
+    int32 avatar_index = 6;
 }
 
 // --- Client -> Server Requests ---
@@ -94,6 +96,7 @@ message MatchStateSnapshot {
   repeated string seats = 1;
   string owner_id = 2;
   int64 tick = 3;
+  repeated PlayerState players = 4; // Full player details
 }
 
 message GameStartedEvent {

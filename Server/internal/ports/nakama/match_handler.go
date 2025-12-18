@@ -127,10 +127,34 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 	// Update match label
 	mh.updateLabel(matchState, dispatcher, logger)
 
+	// Build PlayerState list for snapshot
+	var playerStates []*pb.PlayerState
+	for i, userId := range matchState.Seats {
+		if userId == "" {
+			continue
+		}
+
+		p, exists := matchState.Presences[userId]
+		displayName := ""
+		if exists {
+			displayName = p.GetUsername()
+		}
+
+		playerStates = append(playerStates, &pb.PlayerState{
+			UserId:         userId,
+			Seat:           int32(i + 1), // 1-based seat
+			IsOwner:        userId == matchState.OwnerID,
+			CardsRemaining: 0, // Lobby state
+			DisplayName:    displayName,
+			AvatarIndex:    0, // Default for now
+		})
+	}
+
 	snapshot := &pb.MatchStateSnapshot{
 		Seats:   matchState.Seats[:],
 		OwnerId: matchState.OwnerID,
 		Tick:    matchState.Tick,
+		Players: playerStates,
 	}
 	snapshotPayload, err := proto.Marshal(snapshot)
 	if err != nil {

@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 
 namespace TienLen.Application
 {
@@ -13,18 +14,41 @@ namespace TienLen.Application
         public string OwnerId { get; }
         /// <summary>Server tick when the snapshot was generated.</summary>
         public long Tick { get; }
+        /// <summary>Full list of player details in the match.</summary>
+        public IReadOnlyList<PlayerStateDTO> Players { get; }
 
         /// <summary>
         /// Creates a new snapshot, copying seat values to avoid external mutation.
         /// </summary>
-        /// <param name="seats">Seat assignments in order.</param>
-        /// <param name="ownerId">Current match owner user id.</param>
-        /// <param name="tick">Server tick value.</param>
-        public MatchStateSnapshot(string[] seats, string ownerId, long tick)
+        public MatchStateSnapshot(string[] seats, string ownerId, long tick, IReadOnlyList<PlayerStateDTO> players)
         {
             Seats = seats == null ? Array.Empty<string>() : (string[])seats.Clone();
             OwnerId = ownerId;
             Tick = tick;
+            Players = players ?? Array.Empty<PlayerStateDTO>();
+        }
+    }
+
+    /// <summary>
+    /// Detailed state of a player in a match snapshot.
+    /// </summary>
+    public readonly struct PlayerStateDTO
+    {
+        public string UserId { get; }
+        public int Seat { get; }
+        public bool IsOwner { get; }
+        public int CardsRemaining { get; }
+        public string DisplayName { get; }
+        public int AvatarIndex { get; }
+
+        public PlayerStateDTO(string userId, int seat, bool isOwner, int cardsRemaining, string displayName, int avatarIndex)
+        {
+            UserId = userId;
+            Seat = seat;
+            IsOwner = isOwner;
+            CardsRemaining = cardsRemaining;
+            DisplayName = displayName;
+            AvatarIndex = avatarIndex;
         }
     }
 }

@@ -20,7 +20,6 @@ namespace TienLen.Application
         private readonly IMatchNetworkClient _networkClient;
         private readonly IAuthenticationService _authService;
         private readonly IGameSessionContext _gameSessionContext; // Injected
-        private readonly Dictionary<string, PlayerAvatar> _playerAvatarsByUserId = new();
 
         public Match CurrentMatch { get; private set; }
 
@@ -69,7 +68,6 @@ namespace TienLen.Application
             {
                 // Initialize local state before awaiting the network join so we don't drop early snapshots.
                 CurrentMatch = new Match(matchId, seatCount: MaxPlayers);
-                _playerAvatarsByUserId.Clear();
 
                 // Seat is unknown (-1) until confirmed by server snapshot.
                 _gameSessionContext.SetMatch(matchId, -1);
@@ -125,7 +123,7 @@ namespace TienLen.Application
 
         private void SubscribeToNetworkEvents()
         {
-            _networkClient.OnPlayerJoined += HandlePlayerJoined;
+            // Removed: _networkClient.OnPlayerJoined += HandlePlayerJoined; (Using Snapshot Op50 instead)
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
             _networkClient.OnGameStarted += HandleMatchStarted;
             _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
@@ -136,7 +134,7 @@ namespace TienLen.Application
 
         private void UnsubscribeFromNetworkEvents()
         {
-            _networkClient.OnPlayerJoined -= HandlePlayerJoined;
+            // Removed: _networkClient.OnPlayerJoined -= HandlePlayerJoined;
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
             _networkClient.OnGameStarted -= HandleMatchStarted;
             _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
@@ -171,34 +169,7 @@ namespace TienLen.Application
         private void HandleGameEnded(List<string> finishOrder)
         {
             if (CurrentMatch == null) return;
-            // Apply finish order logic if needed, or just let UI show it.
-            // Match.cs accumulates finishOrder in PlayTurn, but authoritative list is here.
-            // We might want to sync it.
             CurrentMatch.Phase = "Finished";
-        }
-
-        private void HandlePlayerJoined(PlayerAvatar playerAvatar)
-        {
-            if (string.IsNullOrWhiteSpace(playerAvatar.UserId)) return;
-
-            _playerAvatarsByUserId[playerAvatar.UserId] = playerAvatar;
-
-
-
-            if (CurrentMatch == null)
-            {
-                return;
-            }
-
-            if (CurrentMatch.Players.TryGetValue(playerAvatar.UserId, out var player))
-            {
-                if (!string.IsNullOrWhiteSpace(playerAvatar.DisplayName))
-                {
-                    player.DisplayName = playerAvatar.DisplayName;
-                }
-
-                player.AvatarIndex = playerAvatar.AvatarIndex;
-            }
         }
 
         private void HandleCardsPlayed(string userId, List<Card> cards)
@@ -212,7 +183,6 @@ namespace TienLen.Application
             catch (Exception ex)
             {
                 Debug.LogError($"Handler: Error applying PlayTurn: {ex.Message}");
-                // Sync error! Request full state?
             }
         }
 
@@ -225,7 +195,6 @@ namespace TienLen.Application
 
         private void HandlePlayerJoinedOP(MatchStateSnapshot snapshot)
         {
-
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log("Handler op50: MatchStateSnapshot received: " + JsonConvert.SerializeObject(snapshot));
 #endif
@@ -250,45 +219,30 @@ namespace TienLen.Application
 
             var activeUserIds = new HashSet<string>();
 
-            for (int seatIndex = 0; seatIndex < CurrentMatch.Seats.Length; seatIndex++)
+            // The snapshot now contains authoritative PlayerState objects with names/avatars
+            if (snapshot.Players != null)
             {
-                var userId = CurrentMatch.Seats[seatIndex];
-                if (string.IsNullOrEmpty(userId)) continue;
-
-                activeUserIds.Add(userId);
-
-                if (!CurrentMatch.Players.TryGetValue(userId, out var player))
+                foreach (var pState in snapshot.Players)
                 {
-                    player = new Player { UserID = userId };
-                    CurrentMatch.Players.Add(userId, player);
-                }
+                    if (string.IsNullOrEmpty(pState.UserId)) continue;
 
-                player.Seat = seatIndex + 1;
-                player.IsOwner = userId == snapshot.OwnerId;
+                    activeUserIds.Add(pState.UserId);
 
-                if (_playerAvatarsByUserId.TryGetValue(userId, out var avatar))
-                {
-                    if (!string.IsNullOrWhiteSpace(avatar.DisplayName))
+                    if (!CurrentMatch.Players.TryGetValue(pState.UserId, out var player))
                     {
-                        player.DisplayName = avatar.DisplayName;
+                        player = new Player { UserID = pState.UserId };
+                        CurrentMatch.Players.Add(pState.UserId, player);
                     }
 
-                    player.AvatarIndex = avatar.AvatarIndex;
-                }
-                else if (userId == _authService.CurrentUserId)
-                {
-                    player.DisplayName = _authService.CurrentUserDisplayName;
-                    player.AvatarIndex = _authService.CurrentUserAvatarIndex;
-                }
+                    player.Seat = (int)pState.Seat;
+                    player.IsOwner = pState.IsOwner;
+                    player.DisplayName = pState.DisplayName;
+                    player.AvatarIndex = (int)pState.AvatarIndex;
 
-                if (string.IsNullOrWhiteSpace(player.DisplayName))
-                {
-                    player.DisplayName = CreateFallbackDisplayName(userId);
-                }
-
-                if (!_playerAvatarsByUserId.ContainsKey(userId) && userId != _authService.CurrentUserId)
-                {
-                    player.AvatarIndex = GetFallbackAvatarIndex(userId, avatarCount: MaxPlayers);
+                    if (string.IsNullOrWhiteSpace(player.DisplayName))
+                    {
+                        player.DisplayName = CreateFallbackDisplayName(pState.UserId);
+                    }
                 }
             }
 
@@ -343,23 +297,6 @@ namespace TienLen.Application
             if (string.IsNullOrEmpty(userId)) return "Player";
             var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
             return $"Player {suffix}";
-        }
-
-        private static int GetFallbackAvatarIndex(string userId, int avatarCount)
-        {
-            if (string.IsNullOrEmpty(userId) || avatarCount <= 0) return 0;
-
-            unchecked
-            {
-                uint hash = 2166136261;
-                for (int i = 0; i < userId.Length; i++)
-                {
-                    hash ^= userId[i];
-                    hash *= 16777619;
-                }
-
-                return (int)(hash % (uint)avatarCount);
-            }
         }
     }
 }

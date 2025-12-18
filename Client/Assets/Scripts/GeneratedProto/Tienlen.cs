@@ -26,52 +26,54 @@ namespace Tienlen.V1 {
           string.Concat(
             "ChNwcm90by90aWVubGVuLnByb3RvEgp0aWVubGVuLnYxIkYKBENhcmQSHgoE",
             "c3VpdBgBIAEoDjIQLnRpZW5sZW4udjEuU3VpdBIeCgRyYW5rGAIgASgOMhAu",
-            "dGllbmxlbi52MS5SYW5rIlcKC1BsYXllclN0YXRlEg8KB3VzZXJfaWQYASAB",
-            "KAkSDAoEc2VhdBgCIAEoBRIQCghpc19vd25lchgDIAEoCBIXCg9jYXJkc19y",
-            "ZW1haW5pbmcYBCABKAUiEgoQU3RhcnRHYW1lUmVxdWVzdCIzChBQbGF5Q2Fy",
+            "dGllbmxlbi52MS5SYW5rIoMBCgtQbGF5ZXJTdGF0ZRIPCgd1c2VyX2lkGAEg",
+            "ASgJEgwKBHNlYXQYAiABKAUSEAoIaXNfb3duZXIYAyABKAgSFwoPY2FyZHNf",
+            "cmVtYWluaW5nGAQgASgFEhQKDGRpc3BsYXlfbmFtZRgFIAEoCRIUCgxhdmF0",
+            "YXJfaW5kZXgYBiABKAUiEgoQU3RhcnRHYW1lUmVxdWVzdCIzChBQbGF5Q2Fy",
             "ZHNSZXF1ZXN0Eh8KBWNhcmRzGAEgAygLMhAudGllbmxlbi52MS5DYXJkIhEK",
             "D1Bhc3NUdXJuUmVxdWVzdCIXChVSZXF1ZXN0TmV3R2FtZVJlcXVlc3QiPAoR",
             "UGxheWVySm9pbmVkRXZlbnQSJwoGcGxheWVyGAEgASgLMhcudGllbmxlbi52",
             "MS5QbGF5ZXJTdGF0ZSIiCg9QbGF5ZXJMZWZ0RXZlbnQSDwoHdXNlcl9pZBgB",
-            "IAEoCSJDChJNYXRjaFN0YXRlU25hcHNob3QSDQoFc2VhdHMYASADKAkSEAoI",
-            "b3duZXJfaWQYAiABKAkSDAoEdGljaxgDIAEoAyJUChBHYW1lU3RhcnRlZEV2",
-            "ZW50EhoKEmZpcnN0X3R1cm5fdXNlcl9pZBgBIAEoCRIkCgVwaGFzZRgCIAEo",
-            "DjIVLnRpZW5sZW4udjEuR2FtZVBoYXNlIjAKDkhhbmREZWFsdEV2ZW50Eh4K",
-            "BGhhbmQYASADKAsyEC50aWVubGVuLnYxLkNhcmQicQoPQ2FyZFBsYXllZEV2",
-            "ZW50Eg8KB3VzZXJfaWQYASABKAkSHwoFY2FyZHMYAiADKAsyEC50aWVubGVu",
-            "LnYxLkNhcmQSGQoRbmV4dF90dXJuX3VzZXJfaWQYAyABKAkSEQoJbmV3X3Jv",
-            "dW5kGAQgASgIIj0KD1R1cm5QYXNzZWRFdmVudBIPCgd1c2VyX2lkGAEgASgJ",
-            "EhkKEW5leHRfdHVybl91c2VyX2lkGAIgASgJIiYKDkdhbWVFbmRlZEV2ZW50",
-            "EhQKDGZpbmlzaF9vcmRlchgBIAMoCSIvCg5HYW1lRXJyb3JFdmVudBIMCgRj",
-            "b2RlGAEgASgFEg8KB21lc3NhZ2UYAiABKAkqSwoEU3VpdBIPCgtTVUlUX1NQ",
-            "QURFUxAAEg4KClNVSVRfQ0xVQlMQARIRCg1TVUlUX0RJQU1PTkRTEAISDwoL",
-            "U1VJVF9IRUFSVFMQAyrJAQoEUmFuaxIOCgpSQU5LX1RIUkVFEAASDQoJUkFO",
-            "S19GT1VSEAESDQoJUkFOS19GSVZFEAISDAoIUkFOS19TSVgQAxIOCgpSQU5L",
-            "X1NFVkVOEAQSDgoKUkFOS19FSUdIVBAFEg0KCVJBTktfTklORRAGEgwKCFJB",
-            "TktfVEVOEAcSDQoJUkFOS19KQUNLEAgSDgoKUkFOS19RVUVFThAJEg0KCVJB",
-            "TktfS0lORxAKEgwKCFJBTktfQUNFEAsSDAoIUkFOS19UV08QDCpFCglHYW1l",
-            "UGhhc2USEQoNUEhBU0VfV0FJVElORxAAEhEKDVBIQVNFX1BMQVlJTkcQARIS",
-            "Cg5QSEFTRV9GSU5JU0hFRBACKs4CCgZPcENvZGUSFwoTT1BfQ09ERV9VTlNQ",
-            "RUNJRklFRBAAEhYKEk9QX0NPREVfU1RBUlRfR0FNRRABEhYKEk9QX0NPREVf",
-            "UExBWV9DQVJEUxACEhUKEU9QX0NPREVfUEFTU19UVVJOEAMSHAoYT1BfQ09E",
-            "RV9SRVFVRVNUX05FV19HQU1FEAQSGQoVT1BfQ09ERV9QTEFZRVJfSk9JTkVE",
-            "EDISFwoTT1BfQ09ERV9QTEFZRVJfTEVGVBAzEhgKFE9QX0NPREVfR0FNRV9T",
-            "VEFSVEVEEGQSFgoST1BfQ09ERV9IQU5EX0RFQUxUEGUSFwoTT1BfQ09ERV9D",
-            "QVJEX1BMQVlFRBBmEhcKE09QX0NPREVfVFVSTl9QQVNTRUQQZxIWChJPUF9D",
-            "T0RFX0dBTUVfRU5ERUQQaBIWChJPUF9DT0RFX0dBTUVfRVJST1IQaUISWhB0",
-            "aWVubGVuL3Byb3RvO3BiYgZwcm90bzM="));
+            "IAEoCSJtChJNYXRjaFN0YXRlU25hcHNob3QSDQoFc2VhdHMYASADKAkSEAoI",
+            "b3duZXJfaWQYAiABKAkSDAoEdGljaxgDIAEoAxIoCgdwbGF5ZXJzGAQgAygL",
+            "MhcudGllbmxlbi52MS5QbGF5ZXJTdGF0ZSJUChBHYW1lU3RhcnRlZEV2ZW50",
+            "EhoKEmZpcnN0X3R1cm5fdXNlcl9pZBgBIAEoCRIkCgVwaGFzZRgCIAEoDjIV",
+            "LnRpZW5sZW4udjEuR2FtZVBoYXNlIjAKDkhhbmREZWFsdEV2ZW50Eh4KBGhh",
+            "bmQYASADKAsyEC50aWVubGVuLnYxLkNhcmQicQoPQ2FyZFBsYXllZEV2ZW50",
+            "Eg8KB3VzZXJfaWQYASABKAkSHwoFY2FyZHMYAiADKAsyEC50aWVubGVuLnYx",
+            "LkNhcmQSGQoRbmV4dF90dXJuX3VzZXJfaWQYAyABKAkSEQoJbmV3X3JvdW5k",
+            "GAQgASgIIj0KD1R1cm5QYXNzZWRFdmVudBIPCgd1c2VyX2lkGAEgASgJEhkK",
+            "EW5leHRfdHVybl91c2VyX2lkGAIgASgJIiYKDkdhbWVFbmRlZEV2ZW50EhQK",
+            "DGZpbmlzaF9vcmRlchgBIAMoCSIvCg5HYW1lRXJyb3JFdmVudBIMCgRjb2Rl",
+            "GAEgASgFEg8KB21lc3NhZ2UYAiABKAkqSwoEU3VpdBIPCgtTVUlUX1NQQURF",
+            "UxAAEg4KClNVSVRfQ0xVQlMQARIRCg1TVUlUX0RJQU1PTkRTEAISDwoLU1VJ",
+            "VF9IRUFSVFMQAyrJAQoEUmFuaxIOCgpSQU5LX1RIUkVFEAASDQoJUkFOS19G",
+            "T1VSEAESDQoJUkFOS19GSVZFEAISDAoIUkFOS19TSVgQAxIOCgpSQU5LX1NF",
+            "VkVOEAQSDgoKUkFOS19FSUdIVBAFEg0KCVJBTktfTklORRAGEgwKCFJBTktf",
+            "VEVOEAcSDQoJUkFOS19KQUNLEAgSDgoKUkFOS19RVUVFThAJEg0KCVJBTktf",
+            "S0lORxAKEgwKCFJBTktfQUNFEAsSDAoIUkFOS19UV08QDCpFCglHYW1lUGhh",
+            "c2USEQoNUEhBU0VfV0FJVElORxAAEhEKDVBIQVNFX1BMQVlJTkcQARISCg5Q",
+            "SEFTRV9GSU5JU0hFRBACKs4CCgZPcENvZGUSFwoTT1BfQ09ERV9VTlNQRUNJ",
+            "RklFRBAAEhYKEk9QX0NPREVfU1RBUlRfR0FNRRABEhYKEk9QX0NPREVfUExB",
+            "WV9DQVJEUxACEhUKEU9QX0NPREVfUEFTU19UVVJOEAMSHAoYT1BfQ09ERV9S",
+            "RVFVRVNUX05FV19HQU1FEAQSGQoVT1BfQ09ERV9QTEFZRVJfSk9JTkVEEDIS",
+            "FwoTT1BfQ09ERV9QTEFZRVJfTEVGVBAzEhgKFE9QX0NPREVfR0FNRV9TVEFS",
+            "VEVEEGQSFgoST1BfQ09ERV9IQU5EX0RFQUxUEGUSFwoTT1BfQ09ERV9DQVJE",
+            "X1BMQVlFRBBmEhcKE09QX0NPREVfVFVSTl9QQVNTRUQQZxIWChJPUF9DT0RF",
+            "X0dBTUVfRU5ERUQQaBIWChJPUF9DT0RFX0dBTUVfRVJST1IQaUISWhB0aWVu",
+            "bGVuL3Byb3RvO3BiYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.Card), global::Tienlen.V1.Card.Parser, new[]{ "Suit", "Rank" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerState), global::Tienlen.V1.PlayerState.Parser, new[]{ "UserId", "Seat", "IsOwner", "CardsRemaining" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerState), global::Tienlen.V1.PlayerState.Parser, new[]{ "UserId", "Seat", "IsOwner", "CardsRemaining", "DisplayName", "AvatarIndex" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.StartGameRequest), global::Tienlen.V1.StartGameRequest.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayCardsRequest), global::Tienlen.V1.PlayCardsRequest.Parser, new[]{ "Cards" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PassTurnRequest), global::Tienlen.V1.PassTurnRequest.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.RequestNewGameRequest), global::Tienlen.V1.RequestNewGameRequest.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerJoinedEvent), global::Tienlen.V1.PlayerJoinedEvent.Parser, new[]{ "Player" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerLeftEvent), global::Tienlen.V1.PlayerLeftEvent.Parser, new[]{ "UserId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerId", "Tick" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerId", "Tick", "Players" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnUserId", "Phase" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.HandDealtEvent), global::Tienlen.V1.HandDealtEvent.Parser, new[]{ "Hand" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardPlayedEvent), global::Tienlen.V1.CardPlayedEvent.Parser, new[]{ "UserId", "Cards", "NextTurnUserId", "NewRound" }, null, null, null, null),
@@ -406,6 +408,8 @@ namespace Tienlen.V1 {
       seat_ = other.seat_;
       isOwner_ = other.isOwner_;
       cardsRemaining_ = other.cardsRemaining_;
+      displayName_ = other.displayName_;
+      avatarIndex_ = other.avatarIndex_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -466,6 +470,30 @@ namespace Tienlen.V1 {
       }
     }
 
+    /// <summary>Field number for the "display_name" field.</summary>
+    public const int DisplayNameFieldNumber = 5;
+    private string displayName_ = "";
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public string DisplayName {
+      get { return displayName_; }
+      set {
+        displayName_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+      }
+    }
+
+    /// <summary>Field number for the "avatar_index" field.</summary>
+    public const int AvatarIndexFieldNumber = 6;
+    private int avatarIndex_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int AvatarIndex {
+      get { return avatarIndex_; }
+      set {
+        avatarIndex_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -485,6 +513,8 @@ namespace Tienlen.V1 {
       if (Seat != other.Seat) return false;
       if (IsOwner != other.IsOwner) return false;
       if (CardsRemaining != other.CardsRemaining) return false;
+      if (DisplayName != other.DisplayName) return false;
+      if (AvatarIndex != other.AvatarIndex) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -496,6 +526,8 @@ namespace Tienlen.V1 {
       if (Seat != 0) hash ^= Seat.GetHashCode();
       if (IsOwner != false) hash ^= IsOwner.GetHashCode();
       if (CardsRemaining != 0) hash ^= CardsRemaining.GetHashCode();
+      if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
+      if (AvatarIndex != 0) hash ^= AvatarIndex.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -530,6 +562,14 @@ namespace Tienlen.V1 {
         output.WriteRawTag(32);
         output.WriteInt32(CardsRemaining);
       }
+      if (DisplayName.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(DisplayName);
+      }
+      if (AvatarIndex != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(AvatarIndex);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -556,6 +596,14 @@ namespace Tienlen.V1 {
         output.WriteRawTag(32);
         output.WriteInt32(CardsRemaining);
       }
+      if (DisplayName.Length != 0) {
+        output.WriteRawTag(42);
+        output.WriteString(DisplayName);
+      }
+      if (AvatarIndex != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(AvatarIndex);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -577,6 +625,12 @@ namespace Tienlen.V1 {
       }
       if (CardsRemaining != 0) {
         size += 1 + pb::CodedOutputStream.ComputeInt32Size(CardsRemaining);
+      }
+      if (DisplayName.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(DisplayName);
+      }
+      if (AvatarIndex != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(AvatarIndex);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -601,6 +655,12 @@ namespace Tienlen.V1 {
       }
       if (other.CardsRemaining != 0) {
         CardsRemaining = other.CardsRemaining;
+      }
+      if (other.DisplayName.Length != 0) {
+        DisplayName = other.DisplayName;
+      }
+      if (other.AvatarIndex != 0) {
+        AvatarIndex = other.AvatarIndex;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -637,6 +697,14 @@ namespace Tienlen.V1 {
             CardsRemaining = input.ReadInt32();
             break;
           }
+          case 42: {
+            DisplayName = input.ReadString();
+            break;
+          }
+          case 48: {
+            AvatarIndex = input.ReadInt32();
+            break;
+          }
         }
       }
     #endif
@@ -670,6 +738,14 @@ namespace Tienlen.V1 {
           }
           case 32: {
             CardsRemaining = input.ReadInt32();
+            break;
+          }
+          case 42: {
+            DisplayName = input.ReadString();
+            break;
+          }
+          case 48: {
+            AvatarIndex = input.ReadInt32();
             break;
           }
         }
@@ -1795,6 +1871,7 @@ namespace Tienlen.V1 {
       seats_ = other.seats_.Clone();
       ownerId_ = other.ownerId_;
       tick_ = other.tick_;
+      players_ = other.players_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -1839,6 +1916,20 @@ namespace Tienlen.V1 {
       }
     }
 
+    /// <summary>Field number for the "players" field.</summary>
+    public const int PlayersFieldNumber = 4;
+    private static readonly pb::FieldCodec<global::Tienlen.V1.PlayerState> _repeated_players_codec
+        = pb::FieldCodec.ForMessage(34, global::Tienlen.V1.PlayerState.Parser);
+    private readonly pbc::RepeatedField<global::Tienlen.V1.PlayerState> players_ = new pbc::RepeatedField<global::Tienlen.V1.PlayerState>();
+    /// <summary>
+    /// Full player details
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Tienlen.V1.PlayerState> Players {
+      get { return players_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -1857,6 +1948,7 @@ namespace Tienlen.V1 {
       if(!seats_.Equals(other.seats_)) return false;
       if (OwnerId != other.OwnerId) return false;
       if (Tick != other.Tick) return false;
+      if(!players_.Equals(other.players_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -1867,6 +1959,7 @@ namespace Tienlen.V1 {
       hash ^= seats_.GetHashCode();
       if (OwnerId.Length != 0) hash ^= OwnerId.GetHashCode();
       if (Tick != 0L) hash ^= Tick.GetHashCode();
+      hash ^= players_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -1894,6 +1987,7 @@ namespace Tienlen.V1 {
         output.WriteRawTag(24);
         output.WriteInt64(Tick);
       }
+      players_.WriteTo(output, _repeated_players_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -1913,6 +2007,7 @@ namespace Tienlen.V1 {
         output.WriteRawTag(24);
         output.WriteInt64(Tick);
       }
+      players_.WriteTo(ref output, _repeated_players_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -1930,6 +2025,7 @@ namespace Tienlen.V1 {
       if (Tick != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(Tick);
       }
+      size += players_.CalculateSize(_repeated_players_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -1949,6 +2045,7 @@ namespace Tienlen.V1 {
       if (other.Tick != 0L) {
         Tick = other.Tick;
       }
+      players_.Add(other.players_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -1980,6 +2077,10 @@ namespace Tienlen.V1 {
             Tick = input.ReadInt64();
             break;
           }
+          case 34: {
+            players_.AddEntriesFrom(input, _repeated_players_codec);
+            break;
+          }
         }
       }
     #endif
@@ -2009,6 +2110,10 @@ namespace Tienlen.V1 {
           }
           case 24: {
             Tick = input.ReadInt64();
+            break;
+          }
+          case 34: {
+            players_.AddEntriesFrom(ref input, _repeated_players_codec);
             break;
           }
         }
