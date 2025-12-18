@@ -30,9 +30,9 @@ namespace TienLen.Application
         public event Action GameRoomStateUpdated;
         
         /// <summary>
-        /// Raised when the match starts (gameplay begins).
+        /// Raised when the game starts (gameplay begins).
         /// </summary>
-        public event Action MatchStarted;
+        public event Action GameStarted;
 
         public TienLenMatchHandler(IMatchNetworkClient networkClient, IAuthenticationService authService, IGameSessionContext gameSessionContext)
         {
@@ -105,7 +105,7 @@ namespace TienLen.Application
         {
             if (CurrentMatch == null) throw new InvalidOperationException("No active match.");
             await _networkClient.SendStartGameAsync();
-            // Domain update happens on OnMatchStarted event
+            // Domain update happens on OnGameStarted event
         }
 
         public async UniTask PlayCardsAsync(List<Card> cards)
@@ -124,7 +124,7 @@ namespace TienLen.Application
         private void SubscribeToNetworkEvents()
         {
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
-            _networkClient.OnGameStarted += HandleMatchStarted;
+            _networkClient.OnGameStarted += HandleGameStarted;
             _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
             _networkClient.OnHandDealt += HandleHandDealt;
             _networkClient.OnPlayerSkippedTurn += HandlePlayerSkippedTurn;
@@ -134,7 +134,7 @@ namespace TienLen.Application
         private void UnsubscribeFromNetworkEvents()
         {
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
-            _networkClient.OnGameStarted -= HandleMatchStarted;
+            _networkClient.OnGameStarted -= HandleGameStarted;
             _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
             _networkClient.OnHandDealt -= HandleHandDealt;
             _networkClient.OnPlayerSkippedTurn -= HandlePlayerSkippedTurn;
@@ -184,11 +184,11 @@ namespace TienLen.Application
             }
         }
 
-        private void HandleMatchStarted()
+        private void HandleGameStarted()
         {
             if (CurrentMatch == null) return;
             CurrentMatch.StartGame();
-            MatchStarted?.Invoke();
+            GameStarted?.Invoke();
         }
 
         private void HandlePlayerJoinedOP(MatchStateSnapshot snapshot)
