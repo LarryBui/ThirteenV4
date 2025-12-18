@@ -38,7 +38,6 @@ namespace TienLen.Infrastructure.Match
         public event Action<List<Card>> OnGameStarted;
         /// <inheritdoc />
         public event Action<MatchStateSnapshot> OnPlayerJoinedOP;
-        public event Action<string> OnPlayerFinished;
         public event Action<List<string>> OnGameEnded;
         public event Action<int, string> OnGameError;
 

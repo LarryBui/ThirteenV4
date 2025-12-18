@@ -27,12 +27,7 @@ namespace TienLen.Application
         /// <summary>
         /// Fired when the game starts within the match (e.g., initial deal).
         /// </summary>
-        event Action OnGameStarted;
-
-        /// <summary>
-        /// Fired when the player's hand is dealt.
-        /// </summary>
-        event Action<List<Card>> OnHandDealt;
+        event Action<List<Card>> OnGameStarted;
 
         /// <summary>
         /// Fired when a match state snapshot is received from the server (OP_CODE_PLAYER_JOINED).

@@ -126,7 +126,6 @@ namespace TienLen.Application
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
             _networkClient.OnGameStarted += HandleGameStarted;
             _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
-            _networkClient.OnHandDealt += HandleHandDealt;
             _networkClient.OnPlayerSkippedTurn += HandlePlayerSkippedTurn;
             _networkClient.OnGameEnded += HandleGameEnded;
         }
@@ -136,19 +135,8 @@ namespace TienLen.Application
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
             _networkClient.OnGameStarted -= HandleGameStarted;
             _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
-            _networkClient.OnHandDealt -= HandleHandDealt;
             _networkClient.OnPlayerSkippedTurn -= HandlePlayerSkippedTurn;
             _networkClient.OnGameEnded -= HandleGameEnded;
-        }
-
-        private void HandleHandDealt(List<Card> cards)
-        {
-            if (CurrentMatch == null) return;
-            var localUserId = _authService.CurrentUserId;
-            if (CurrentMatch.Players.TryGetValue(localUserId, out var player))
-            {
-                player.Hand.AddCards(cards);
-            }
         }
 
         private void HandlePlayerSkippedTurn(string userId)
@@ -184,10 +172,19 @@ namespace TienLen.Application
             }
         }
 
-        private void HandleGameStarted()
+        private void HandleGameStarted(List<Card> hand)
         {
             if (CurrentMatch == null) return;
             CurrentMatch.StartGame();
+            
+            // Deal cards to self
+            var localUserId = _authService.CurrentUserId;
+            if (CurrentMatch.Players.TryGetValue(localUserId, out var player))
+            {
+                player.Hand.Clear(); // Ensure empty before adding
+                player.Hand.AddCards(hand);
+            }
+
             GameStarted?.Invoke();
         }
 

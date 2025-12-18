@@ -20,7 +20,7 @@ const (
 	OpPlayerJoined int64 = 101
 	OpPlayerLeft   int64 = 102
 	OpGameStarted  int64 = 103
-	OpHandDealt    int64 = 104 // send privately
+	// OpHandDealt was 104
 	OpCardPlayed   int64 = 105
 	OpTurnPassed   int64 = 106
 	OpGameEnded    int64 = 107

@@ -12,7 +12,7 @@ func TestStartGameDealsHands(t *testing.T) {
 	svc := NewService(rng)
 	
 	// Pass player IDs directly to StartGame
-	game, evs, err := svc.StartGame([]string{"u1", "u2"})
+	game, evs, err := svc.StartGame([]string{"u1", "u2"}, "")
 	if err != nil {
 		t.Fatalf("start game error: %v", err)
 	}
@@ -20,18 +20,18 @@ func TestStartGameDealsHands(t *testing.T) {
 		t.Fatalf("phase = %s, want playing", game.Phase)
 	}
 
-	handEvents := 0
+	gameStartedEvents := 0
 	for _, ev := range evs {
-		if ev.Kind == EventHandDealt {
-			handEvents++
-			payload := ev.Payload.(HandDealtPayload)
+		if ev.Kind == EventGameStarted {
+			gameStartedEvents++
+			payload := ev.Payload.(GameStartedPayload)
 			if len(payload.Hand) != 13 {
 				t.Fatalf("hand size = %d, want 13", len(payload.Hand))
 			}
 		}
 	}
-	if handEvents != 2 {
-		t.Fatalf("hand events = %d, want 2", handEvents)
+	if gameStartedEvents != 2 {
+		t.Fatalf("game started events = %d, want 2", gameStartedEvents)
 	}
 }
 
@@ -39,7 +39,7 @@ func TestPlayCardsAndEnd(t *testing.T) {
 	rng := rand.New(rand.NewSource(99))
 	svc := NewService(rng)
 	
-	game, _, err := svc.StartGame([]string{"u1", "u2"})
+	game, _, err := svc.StartGame([]string{"u1", "u2"}, "")
 	if err != nil {
 		t.Fatalf("start game error: %v", err)
 	}
