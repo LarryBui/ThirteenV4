@@ -166,6 +166,13 @@ namespace TienLen.Infrastructure.Match
 
         private void HandleMatchState(IMatchState state)
         {
+            HandleMatchStateMainThread(state).Forget();
+        }
+
+        private async UniTaskVoid HandleMatchStateMainThread(IMatchState state)
+        {
+            await UniTask.SwitchToMainThread();
+
             if (state.MatchId != _matchId) return;
 
             switch (state.OpCode)
