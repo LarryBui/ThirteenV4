@@ -18,6 +18,10 @@ namespace TienLen.Presentation.GameRoomScreen
         [Header("Scene References")]
         [SerializeField] private CardDealer _cardDealer;
 
+        [Header("Hand View")]
+        [Tooltip("Prefab used to render the local player's hand (front face). Should be a UI prefab with a RectTransform.")]
+        [SerializeField] private GameObject _localHandCardPrefab;
+
         [Header("Player Profiles")]
         [SerializeField] private PlayerProfileUI localPlayerProfile;
         [SerializeField] private PlayerProfileUI opponentProfile_1;
@@ -75,7 +79,7 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             PrepareLocalHandReveal();
 
-            Debug.Log("GameRoomController: UI GameStarted.");
+            Debug.Log("GameRoomController: AnimateDeal 52 cards over 2.0 seconds.");
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
         }
@@ -217,6 +221,11 @@ namespace TienLen.Presentation.GameRoomScreen
             if (match == null) return;
 
             if (_cardDealer == null) return;
+            if (_localHandCardPrefab == null)
+            {
+                Debug.LogError("GameRoomController: Local hand card prefab is not assigned. Assign a FrontCardView prefab to render the local hand.");
+                return;
+            }
 
             if (!TryGetLocalHand(match, out var localHandCards))
             {
@@ -229,7 +238,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _localHandView ??= GetComponent<LocalHandView>() ?? gameObject.AddComponent<LocalHandView>();
 
             _localHandView.Configure(
-                cardPrefab: _cardDealer.CardPrefab,
+                cardPrefab: _localHandCardPrefab,
                 handAnchor: southAnchor,
                 uiParent: southAnchor.transform.parent != null ? southAnchor.transform.parent : southAnchor.transform);
 

@@ -1056,7 +1056,6 @@ GameObject:
   - component: {fileID: 1130013620}
   - component: {fileID: 1130013619}
   - component: {fileID: 1130013621}
-  - component: {fileID: 1130013622}
   m_Layer: 0
   m_Name: GameRoomController
   m_TagString: Untagged
@@ -1077,6 +1076,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _cardDealer: {fileID: 1130013621}
+  _localHandCardPrefab: {fileID: 4931620541885055150, guid: dddf76dc0c583de48b7249f117ee441c, type: 3}
   localPlayerProfile: {fileID: 16907759}
   opponentProfile_1: {fileID: 1059197322}
   opponentProfile_2: {fileID: 778642234}
@@ -1117,20 +1117,6 @@ MonoBehaviour:
   - {fileID: 1212860438}
   _poolSize: 20
   _cardFlightDuration: 0.3
---- !u!114 &1130013622
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 1130013617}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 105960a2745640c49dd0e23005f71659, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _cardSpacing: 60
-  _revealMoveDuration: 0.15
 --- !u!1 &1212860437
 GameObject:
   m_ObjectHideFlags: 0
