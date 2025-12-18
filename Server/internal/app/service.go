@@ -38,7 +38,7 @@ var (
 
 // StartGame initializes a new Game domain object with the provided players.
 // It expects a list of userIDs representing the players in seat order (empty strings for empty seats).
-func (s *Service) StartGame(playerIDs []string) (*domain.Game, []Event, error) {
+func (s *Service) StartGame(playerIDs []string, lastWinnerID string) (*domain.Game, []Event, error) {
 	activePlayers := make(map[string]*domain.Player)
 	var seats []string // Active players' UIDs in seat order
 
@@ -66,8 +66,6 @@ func (s *Service) StartGame(playerIDs []string) (*domain.Game, []Event, error) {
 		Players: activePlayers,
 	}
 
-	events := make([]Event, 0, len(activePlayers)+1)
-
 	// Deal cards
 	cardIdx := 0
 	for _, userID := range seats { // Iterate in seat order
@@ -77,40 +75,57 @@ func (s *Service) StartGame(playerIDs []string) (*domain.Game, []Event, error) {
 		pl.HasPassed = false
 		pl.Finished = false
 		cardIdx += 13
+	}
 
+	// Determine FirstTurn
+	firstTurnUserID := ""
+	
+	// If last winner is provided and is in the current game, they go first
+	if lastWinnerID != "" {
+		if _, ok := activePlayers[lastWinnerID]; ok {
+			firstTurnUserID = lastWinnerID
+		}
+	}
+
+	// Fallback to lowest card if no last winner or last winner left
+	if firstTurnUserID == "" {
+		// Find the player with the absolute lowest card
+		var lowestCardVal int32 = 9999
+		
+		for _, pl := range game.Players {
+			for _, card := range pl.Hand {
+				// Rank 0-12 (3 to 2), Suit 0-3 (Spade to Heart)
+				// Value = Rank * 4 + Suit
+				val := card.Rank*4 + card.Suit
+				if val < lowestCardVal {
+					lowestCardVal = val
+					firstTurnUserID = pl.UserID
+				}
+			}
+		}
+		
+		if firstTurnUserID == "" {
+			// Should strictly never happen if there are players with cards
+			firstTurnUserID = seats[0]
+		}
+	}
+	game.CurrentTurn = firstTurnUserID
+
+	events := make([]Event, 0, len(activePlayers))
+	
+	// Create GameStarted event for EACH player, containing their private hand
+	for _, userID := range seats {
+		pl := activePlayers[userID]
 		events = append(events, Event{
-			Kind: EventHandDealt,
-			Payload: HandDealtPayload{
-				UserID: pl.UserID,
-				Hand:   pl.Hand,
+			Kind: EventGameStarted,
+			Payload: GameStartedPayload{
+				Phase:           game.Phase, 
+				FirstTurnUserID: game.CurrentTurn,
+				Hand:            pl.Hand,
 			},
 			Recipients: []string{pl.UserID},
 		})
 	}
-
-	// Determine FirstTurn: Player with 3 of Spades
-	firstTurnUserID := ""
-	for _, pl := range game.Players {
-		for _, card := range pl.Hand {
-			if card.Suit == 0 && card.Rank == 0 { // 3 of Spades
-				firstTurnUserID = pl.UserID
-				break
-			}
-		}
-		if firstTurnUserID != "" {
-			break
-		}
-	}
-	if firstTurnUserID == "" {
-		// Fallback if 3 of Spades somehow not found (shouldn't happen with full deck)
-		firstTurnUserID = seats[0]
-	}
-	game.CurrentTurn = firstTurnUserID
-
-	events = append(events, Event{
-		Kind:    EventGameStarted,
-		Payload: GameStartedPayload{Phase: game.Phase, FirstTurnUserID: game.CurrentTurn},
-	})
 
 	return game, events, nil
 }
@@ -149,28 +164,6 @@ func (s *Service) PlayCards(game *domain.Game, actorUserID string, cards []domai
 	if game.LastPlayedCombination.Type != domain.Invalid { // If there was a previous play
 		if !domain.CanBeat(game.LastPlayedCombination.Cards, playedCombo.Cards) {
 			return nil, ErrCannotBeat
-		}
-	} else {
-		// First play of the game must be 3 of Spades
-		has3Spades := false
-		for _, c := range pl.Hand {
-			if c.Suit == 0 && c.Rank == 0 {
-				has3Spades = true
-				break
-			}
-		}
-
-		if has3Spades {
-			played3Spades := false
-			for _, c := range cards {
-				if c.Suit == 0 && c.Rank == 0 {
-					played3Spades = true
-					break
-				}
-			}
-			if !played3Spades {
-				return nil, errors.New("must play 3 of Spades in first turn")
-			}
 		}
 	}
 

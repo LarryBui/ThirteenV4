@@ -35,11 +35,10 @@ namespace TienLen.Infrastructure.Match
         // --- IMatchNetworkClient Events ---
         public event Action<string, List<Card>> OnCardsPlayed;
         public event Action<string> OnPlayerSkippedTurn;
-        public event Action OnGameStarted;
+        public event Action<List<Card>> OnGameStarted;
         /// <inheritdoc />
         public event Action<MatchStateSnapshot> OnPlayerJoinedOP;
         public event Action<string> OnPlayerFinished;
-        public event Action<List<Card>> OnHandDealt;
         public event Action<List<string>> OnGameEnded;
         public event Action<int, string> OnGameError;
 
@@ -206,20 +205,16 @@ namespace TienLen.Infrastructure.Match
                     try
                     {
                         var payload = Proto.GameStartedEvent.Parser.ParseFrom(state.State);
-                        OnGameStarted?.Invoke();
+                        
+                        var hand = new List<Card>();
+                        if (payload.Hand != null)
+                        {
+                            foreach (var c in payload.Hand) hand.Add(ToDomain(c));
+                        }
+
+                        OnGameStarted?.Invoke(hand);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameStartedEvent: {e}"); }
-                    break;
-
-                case (long)Proto.OpCode.HandDealt: // 101
-                    try
-                    {
-                        var payload = Proto.HandDealtEvent.Parser.ParseFrom(state.State);
-                        var hand = new List<Card>();
-                        foreach (var c in payload.Hand) hand.Add(ToDomain(c));
-                        OnHandDealt?.Invoke(hand);
-                    }
-                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse HandDealtEvent: {e}"); }
                     break;
 
                 case (long)Proto.OpCode.CardPlayed: // 102

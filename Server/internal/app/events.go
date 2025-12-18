@@ -9,7 +9,6 @@ const (
 	EventPlayerJoined EventKind = "player_joined"
 	EventPlayerLeft   EventKind = "player_left"
 	EventGameStarted  EventKind = "game_started"
-	EventHandDealt    EventKind = "hand_dealt"
 	EventCardPlayed   EventKind = "card_played"
 	EventTurnPassed   EventKind = "turn_passed"
 	EventGameEnded    EventKind = "game_ended"
@@ -35,11 +34,7 @@ type PlayerLeftPayload struct {
 type GameStartedPayload struct {
 	Phase           domain.Phase
 	FirstTurnUserID string
-}
-
-type HandDealtPayload struct {
-	UserID string
-	Hand   []domain.Card
+	Hand            []domain.Card
 }
 
 type CardPlayedPayload struct {

@@ -46,7 +46,6 @@ enum OpCode {
   OP_CODE_PLAYER_LEFT = 51;
 
   OP_CODE_GAME_STARTED = 100;
-  OP_CODE_HAND_DEALT = 101;
   OP_CODE_CARD_PLAYED = 102;
   OP_CODE_TURN_PASSED = 103;
   OP_CODE_GAME_ENDED = 104;
@@ -102,10 +101,7 @@ message MatchStateSnapshot {
 message GameStartedEvent {
   string first_turn_user_id = 1;
   GamePhase phase = 2;
-}
-
-message HandDealtEvent {
-  repeated Card hand = 1; // Private info: Only sent to specific user
+  repeated Card hand = 3;
 }
 
 message CardPlayedEvent {

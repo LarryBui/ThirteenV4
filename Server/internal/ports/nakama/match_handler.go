@@ -243,7 +243,7 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 	}
 
 	// Initialize the domain Game via the Service
-	game, events, err := state.App.StartGame(state.Seats[:])
+	game, events, err := state.App.StartGame(state.Seats[:], state.LastWinnerID)
 	if err != nil {
 		logger.Error("StartGame: Failed to start game: %v", err)
 		return
@@ -327,12 +327,7 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		payload = &pb.GameStartedEvent{
 			Phase:           pb.GamePhase_PHASE_PLAYING,
 			FirstTurnUserId: p.FirstTurnUserID,
-		}
-	case app.EventHandDealt:
-		opCode = int64(pb.OpCode_OP_CODE_HAND_DEALT)
-		p := ev.Payload.(app.HandDealtPayload)
-		payload = &pb.HandDealtEvent{
-			Hand: toProtoCards(p.Hand),
+			Hand:            toProtoCards(p.Hand),
 		}
 	case app.EventCardPlayed:
 		opCode = int64(pb.OpCode_OP_CODE_CARD_PLAYED)
@@ -354,6 +349,10 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		p := ev.Payload.(app.GameEndedPayload)
 		payload = &pb.GameEndedEvent{
 			FinishOrder: p.FinishOrder,
+		}
+		// Save the winner for the next game
+		if len(p.FinishOrder) > 0 {
+			state.LastWinnerID = p.FinishOrder[0]
 		}
 	default:
 		logger.Warn("Unknown event kind: %v", ev.Kind)
