@@ -64,6 +64,7 @@ namespace TienLen.Infrastructure.Services
                 {
                     // AuthenticateDeviceAsync returns a Task, await it directly.
                     _session = await _client.AuthenticateDeviceAsync(_config.DeviceId, create: true);
+                    Debug.Log($"Authenticated Session: {_session}");
                     
                     // Update Game Session Context
                     _gameSessionContext.SetIdentity(_session.UserId, _session.Username, GetAvatarIndex(_session.UserId));

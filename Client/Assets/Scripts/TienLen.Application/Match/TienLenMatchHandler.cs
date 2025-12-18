@@ -29,6 +29,11 @@ namespace TienLen.Application
         /// Use this to refresh GameRoom UI (seats/owner/player display info).
         /// </summary>
         public event Action GameRoomStateUpdated;
+        
+        /// <summary>
+        /// Raised when the match starts (gameplay begins).
+        /// </summary>
+        public event Action MatchStarted;
 
         public TienLenMatchHandler(IMatchNetworkClient networkClient, IAuthenticationService authService, IGameSessionContext gameSessionContext)
         {
@@ -124,7 +129,9 @@ namespace TienLen.Application
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
             _networkClient.OnGameStarted += HandleMatchStarted;
             _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
-            // ... other events
+            _networkClient.OnHandDealt += HandleHandDealt;
+            _networkClient.OnPlayerSkippedTurn += HandlePlayerSkippedTurn;
+            _networkClient.OnGameEnded += HandleGameEnded;
         }
 
         private void UnsubscribeFromNetworkEvents()
@@ -133,6 +140,41 @@ namespace TienLen.Application
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
             _networkClient.OnGameStarted -= HandleMatchStarted;
             _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
+            _networkClient.OnHandDealt -= HandleHandDealt;
+            _networkClient.OnPlayerSkippedTurn -= HandlePlayerSkippedTurn;
+            _networkClient.OnGameEnded -= HandleGameEnded;
+        }
+
+        private void HandleHandDealt(List<Card> cards)
+        {
+            if (CurrentMatch == null) return;
+            var localUserId = _authService.CurrentUserId;
+            if (CurrentMatch.Players.TryGetValue(localUserId, out var player))
+            {
+                player.Hand.AddCards(cards);
+            }
+        }
+
+        private void HandlePlayerSkippedTurn(string userId)
+        {
+            if (CurrentMatch == null) return;
+            try
+            {
+                CurrentMatch.SkipTurn(userId);
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"Handler: Error applying SkipTurn: {ex.Message}");
+            }
+        }
+
+        private void HandleGameEnded(List<string> finishOrder)
+        {
+            if (CurrentMatch == null) return;
+            // Apply finish order logic if needed, or just let UI show it.
+            // Match.cs accumulates finishOrder in PlayTurn, but authoritative list is here.
+            // We might want to sync it.
+            CurrentMatch.Phase = "Finished";
         }
 
         private void HandlePlayerJoined(PlayerAvatar playerAvatar)
@@ -179,7 +221,8 @@ namespace TienLen.Application
         private void HandleMatchStarted()
         {
             if (CurrentMatch == null) return;
-            CurrentMatch.DealCards();
+            CurrentMatch.StartGame();
+            MatchStarted?.Invoke();
         }
 
         private void HandlePlayerJoinedOP(MatchStateSnapshot snapshot)

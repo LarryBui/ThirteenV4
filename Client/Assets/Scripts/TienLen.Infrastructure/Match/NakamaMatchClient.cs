@@ -40,6 +40,9 @@ namespace TienLen.Infrastructure.Match
         /// <inheritdoc />
         public event Action<MatchStateSnapshot> OnPlayerJoinedOP;
         public event Action<string> OnPlayerFinished;
+        public event Action<List<Card>> OnHandDealt;
+        public event Action<List<string>> OnGameEnded;
+        public event Action<int, string> OnGameError;
 
         public NakamaMatchClient(NakamaAuthenticationService authService)
         {
@@ -110,22 +113,43 @@ namespace TienLen.Infrastructure.Match
             await SendAsync((long)Proto.OpCode.StartGame, request.ToByteArray());
         }
 
-        public UniTask SendPlayCardsAsync(List<Card> cards)
+        public async UniTask SendPlayCardsAsync(List<Card> cards)
         {
-            // return SendAsync(TienLenOpcodes.PlayCards, ProtoMatchCodec.EncodePlayCards(cards));
-            throw new NotImplementedException("ProtoMatchCodec is removed.");
+            var request = new Proto.PlayCardsRequest();
+            foreach (var card in cards)
+            {
+                request.Cards.Add(ToProto(card));
+            }
+            await SendAsync((long)Proto.OpCode.PlayCards, request.ToByteArray());
         }
 
-        public UniTask SendPassTurnAsync()
+        public async UniTask SendPassTurnAsync()
         {
-            // return SendAsync(TienLenOpcodes.PassTurn, ProtoMatchCodec.EncodePassTurn());
-            throw new NotImplementedException("ProtoMatchCodec is removed.");
+            var request = new Proto.PassTurnRequest();
+            await SendAsync((long)Proto.OpCode.PassTurn, request.ToByteArray());
         }
 
-        public UniTask SendRequestNewGameAsync()
+        public async UniTask SendRequestNewGameAsync()
         {
-            // return SendAsync(TienLenOpcodes.RequestNewGame, ProtoMatchCodec.EncodeRequestNewGame());
-            throw new NotImplementedException("ProtoMatchCodec is removed.");
+            var request = new Proto.RequestNewGameRequest();
+            await SendAsync((long)Proto.OpCode.RequestNewGame, request.ToByteArray());
+        }
+
+        private static Proto.Card ToProto(Card card)
+        {
+            return new Proto.Card
+            {
+                Suit = (Proto.Suit)(int)card.Suit,
+                Rank = (Proto.Rank)(int)card.Rank
+            };
+        }
+
+        private static Card ToDomain(Proto.Card protoCard)
+        {
+            return new Card(
+                (TienLen.Domain.Enums.Rank)(int)protoCard.Rank,
+                (TienLen.Domain.Enums.Suit)(int)protoCard.Suit
+            );
         }
 
         // --- Event Handlers ---
@@ -138,7 +162,7 @@ namespace TienLen.Infrastructure.Match
         private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Debug.Log("MatchClient: Received MatchPresenceEvent: " + TrySerializeForDebug(presenceEvent));
+            Debug.Log("MatchClient: ReceivedMatchPresence: " + TrySerializeForDebug(presenceEvent));
 #endif
 
             if (presenceEvent.MatchId != _matchId) return;
@@ -147,10 +171,6 @@ namespace TienLen.Infrastructure.Match
             {
                 UpsertPresence(joiner, isInMatch: true);
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                Debug.Log("MatchClient: Joiner presence: " + TrySerializeForDebug(joiner));
-#endif
-
                 // Extract display name and create a PlayerAvatar
                 string displayName = string.IsNullOrEmpty(joiner.Username) ? $"Player {joiner.UserId.Substring(0, 4)}" : joiner.Username;
                 int avatarIndex = GetAvatarIndex(joiner.UserId); // Deterministic avatar selection
@@ -158,9 +178,6 @@ namespace TienLen.Infrastructure.Match
                 var playerAvatar = new PlayerAvatar(joiner.UserId, displayName, avatarIndex);
                 OnPlayerJoined?.Invoke(playerAvatar); // Invoke with rich data
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                Debug.Log("MatchClient: Raised OnPlayerJoined with PlayerAvatar: " + TrySerializeForDebug(playerAvatar));
-#endif
             }
 
             foreach (var leaver in presenceEvent.Leaves)
@@ -181,45 +198,79 @@ namespace TienLen.Infrastructure.Match
 
         private void HandleMatchState(IMatchState state)
         {
-
-                        Debug.Log("MatchClient opcode Matchstate... " + TrySerializeForDebug(state));
-
             if (state.MatchId != _matchId) return;
 
             switch (state.OpCode)
             {
-                case (long)Proto.OpCode.PlayerJoined:
+                case (long)Proto.OpCode.PlayerJoined: // 50
                     try
                     {
                         var payload = Proto.MatchStateSnapshot.Parser.ParseFrom(state.State);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                        Debug.Log("MatchClient Opcode50: MatchStateSnapshot payload: " + TrySerializeForDebug(payload));
-#endif
                         var seats = new string[payload.Seats.Count];
                         payload.Seats.CopyTo(seats, 0);
                         var snapshot = new MatchStateSnapshot(seats, payload.OwnerId, payload.Tick);
                         OnPlayerJoinedOP?.Invoke(snapshot);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                        Debug.Log("MatchClient Opcode50: Raised OnPlayerJoinedOP with snapshot: " + TrySerializeForDebug(snapshot));
-#endif
                     }
-                    catch (Exception e)
-                    {
-                        Debug.LogWarning($"MatchClient opcode50: Failed to parse match state payload: {e}");
-                    }
+                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse MatchStateSnapshot: {e}"); }
                     break;
-                case (long)Proto.OpCode.GameStarted:
-                        Debug.LogError($"MatchClient opcode GameStarted: {TrySerializeForDebug(state)}  ");
 
+                case (long)Proto.OpCode.GameStarted: // 100
                     try
                     {
                         var payload = Proto.GameStartedEvent.Parser.ParseFrom(state.State);
                         OnGameStarted?.Invoke();
                     }
-                    catch (Exception e)
+                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameStartedEvent: {e}"); }
+                    break;
+
+                case (long)Proto.OpCode.HandDealt: // 101
+                    try
                     {
-                        Debug.LogError($"Error parsing GameStartedEvent: {e}");
+                        var payload = Proto.HandDealtEvent.Parser.ParseFrom(state.State);
+                        var hand = new List<Card>();
+                        foreach (var c in payload.Hand) hand.Add(ToDomain(c));
+                        OnHandDealt?.Invoke(hand);
                     }
+                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse HandDealtEvent: {e}"); }
+                    break;
+
+                case (long)Proto.OpCode.CardPlayed: // 102
+                    try
+                    {
+                        var payload = Proto.CardPlayedEvent.Parser.ParseFrom(state.State);
+                        var cards = new List<Card>();
+                        foreach (var c in payload.Cards) cards.Add(ToDomain(c));
+                        OnCardsPlayed?.Invoke(payload.UserId, cards);
+                    }
+                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse CardPlayedEvent: {e}"); }
+                    break;
+
+                case (long)Proto.OpCode.TurnPassed: // 103
+                    try
+                    {
+                        var payload = Proto.TurnPassedEvent.Parser.ParseFrom(state.State);
+                        OnPlayerSkippedTurn?.Invoke(payload.UserId);
+                    }
+                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse TurnPassedEvent: {e}"); }
+                    break;
+
+                case (long)Proto.OpCode.GameEnded: // 104
+                    try
+                    {
+                        var payload = Proto.GameEndedEvent.Parser.ParseFrom(state.State);
+                        var finishOrder = new List<string>(payload.FinishOrder);
+                        OnGameEnded?.Invoke(finishOrder);
+                    }
+                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameEndedEvent: {e}"); }
+                    break;
+
+                case (long)Proto.OpCode.GameError: // 105
+                    try
+                    {
+                        var payload = Proto.GameErrorEvent.Parser.ParseFrom(state.State);
+                        OnGameError?.Invoke(payload.Code, payload.Message);
+                    }
+                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameErrorEvent: {e}"); }
                     break;
             }
         }

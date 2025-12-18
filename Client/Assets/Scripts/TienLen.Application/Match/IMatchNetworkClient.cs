@@ -34,6 +34,11 @@ namespace TienLen.Application
         event Action OnGameStarted;
 
         /// <summary>
+        /// Fired when the player's hand is dealt.
+        /// </summary>
+        event Action<List<Card>> OnHandDealt;
+
+        /// <summary>
         /// Fired when a match state snapshot is received from the server (OP_CODE_PLAYER_JOINED).
         /// </summary>
         event Action<MatchStateSnapshot> OnPlayerJoinedOP;
@@ -42,6 +47,16 @@ namespace TienLen.Application
         /// Fired when a player finishes their hand.
         /// </summary>
         event Action<string> OnPlayerFinished; // userId
+        
+        /// <summary>
+        /// Fired when the game ends.
+        /// </summary>
+        event Action<List<string>> OnGameEnded; // finishOrder
+
+        /// <summary>
+        /// Fired when a game error occurs.
+        /// </summary>
+        event Action<int, string> OnGameError; // code, message
 
 
         // --- Methods for sending match actions to the network ---

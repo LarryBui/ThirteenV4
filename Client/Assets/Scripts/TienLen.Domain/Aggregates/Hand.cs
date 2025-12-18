@@ -46,5 +46,10 @@ namespace TienLen.Domain.Aggregates
             }
             return true;
         }
+
+        public void Clear()
+        {
+            _cards.Clear();
+        }
     }
 }

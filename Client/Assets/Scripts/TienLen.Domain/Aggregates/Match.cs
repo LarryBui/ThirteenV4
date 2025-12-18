@@ -71,64 +71,25 @@ namespace TienLen.Domain.Aggregates
         }
 
         /// <summary>
-        /// Deals a shuffled deck evenly across occupied seats in seating order.
+        /// Starts the game, resetting state and setting up for a new round.
+        /// Server handles dealing; this just prepares the client state.
         /// </summary>
-        public void DealCards()
+        public void StartGame()
         {
-            if (Phase != "Lobby")
-            {
-                throw new InvalidOperationException("Cannot deal cards outside of Lobby phase.");
-            }
-
-            if (Players.Count < 2)
-            {
-                throw new InvalidOperationException("Need at least 2 players to start.");
-            }
-
-            var deck = new Deck();
-            var allCards = new Queue<Card>(deck.DrawAll());
-            
             // Clear existing hands
             foreach (var player in Players.Values)
             {
-                // player.Hand = new Hand();
+                player.Hand.Clear();
+                player.CardsRemaining = 13; // Standard Tien Len
                 player.HasPassed = false;
                 player.Finished = false;
             }
 
             CurrentBoard.Clear();
             FinishOrder.Clear();
-
-            // Distribute 13 cards to each player (or max possible)
-            // Standard Tien Len is 13 cards each.
-            int cardsPerPlayer = 13; 
-            
-            // Simple round-robin deal based on seat order
-            for (int i = 0; i < cardsPerPlayer; i++)
-            {
-                for (int s = 0; s < Seats.Length; s++)
-                {
-                    var userId = Seats[s];
-                    if (!string.IsNullOrEmpty(userId) && allCards.Count > 0)
-                    {
-                        Players[userId].Hand.AddCards(new[] { allCards.Dequeue() });
-                    }
-                }
-            }
-
             Phase = "Playing";
             
-            // Simple rule: Owner starts, or logic to find 3 of Spades could go here.
-            // For now, let's set it to the first occupied seat.
-            for (int s = 0; s < Seats.Length; s++)
-            {
-                if (!string.IsNullOrEmpty(Seats[s]))
-                {
-                    CurrentTurnSeat = s + 1;
-                    RoundLeaderSeat = CurrentTurnSeat;
-                    break;
-                }
-            }
+            // CurrentTurnSeat should be set via GameStartedEvent from server
         }
 
         /// <summary>
@@ -141,26 +102,32 @@ namespace TienLen.Domain.Aggregates
             if (Phase != "Playing") throw new InvalidOperationException("Match is not in Playing phase.");
             if (!Players.TryGetValue(userId, out var player)) throw new ArgumentException("Player not found.");
             
-            // Turn validation
-            if (player.Seat != CurrentTurnSeat) throw new InvalidOperationException("Not this player's turn.");
+            // Turn validation - Client trusts server events, but basic check ok
+            // if (player.Seat != CurrentTurnSeat) throw new InvalidOperationException("Not this player's turn.");
             
-            // Hand validation
-            if (!player.Hand.HasCards(cards)) throw new InvalidOperationException("Player does not have these cards.");
+            // Hand validation / Update
+            // If we have the cards (local player), remove them.
+            // If we don't (opponent), just trust the move.
+            if (player.Hand.Cards.Count > 0)
+            {
+                if (player.Hand.HasCards(cards)) 
+                {
+                    player.Hand.RemoveCards(cards);
+                }
+                // Else: Desync or ghost hand, ignore
+            }
 
-            // Basic Rule: If board is not empty, new play must be valid against it. 
-            // (Skipping complex rule validation for this refactor step, assuming client/server validation happens elsewhere or later)
+            player.CardsRemaining -= cards.Count;
+            if (player.CardsRemaining < 0) player.CardsRemaining = 0;
 
-            // Execute Play
-            player.Hand.RemoveCards(cards);
             CurrentBoard = new List<Card>(cards); // Replace board (Tien Len overwrites, doesn't stack usually)
             LastPlaySeat = player.Seat;
 
             // Check Win
-            if (player.Hand.Cards.Count == 0)
+            if (player.CardsRemaining == 0)
             {
                 player.Finished = true;
                 FinishOrder.Add(userId);
-                // If everyone finished, end game? (Left as exercise)
             }
 
             AdvanceTurn();

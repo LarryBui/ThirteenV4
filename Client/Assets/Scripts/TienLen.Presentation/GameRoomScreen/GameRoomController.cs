@@ -43,6 +43,7 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             _matchHandler.GameRoomStateUpdated += HandleGameRoomStateUpdated;
+            _matchHandler.MatchStarted += HandleGameStarted;
 
             // Render current state once in case the initial snapshot arrived before this scene loaded.
             RefreshGameRoomUI();
@@ -53,6 +54,7 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_matchHandler != null)
             {
                 _matchHandler.GameRoomStateUpdated -= HandleGameRoomStateUpdated;
+                _matchHandler.MatchStarted -= HandleGameStarted;
             }
         }
 
