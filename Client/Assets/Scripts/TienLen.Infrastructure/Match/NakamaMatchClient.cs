@@ -40,6 +40,7 @@ namespace TienLen.Infrastructure.Match
         public event Action<MatchStateSnapshot> OnPlayerJoinedOP;
         public event Action<List<string>> OnGameEnded;
         public event Action<int, string> OnGameError;
+        public event Action<string> OnPlayerFinished;
 
         public NakamaMatchClient(NakamaAuthenticationService authService)
         {
@@ -106,6 +107,9 @@ namespace TienLen.Infrastructure.Match
 
         public async UniTask SendStartGameAsync()
         {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.Log($"MatchClient: SendStartGameAsync (matchId={_matchId ?? "<null>"}, socketConnected={(Socket != null && Socket.IsConnected)})");
+#endif
             var request = new Proto.StartGameRequest();
             await SendAsync((long)Proto.OpCode.StartGame, request.ToByteArray());
         }
@@ -211,6 +215,9 @@ namespace TienLen.Infrastructure.Match
                             foreach (var c in payload.Hand) hand.Add(ToDomain(c));
                         }
 
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        Debug.Log($"MatchClient: Received GameStartedEvent (matchId={state.MatchId}, phase={payload.Phase}, firstTurnUserId={payload.FirstTurnUserId}, handCount={hand.Count})");
+#endif
                         OnGameStarted?.Invoke(hand);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameStartedEvent: {e}"); }
@@ -274,6 +281,12 @@ namespace TienLen.Infrastructure.Match
         private async UniTask SendAsync(long opcode, byte[] payload)
         {
             if (Socket == null || !Socket.IsConnected) return;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            if (opcode == (long)Proto.OpCode.StartGame)
+            {
+                Debug.Log($"MatchClient: Sending match state (matchId={_matchId ?? "<null>"}, opcode={opcode}, bytes={(payload?.Length ?? 0)})");
+            }
+#endif
             await Socket.SendMatchStateAsync(_matchId, opcode, payload);
         }
 

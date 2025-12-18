@@ -1,0 +1,28 @@
+# Editor/OS junk
+**/.DS_Store
+**/Thumbs.db
+**/*.swp
+**/*.swo
+**/*~
+**/.idea
+**/.vscode
+**/.vs
+
+# Logs and temp files
+**/*.log
+**/*.tmp
+
+# Build artifacts
+**/bin
+**/obj
+**/dist
+**/build
+**/*.so
+**/*.dll
+**/*.exe
+**/*.pdb
+
+# Coverage outputs
+**/*.out
+**/*.cover
+**/coverage

@@ -104,6 +104,11 @@ namespace TienLen.Application
         public async UniTask StartGameAsync()
         {
             if (CurrentMatch == null) throw new InvalidOperationException("No active match.");
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var userId = _authService?.CurrentUserId;
+            var userIdShort = string.IsNullOrEmpty(userId) ? "<unknown>" : (userId.Length <= 8 ? userId : userId.Substring(0, 8));
+            Debug.Log($"MatchHandler: Sending StartGame request (matchId={CurrentMatch.Id}, userId={userIdShort})");
+#endif
             await _networkClient.SendStartGameAsync();
             // Domain update happens on OnGameStarted event
         }
@@ -175,6 +180,9 @@ namespace TienLen.Application
         private void HandleGameStarted(List<Card> hand)
         {
             if (CurrentMatch == null) return;
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            Debug.Log($"MatchHandler: OnGameStarted received (matchId={CurrentMatch.Id}, handCount={(hand?.Count ?? 0)})");
+#endif
             CurrentMatch.StartGame();
             
             // Deal cards to self

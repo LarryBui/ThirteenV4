@@ -6,11 +6,12 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/heroiclabs/nakama-common/runtime"
-	"google.golang.org/protobuf/proto"
 	"tienlen/internal/app"
 	"tienlen/internal/domain"
 	pb "tienlen/proto"
+
+	"github.com/heroiclabs/nakama-common/runtime"
+	"google.golang.org/protobuf/proto"
 )
 
 const (
@@ -231,13 +232,22 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 
 func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
 	senderID := msg.GetUserId()
+	logger.Info("StartGame: Request received from %s (owner=%s, occupied=%d)", senderID, state.OwnerID, state.GetOccupiedSeatCount())
+
+	// Validate request payload even if it is currently empty; helps detect client/proto mismatches early.
+	request := &pb.StartGameRequest{}
+	if err := proto.Unmarshal(msg.GetData(), request); err != nil {
+		logger.Warn("StartGame: Invalid StartGameRequest from %s: %v", senderID, err)
+		return
+	}
+
 	if senderID != state.OwnerID {
 		logger.Warn("StartGame: User %s tried to start game but is not owner (%s)", senderID, state.OwnerID)
 		return
 	}
 
 	activeCount := state.GetOccupiedSeatCount()
-	if activeCount < 2 {
+	if activeCount < 1 {
 		logger.Warn("StartGame: Cannot start with %d players. Need at least 2.", activeCount)
 		return
 	}
@@ -324,6 +334,7 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 	case app.EventGameStarted:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_STARTED)
 		p := ev.Payload.(app.GameStartedPayload)
+		logger.Debug("Event: game_started (firstTurnUserId=%s, handCount=%d, recipients=%d)", p.FirstTurnUserID, len(p.Hand), len(ev.Recipients))
 		payload = &pb.GameStartedEvent{
 			Phase:           pb.GamePhase_PHASE_PLAYING,
 			FirstTurnUserId: p.FirstTurnUserID,

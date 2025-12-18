@@ -36,32 +36,31 @@ namespace Tienlen.V1 {
             "MS5QbGF5ZXJTdGF0ZSIiCg9QbGF5ZXJMZWZ0RXZlbnQSDwoHdXNlcl9pZBgB",
             "IAEoCSJtChJNYXRjaFN0YXRlU25hcHNob3QSDQoFc2VhdHMYASADKAkSEAoI",
             "b3duZXJfaWQYAiABKAkSDAoEdGljaxgDIAEoAxIoCgdwbGF5ZXJzGAQgAygL",
-            "MhcudGllbmxlbi52MS5QbGF5ZXJTdGF0ZSJUChBHYW1lU3RhcnRlZEV2ZW50",
+            "MhcudGllbmxlbi52MS5QbGF5ZXJTdGF0ZSJ0ChBHYW1lU3RhcnRlZEV2ZW50",
             "EhoKEmZpcnN0X3R1cm5fdXNlcl9pZBgBIAEoCRIkCgVwaGFzZRgCIAEoDjIV",
-            "LnRpZW5sZW4udjEuR2FtZVBoYXNlIjAKDkhhbmREZWFsdEV2ZW50Eh4KBGhh",
-            "bmQYASADKAsyEC50aWVubGVuLnYxLkNhcmQicQoPQ2FyZFBsYXllZEV2ZW50",
-            "Eg8KB3VzZXJfaWQYASABKAkSHwoFY2FyZHMYAiADKAsyEC50aWVubGVuLnYx",
-            "LkNhcmQSGQoRbmV4dF90dXJuX3VzZXJfaWQYAyABKAkSEQoJbmV3X3JvdW5k",
-            "GAQgASgIIj0KD1R1cm5QYXNzZWRFdmVudBIPCgd1c2VyX2lkGAEgASgJEhkK",
-            "EW5leHRfdHVybl91c2VyX2lkGAIgASgJIiYKDkdhbWVFbmRlZEV2ZW50EhQK",
-            "DGZpbmlzaF9vcmRlchgBIAMoCSIvCg5HYW1lRXJyb3JFdmVudBIMCgRjb2Rl",
-            "GAEgASgFEg8KB21lc3NhZ2UYAiABKAkqSwoEU3VpdBIPCgtTVUlUX1NQQURF",
-            "UxAAEg4KClNVSVRfQ0xVQlMQARIRCg1TVUlUX0RJQU1PTkRTEAISDwoLU1VJ",
-            "VF9IRUFSVFMQAyrJAQoEUmFuaxIOCgpSQU5LX1RIUkVFEAASDQoJUkFOS19G",
-            "T1VSEAESDQoJUkFOS19GSVZFEAISDAoIUkFOS19TSVgQAxIOCgpSQU5LX1NF",
-            "VkVOEAQSDgoKUkFOS19FSUdIVBAFEg0KCVJBTktfTklORRAGEgwKCFJBTktf",
-            "VEVOEAcSDQoJUkFOS19KQUNLEAgSDgoKUkFOS19RVUVFThAJEg0KCVJBTktf",
-            "S0lORxAKEgwKCFJBTktfQUNFEAsSDAoIUkFOS19UV08QDCpFCglHYW1lUGhh",
-            "c2USEQoNUEhBU0VfV0FJVElORxAAEhEKDVBIQVNFX1BMQVlJTkcQARISCg5Q",
-            "SEFTRV9GSU5JU0hFRBACKs4CCgZPcENvZGUSFwoTT1BfQ09ERV9VTlNQRUNJ",
-            "RklFRBAAEhYKEk9QX0NPREVfU1RBUlRfR0FNRRABEhYKEk9QX0NPREVfUExB",
-            "WV9DQVJEUxACEhUKEU9QX0NPREVfUEFTU19UVVJOEAMSHAoYT1BfQ09ERV9S",
-            "RVFVRVNUX05FV19HQU1FEAQSGQoVT1BfQ09ERV9QTEFZRVJfSk9JTkVEEDIS",
-            "FwoTT1BfQ09ERV9QTEFZRVJfTEVGVBAzEhgKFE9QX0NPREVfR0FNRV9TVEFS",
-            "VEVEEGQSFgoST1BfQ09ERV9IQU5EX0RFQUxUEGUSFwoTT1BfQ09ERV9DQVJE",
-            "X1BMQVlFRBBmEhcKE09QX0NPREVfVFVSTl9QQVNTRUQQZxIWChJPUF9DT0RF",
-            "X0dBTUVfRU5ERUQQaBIWChJPUF9DT0RFX0dBTUVfRVJST1IQaUISWhB0aWVu",
-            "bGVuL3Byb3RvO3BiYgZwcm90bzM="));
+            "LnRpZW5sZW4udjEuR2FtZVBoYXNlEh4KBGhhbmQYAyADKAsyEC50aWVubGVu",
+            "LnYxLkNhcmQicQoPQ2FyZFBsYXllZEV2ZW50Eg8KB3VzZXJfaWQYASABKAkS",
+            "HwoFY2FyZHMYAiADKAsyEC50aWVubGVuLnYxLkNhcmQSGQoRbmV4dF90dXJu",
+            "X3VzZXJfaWQYAyABKAkSEQoJbmV3X3JvdW5kGAQgASgIIj0KD1R1cm5QYXNz",
+            "ZWRFdmVudBIPCgd1c2VyX2lkGAEgASgJEhkKEW5leHRfdHVybl91c2VyX2lk",
+            "GAIgASgJIiYKDkdhbWVFbmRlZEV2ZW50EhQKDGZpbmlzaF9vcmRlchgBIAMo",
+            "CSIvCg5HYW1lRXJyb3JFdmVudBIMCgRjb2RlGAEgASgFEg8KB21lc3NhZ2UY",
+            "AiABKAkqSwoEU3VpdBIPCgtTVUlUX1NQQURFUxAAEg4KClNVSVRfQ0xVQlMQ",
+            "ARIRCg1TVUlUX0RJQU1PTkRTEAISDwoLU1VJVF9IRUFSVFMQAyrJAQoEUmFu",
+            "axIOCgpSQU5LX1RIUkVFEAASDQoJUkFOS19GT1VSEAESDQoJUkFOS19GSVZF",
+            "EAISDAoIUkFOS19TSVgQAxIOCgpSQU5LX1NFVkVOEAQSDgoKUkFOS19FSUdI",
+            "VBAFEg0KCVJBTktfTklORRAGEgwKCFJBTktfVEVOEAcSDQoJUkFOS19KQUNL",
+            "EAgSDgoKUkFOS19RVUVFThAJEg0KCVJBTktfS0lORxAKEgwKCFJBTktfQUNF",
+            "EAsSDAoIUkFOS19UV08QDCpFCglHYW1lUGhhc2USEQoNUEhBU0VfV0FJVElO",
+            "RxAAEhEKDVBIQVNFX1BMQVlJTkcQARISCg5QSEFTRV9GSU5JU0hFRBACKrYC",
+            "CgZPcENvZGUSFwoTT1BfQ09ERV9VTlNQRUNJRklFRBAAEhYKEk9QX0NPREVf",
+            "U1RBUlRfR0FNRRABEhYKEk9QX0NPREVfUExBWV9DQVJEUxACEhUKEU9QX0NP",
+            "REVfUEFTU19UVVJOEAMSHAoYT1BfQ09ERV9SRVFVRVNUX05FV19HQU1FEAQS",
+            "GQoVT1BfQ09ERV9QTEFZRVJfSk9JTkVEEDISFwoTT1BfQ09ERV9QTEFZRVJf",
+            "TEVGVBAzEhgKFE9QX0NPREVfR0FNRV9TVEFSVEVEEGQSFwoTT1BfQ09ERV9D",
+            "QVJEX1BMQVlFRBBmEhcKE09QX0NPREVfVFVSTl9QQVNTRUQQZxIWChJPUF9D",
+            "T0RFX0dBTUVfRU5ERUQQaBIWChJPUF9DT0RFX0dBTUVfRVJST1IQaUISWhB0",
+            "aWVubGVuL3Byb3RvO3BiYgZwcm90bzM="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -74,8 +73,7 @@ namespace Tienlen.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerJoinedEvent), global::Tienlen.V1.PlayerJoinedEvent.Parser, new[]{ "Player" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerLeftEvent), global::Tienlen.V1.PlayerLeftEvent.Parser, new[]{ "UserId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerId", "Tick", "Players" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnUserId", "Phase" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.HandDealtEvent), global::Tienlen.V1.HandDealtEvent.Parser, new[]{ "Hand" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnUserId", "Phase", "Hand" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardPlayedEvent), global::Tienlen.V1.CardPlayedEvent.Parser, new[]{ "UserId", "Cards", "NextTurnUserId", "NewRound" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.TurnPassedEvent), global::Tienlen.V1.TurnPassedEvent.Parser, new[]{ "UserId", "NextTurnUserId" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameEndedEvent), global::Tienlen.V1.GameEndedEvent.Parser, new[]{ "FinishOrder" }, null, null, null, null),
@@ -124,7 +122,6 @@ namespace Tienlen.V1 {
     [pbr::OriginalName("OP_CODE_PLAYER_JOINED")] PlayerJoined = 50,
     [pbr::OriginalName("OP_CODE_PLAYER_LEFT")] PlayerLeft = 51,
     [pbr::OriginalName("OP_CODE_GAME_STARTED")] GameStarted = 100,
-    [pbr::OriginalName("OP_CODE_HAND_DEALT")] HandDealt = 101,
     [pbr::OriginalName("OP_CODE_CARD_PLAYED")] CardPlayed = 102,
     [pbr::OriginalName("OP_CODE_TURN_PASSED")] TurnPassed = 103,
     [pbr::OriginalName("OP_CODE_GAME_ENDED")] GameEnded = 104,
@@ -2160,6 +2157,7 @@ namespace Tienlen.V1 {
     public GameStartedEvent(GameStartedEvent other) : this() {
       firstTurnUserId_ = other.firstTurnUserId_;
       phase_ = other.phase_;
+      hand_ = other.hand_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2193,6 +2191,17 @@ namespace Tienlen.V1 {
       }
     }
 
+    /// <summary>Field number for the "hand" field.</summary>
+    public const int HandFieldNumber = 3;
+    private static readonly pb::FieldCodec<global::Tienlen.V1.Card> _repeated_hand_codec
+        = pb::FieldCodec.ForMessage(26, global::Tienlen.V1.Card.Parser);
+    private readonly pbc::RepeatedField<global::Tienlen.V1.Card> hand_ = new pbc::RepeatedField<global::Tienlen.V1.Card>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Tienlen.V1.Card> Hand {
+      get { return hand_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -2210,6 +2219,7 @@ namespace Tienlen.V1 {
       }
       if (FirstTurnUserId != other.FirstTurnUserId) return false;
       if (Phase != other.Phase) return false;
+      if(!hand_.Equals(other.hand_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2219,227 +2229,6 @@ namespace Tienlen.V1 {
       int hash = 1;
       if (FirstTurnUserId.Length != 0) hash ^= FirstTurnUserId.GetHashCode();
       if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) hash ^= Phase.GetHashCode();
-      if (_unknownFields != null) {
-        hash ^= _unknownFields.GetHashCode();
-      }
-      return hash;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public override string ToString() {
-      return pb::JsonFormatter.ToDiagnosticString(this);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void WriteTo(pb::CodedOutputStream output) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      output.WriteRawMessage(this);
-    #else
-      if (FirstTurnUserId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(FirstTurnUserId);
-      }
-      if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) Phase);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(output);
-      }
-    #endif
-    }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (FirstTurnUserId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(FirstTurnUserId);
-      }
-      if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
-        output.WriteRawTag(16);
-        output.WriteEnum((int) Phase);
-      }
-      if (_unknownFields != null) {
-        _unknownFields.WriteTo(ref output);
-      }
-    }
-    #endif
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public int CalculateSize() {
-      int size = 0;
-      if (FirstTurnUserId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(FirstTurnUserId);
-      }
-      if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
-        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Phase);
-      }
-      if (_unknownFields != null) {
-        size += _unknownFields.CalculateSize();
-      }
-      return size;
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(GameStartedEvent other) {
-      if (other == null) {
-        return;
-      }
-      if (other.FirstTurnUserId.Length != 0) {
-        FirstTurnUserId = other.FirstTurnUserId;
-      }
-      if (other.Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
-        Phase = other.Phase;
-      }
-      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(pb::CodedInputStream input) {
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      input.ReadRawMessage(this);
-    #else
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
-            break;
-          case 10: {
-            FirstTurnUserId = input.ReadString();
-            break;
-          }
-          case 16: {
-            Phase = (global::Tienlen.V1.GamePhase) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    #endif
-    }
-
-    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
-      uint tag;
-      while ((tag = input.ReadTag()) != 0) {
-      if ((tag & 7) == 4) {
-        // Abort on any end group tag.
-        return;
-      }
-      switch(tag) {
-          default:
-            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
-            break;
-          case 10: {
-            FirstTurnUserId = input.ReadString();
-            break;
-          }
-          case 16: {
-            Phase = (global::Tienlen.V1.GamePhase) input.ReadEnum();
-            break;
-          }
-        }
-      }
-    }
-    #endif
-
-  }
-
-  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
-  public sealed partial class HandDealtEvent : pb::IMessage<HandDealtEvent>
-  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
-      , pb::IBufferMessage
-  #endif
-  {
-    private static readonly pb::MessageParser<HandDealtEvent> _parser = new pb::MessageParser<HandDealtEvent>(() => new HandDealtEvent());
-    private pb::UnknownFieldSet _unknownFields;
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pb::MessageParser<HandDealtEvent> Parser { get { return _parser; } }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[10]; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    pbr::MessageDescriptor pb::IMessage.Descriptor {
-      get { return Descriptor; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public HandDealtEvent() {
-      OnConstruction();
-    }
-
-    partial void OnConstruction();
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public HandDealtEvent(HandDealtEvent other) : this() {
-      hand_ = other.hand_.Clone();
-      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public HandDealtEvent Clone() {
-      return new HandDealtEvent(this);
-    }
-
-    /// <summary>Field number for the "hand" field.</summary>
-    public const int HandFieldNumber = 1;
-    private static readonly pb::FieldCodec<global::Tienlen.V1.Card> _repeated_hand_codec
-        = pb::FieldCodec.ForMessage(10, global::Tienlen.V1.Card.Parser);
-    private readonly pbc::RepeatedField<global::Tienlen.V1.Card> hand_ = new pbc::RepeatedField<global::Tienlen.V1.Card>();
-    /// <summary>
-    /// Private info: Only sent to specific user
-    /// </summary>
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<global::Tienlen.V1.Card> Hand {
-      get { return hand_; }
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public override bool Equals(object other) {
-      return Equals(other as HandDealtEvent);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public bool Equals(HandDealtEvent other) {
-      if (ReferenceEquals(other, null)) {
-        return false;
-      }
-      if (ReferenceEquals(other, this)) {
-        return true;
-      }
-      if(!hand_.Equals(other.hand_)) return false;
-      return Equals(_unknownFields, other._unknownFields);
-    }
-
-    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
-    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public override int GetHashCode() {
-      int hash = 1;
       hash ^= hand_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -2459,6 +2248,14 @@ namespace Tienlen.V1 {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
+      if (FirstTurnUserId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(FirstTurnUserId);
+      }
+      if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Phase);
+      }
       hand_.WriteTo(output, _repeated_hand_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2470,6 +2267,14 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (FirstTurnUserId.Length != 0) {
+        output.WriteRawTag(10);
+        output.WriteString(FirstTurnUserId);
+      }
+      if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
+        output.WriteRawTag(16);
+        output.WriteEnum((int) Phase);
+      }
       hand_.WriteTo(ref output, _repeated_hand_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -2481,6 +2286,12 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
+      if (FirstTurnUserId.Length != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeStringSize(FirstTurnUserId);
+      }
+      if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
+        size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Phase);
+      }
       size += hand_.CalculateSize(_repeated_hand_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2490,9 +2301,15 @@ namespace Tienlen.V1 {
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public void MergeFrom(HandDealtEvent other) {
+    public void MergeFrom(GameStartedEvent other) {
       if (other == null) {
         return;
+      }
+      if (other.FirstTurnUserId.Length != 0) {
+        FirstTurnUserId = other.FirstTurnUserId;
+      }
+      if (other.Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
+        Phase = other.Phase;
       }
       hand_.Add(other.hand_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
@@ -2515,6 +2332,14 @@ namespace Tienlen.V1 {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
           case 10: {
+            FirstTurnUserId = input.ReadString();
+            break;
+          }
+          case 16: {
+            Phase = (global::Tienlen.V1.GamePhase) input.ReadEnum();
+            break;
+          }
+          case 26: {
             hand_.AddEntriesFrom(input, _repeated_hand_codec);
             break;
           }
@@ -2538,6 +2363,14 @@ namespace Tienlen.V1 {
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
           case 10: {
+            FirstTurnUserId = input.ReadString();
+            break;
+          }
+          case 16: {
+            Phase = (global::Tienlen.V1.GamePhase) input.ReadEnum();
+            break;
+          }
+          case 26: {
             hand_.AddEntriesFrom(ref input, _repeated_hand_codec);
             break;
           }
@@ -2563,7 +2396,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[11]; }
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[10]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2867,7 +2700,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[12]; }
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[11]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3102,7 +2935,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[13]; }
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[12]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3292,7 +3125,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[14]; }
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[13]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

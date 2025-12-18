@@ -60,6 +60,8 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleGameStarted()
         {
+
+            Debug.Log($"UI on  gamestarted: ");
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
         }
@@ -164,10 +166,22 @@ namespace TienLen.Presentation.GameRoomScreen
             slot.SetActive(true);
         }
 
+        /// <summary>
+        /// UI callback for the "Start Game" button.
+        /// Sends a start-game request and logs contextual information for debugging.
+        /// </summary>
         public void OnStartGameClicked()
         {
             if (_matchHandler != null)
             {
+                var matchId = _gameSessionContext?.CurrentMatch?.MatchId ?? _matchHandler.CurrentMatch?.Id ?? "<unknown>";
+                var seatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
+                var localUserId = _gameSessionContext?.Identity?.UserId;
+                var localUserIdShort = string.IsNullOrEmpty(localUserId)
+                    ? "<unknown>"
+                    : (localUserId.Length <= 8 ? localUserId : localUserId.Substring(0, 8));
+
+                Debug.Log($"GameRoomController: StartGame clicked (matchId={matchId}, seatIndex={seatIndex}, userId={localUserIdShort})");
                 _matchHandler.StartGameAsync().Forget();
             }
             else

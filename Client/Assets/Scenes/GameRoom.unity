@@ -1157,8 +1157,8 @@ MonoBehaviour:
   - {fileID: 166385697}
   - {fileID: 355377109}
   - {fileID: 1212860438}
-  _poolSize: 16
-  _cardFlightDuration: 0.5
+  _poolSize: 60
+  _cardFlightDuration: 0.3
 --- !u!114 &1130013619
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1713,9 +1713,9 @@ RectTransform:
   m_LocalScale: {x: 0, y: 0, z: 0}
   m_ConstrainProportionsScale: 0
   m_Children:
-  - {fileID: 1725691948}
   - {fileID: 1474673542}
   - {fileID: 1234670624}
+  - {fileID: 1725691948}
   - {fileID: 780145173}
   - {fileID: 1649188827}
   - {fileID: 338565335}
