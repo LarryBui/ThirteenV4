@@ -183,9 +183,7 @@ namespace TienLen.Application
 
             _playerAvatarsByUserId[playerAvatar.UserId] = playerAvatar;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Debug.Log("Handler: PlayerJoined event payload: " + JsonConvert.SerializeObject(playerAvatar));
-#endif
+
 
             if (CurrentMatch == null)
             {

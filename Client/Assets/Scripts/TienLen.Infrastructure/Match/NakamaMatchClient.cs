@@ -176,6 +176,9 @@ namespace TienLen.Infrastructure.Match
                 int avatarIndex = GetAvatarIndex(joiner.UserId); // Deterministic avatar selection
 
                 var playerAvatar = new PlayerAvatar(joiner.UserId, displayName, avatarIndex);
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                Debug.Log("MatchClient: ReceivedMatchPresence: PlayerAvatar " + TrySerializeForDebug(playerAvatar));
+#endif                
                 OnPlayerJoined?.Invoke(playerAvatar); // Invoke with rich data
 
             }
@@ -188,6 +191,7 @@ namespace TienLen.Infrastructure.Match
 
         private int GetAvatarIndex(string userId)
         {
+            return 0;  // Placeholder for avatar selection logic
             // Simple deterministic avatar selection based on UserId hash
             // This assumes we have a pool of avatars to pick from (e.g., 0-3 for 4 avatars)
             // Need to know the total number of available avatars. For now, let's assume 4.
