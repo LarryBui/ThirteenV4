@@ -7,6 +7,18 @@ namespace TienLen.Presentation.GameRoomScreen
 {
     public class CardDealer : MonoBehaviour
     {
+        /// <summary>
+        /// Raised when a dealt card reaches a player anchor (0=South, 1=West, 2=North, 3=East).
+        /// Use this to synchronize persistent UI (e.g., revealing the local player's hand) with the
+        /// transient deal animation.
+        /// </summary>
+        public event Action<int, Vector3> CardArrivedAtPlayerAnchor;
+
+        /// <summary>
+        /// Prefab used for card visuals (typically a UI prefab with a <see cref="RectTransform"/>).
+        /// </summary>
+        public GameObject CardPrefab => _cardPrefab;
+
         [Header("References")]
         [SerializeField] private GameObject _cardPrefab;
         [SerializeField] private RectTransform _deckAnchor;
@@ -31,9 +43,13 @@ namespace TienLen.Presentation.GameRoomScreen
                 return;
             }
 
+            // For UI prefabs (RectTransform/Image), ensure cards are instantiated under a Canvas hierarchy.
+            // Prefer the deck anchor as the parent when available so the spawned visuals render correctly.
+            var poolParent = _deckAnchor != null ? _deckAnchor.transform : transform;
+
             for (int i = 0; i < _poolSize; i++)
             {
-                GameObject card = Instantiate(_cardPrefab, transform);
+                GameObject card = Instantiate(_cardPrefab, poolParent);
                 card.SetActive(false);
                 _cardPool.Enqueue(card);
             }
@@ -89,7 +105,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 RectTransform targetAnchor = _playerAnchors[playerIndex];
 
                 // Fire and forget the card movement animation, returning it to the pool when done.
-                AnimateCardMovement(flyingCardRect, targetAnchor.position).Forget();
+                AnimateCardMovement(flyingCardRect, targetAnchor.position, playerIndex).Forget();
 
                 currentCardIndex++;
 
@@ -98,7 +114,7 @@ namespace TienLen.Presentation.GameRoomScreen
             }
         }
 
-        private async UniTask AnimateCardMovement(RectTransform cardRect, Vector3 targetPosition)
+        private async UniTask AnimateCardMovement(RectTransform cardRect, Vector3 targetPosition, int playerIndex)
         {
             Vector3 startPosition = cardRect.position;
             float startTime = Time.time;
@@ -113,8 +129,20 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Ensure it reaches the exact target
             cardRect.position = targetPosition;
+            CardArrivedAtPlayerAnchor?.Invoke(playerIndex, targetPosition);
             cardRect.gameObject.SetActive(false);
             _cardPool.Enqueue(cardRect.gameObject); // Return to pool
+        }
+
+        /// <summary>
+        /// Returns the UI anchor used for a player's deal target (0=South, 1=West, 2=North, 3=East).
+        /// </summary>
+        /// <param name="playerIndex">Player index matching the <see cref="_playerAnchors"/> order.</param>
+        public RectTransform GetPlayerAnchor(int playerIndex)
+        {
+            if (_playerAnchors == null || _playerAnchors.Length == 0) return null;
+            if (playerIndex < 0 || playerIndex >= _playerAnchors.Length) return null;
+            return _playerAnchors[playerIndex];
         }
     }
 }

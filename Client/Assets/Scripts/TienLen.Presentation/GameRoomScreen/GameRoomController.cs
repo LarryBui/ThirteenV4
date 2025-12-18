@@ -1,6 +1,8 @@
 using System;
+using System.Collections.Generic;
 using TienLen.Application.Session;
 using TienLen.Domain.Aggregates;
+using TienLen.Domain.ValueObjects;
 using UnityEngine;
 using VContainer;
 using TienLen.Application;
@@ -24,6 +26,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private TienLenMatchHandler _matchHandler;
         private IGameSessionContext _gameSessionContext;
+        private LocalHandView _localHandView;
 
         [Inject]
         public void Construct(TienLenMatchHandler matchHandler, IGameSessionContext gameSessionContext)
@@ -47,6 +50,11 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Render current state once in case the initial snapshot arrived before this scene loaded.
             RefreshGameRoomUI();
+
+            if (_cardDealer != null)
+            {
+                _cardDealer.CardArrivedAtPlayerAnchor += HandleCardArrivedAtPlayerAnchor;
+            }
         }
 
         private void OnDestroy()
@@ -56,12 +64,18 @@ namespace TienLen.Presentation.GameRoomScreen
                 _matchHandler.GameRoomStateUpdated -= HandleGameRoomStateUpdated;
                 _matchHandler.GameStarted -= HandleGameStarted;
             }
+
+            if (_cardDealer != null)
+            {
+                _cardDealer.CardArrivedAtPlayerAnchor -= HandleCardArrivedAtPlayerAnchor;
+            }
         }
 
         private void HandleGameStarted()
         {
+            PrepareLocalHandReveal();
 
-            Debug.Log($"UI on  gamestarted: ");
+            Debug.Log("GameRoomController: UI GameStarted.");
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
         }
@@ -188,6 +202,61 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 Debug.LogError("GameRoomController: Cannot start game, Match Handler is null.");
             }
+        }
+
+        private void HandleCardArrivedAtPlayerAnchor(int playerIndex, Vector3 anchorWorldPosition)
+        {
+            // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
+            if (playerIndex != 0) return;
+            _localHandView?.RevealNextCard(anchorWorldPosition);
+        }
+
+        private void PrepareLocalHandReveal()
+        {
+            var match = _matchHandler?.CurrentMatch;
+            if (match == null) return;
+
+            if (_cardDealer == null) return;
+
+            if (!TryGetLocalHand(match, out var localHandCards))
+            {
+                return;
+            }
+
+            var southAnchor = _cardDealer.GetPlayerAnchor(0);
+            if (southAnchor == null) return;
+
+            _localHandView ??= GetComponent<LocalHandView>() ?? gameObject.AddComponent<LocalHandView>();
+
+            _localHandView.Configure(
+                cardPrefab: _cardDealer.CardPrefab,
+                handAnchor: southAnchor,
+                uiParent: southAnchor.transform.parent != null ? southAnchor.transform.parent : southAnchor.transform);
+
+            _localHandView.BeginReveal(localHandCards);
+        }
+
+        private bool TryGetLocalHand(Match match, out IReadOnlyList<Card> cards)
+        {
+            cards = Array.Empty<Card>();
+
+            var localUserId = _gameSessionContext?.Identity?.UserId;
+            if (string.IsNullOrWhiteSpace(localUserId))
+            {
+                var seatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
+                if (seatIndex >= 0 && match.Seats != null && seatIndex < match.Seats.Length)
+                {
+                    localUserId = match.Seats[seatIndex];
+                }
+            }
+
+            if (string.IsNullOrWhiteSpace(localUserId)) return false;
+            if (match.Players == null) return false;
+            if (!match.Players.TryGetValue(localUserId, out var player)) return false;
+            if (player?.Hand == null) return false;
+
+            cards = player.Hand.Cards;
+            return cards != null && cards.Count > 0;
         }
     }
 }
