@@ -33,7 +33,6 @@ namespace TienLen.Infrastructure.Match
         private readonly Dictionary<string, PresenceInfo> _presenceByUserId = new();
 
         // --- IMatchNetworkClient Events ---
-        public event Action<PlayerAvatar> OnPlayerJoined; // Updated
         public event Action<string, List<Card>> OnCardsPlayed;
         public event Action<string> OnPlayerSkippedTurn;
         public event Action OnGameStarted;
@@ -153,41 +152,6 @@ namespace TienLen.Infrastructure.Match
         }
 
         // --- Event Handlers ---
-
-        /// <summary>
-        /// Handles match presence events (players joining/leaving).
-        /// This is only used for setting up new player flag. use onMatchState for more rich data
-        /// </summary>
-        /// <param name="presenceEvent"></param>
-        private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
-        {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Debug.Log("MatchClient: ReceivedMatchPresence: " + TrySerializeForDebug(presenceEvent));
-#endif
-
-            if (presenceEvent.MatchId != _matchId) return;
-
-            foreach (var joiner in presenceEvent.Joins)
-            {
-                UpsertPresence(joiner, isInMatch: true);
-
-                // Extract display name and create a PlayerAvatar
-                string displayName = string.IsNullOrEmpty(joiner.Username) ? $"Player {joiner.UserId.Substring(0, 4)}" : joiner.Username;
-                int avatarIndex = GetAvatarIndex(joiner.UserId); // Deterministic avatar selection
-
-                var playerAvatar = new PlayerAvatar(joiner.UserId, displayName, avatarIndex);
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                Debug.Log("MatchClient: ReceivedMatchPresence: PlayerAvatar " + TrySerializeForDebug(playerAvatar));
-#endif                
-                OnPlayerJoined?.Invoke(playerAvatar); // Invoke with rich data
-
-            }
-
-            foreach (var leaver in presenceEvent.Leaves)
-            {
-                UpsertPresence(leaver, isInMatch: false);
-            }
-        }
 
         private int GetAvatarIndex(string userId)
         {
@@ -329,11 +293,9 @@ namespace TienLen.Infrastructure.Match
             if (_subscribedSocket != null)
             {
                 _subscribedSocket.ReceivedMatchState -= HandleMatchState;
-                _subscribedSocket.ReceivedMatchPresence -= HandleMatchPresence;
             }
 
             socket.ReceivedMatchState += HandleMatchState;
-            socket.ReceivedMatchPresence += HandleMatchPresence;
             _subscribedSocket = socket;
         }
 

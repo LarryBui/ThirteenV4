@@ -13,10 +13,6 @@ namespace TienLen.Application
     public interface IMatchNetworkClient
     {
         // --- Events for incoming match data from the network ---
-        /// <summary>
-        /// Fired when a player successfully joins the match.
-        /// </summary>
-        event Action<PlayerAvatar> OnPlayerJoined;
 
         /// <summary>
         /// Fired when cards are played by a player in the match.

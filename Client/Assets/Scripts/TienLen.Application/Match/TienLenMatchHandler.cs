@@ -123,7 +123,6 @@ namespace TienLen.Application
 
         private void SubscribeToNetworkEvents()
         {
-            // Removed: _networkClient.OnPlayerJoined += HandlePlayerJoined; (Using Snapshot Op50 instead)
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
             _networkClient.OnGameStarted += HandleMatchStarted;
             _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
@@ -134,7 +133,6 @@ namespace TienLen.Application
 
         private void UnsubscribeFromNetworkEvents()
         {
-            // Removed: _networkClient.OnPlayerJoined -= HandlePlayerJoined;
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
             _networkClient.OnGameStarted -= HandleMatchStarted;
             _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
