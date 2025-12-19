@@ -347,6 +347,7 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 			UserId:         p.UserID,
 			Cards:          toProtoCards(p.Cards),
 			NextTurnUserId: p.NextTurnUserID,
+			NewRound:       p.NewRound,
 		}
 	case app.EventTurnPassed:
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
@@ -354,6 +355,7 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		payload = &pb.TurnPassedEvent{
 			UserId:         p.UserID,
 			NextTurnUserId: p.NextTurnUserID,
+			NewRound:       p.NewRound,
 		}
 	case app.EventGameEnded:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_ENDED)

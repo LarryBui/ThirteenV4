@@ -4,6 +4,7 @@ using TienLen.Application.Session;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
+using UnityEngine.UI;
 using VContainer;
 using TienLen.Application;
 using Cysharp.Threading.Tasks;
@@ -21,6 +22,10 @@ namespace TienLen.Presentation.GameRoomScreen
         [Header("Hand View")]
         [Tooltip("Prefab used to render the local player's hand (front face). Should be a UI prefab with a RectTransform.")]
         [SerializeField] private GameObject _localHandCardPrefab;
+
+        [Header("Actions")]
+        [Tooltip("Play button that submits the currently selected cards.")]
+        [SerializeField] private Button _playButton;
 
         [Header("Player Profiles")]
         [SerializeField] private PlayerProfileUI localPlayerProfile;
@@ -42,6 +47,7 @@ namespace TienLen.Presentation.GameRoomScreen
         private void Start()
         {
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
+            UpdatePlayButtonState(selectedCount: 0);
 
             if (_matchHandler == null)
             {
@@ -59,6 +65,8 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 _cardDealer.CardArrivedAtPlayerAnchor += HandleCardArrivedAtPlayerAnchor;
             }
+
+            BindLocalHandView(GetComponent<LocalHandView>());
         }
 
         private void OnDestroy()
@@ -73,6 +81,8 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 _cardDealer.CardArrivedAtPlayerAnchor -= HandleCardArrivedAtPlayerAnchor;
             }
+
+            BindLocalHandView(null);
         }
 
         private void HandleGameStarted()
@@ -82,6 +92,8 @@ namespace TienLen.Presentation.GameRoomScreen
             Debug.Log("GameRoomController: AnimateDeal 52 cards over 2.0 seconds.");
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
+
+            UpdatePlayButtonState(selectedCount: _localHandView?.SelectedCards?.Count ?? 0);
         }
 
         private void HandleGameRoomStateUpdated()
@@ -218,6 +230,56 @@ namespace TienLen.Presentation.GameRoomScreen
             Debug.Log($"GameRoomController: Play clicked (selectedCount={selectedCount})");
         }
 
+        private void BindLocalHandView(LocalHandView view)
+        {
+            if (_localHandView == view) return;
+
+            if (_localHandView != null)
+            {
+                _localHandView.SelectionChanged -= HandleLocalHandSelectionChanged;
+            }
+
+            _localHandView = view;
+
+            if (_localHandView != null)
+            {
+                _localHandView.SelectionChanged += HandleLocalHandSelectionChanged;
+            }
+        }
+
+        private void HandleLocalHandSelectionChanged(IReadOnlyList<Card> selectedCards)
+        {
+            UpdatePlayButtonState(selectedCards?.Count ?? 0);
+        }
+
+        private void UpdatePlayButtonState(int selectedCount)
+        {
+            if (_playButton == null) return;
+
+            var match = _matchHandler?.CurrentMatch;
+            if (match == null || !string.Equals(match.Phase, "Playing", StringComparison.OrdinalIgnoreCase))
+            {
+                _playButton.interactable = false;
+                return;
+            }
+
+            _playButton.interactable = IsLocalPlayersTurn(match) && selectedCount > 0;
+        }
+
+        private bool IsLocalPlayersTurn(Match match)
+        {
+            if (match == null) return false;
+
+            // Domain seats are 1-based; session seat index is 0-based.
+            var localSeatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
+            if (localSeatIndex < 0) return true; // Unknown seat: don't block in early integration.
+
+            if (match.CurrentTurnSeat <= 0) return true; // Server turn not yet plumbed: don't block in early integration.
+
+            var localSeat = localSeatIndex + 1;
+            return match.CurrentTurnSeat == localSeat;
+        }
+
         private void HandleCardArrivedAtPlayerAnchor(int playerIndex, Vector3 anchorWorldPosition)
         {
             // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
@@ -245,14 +307,16 @@ namespace TienLen.Presentation.GameRoomScreen
             var southAnchor = _cardDealer.GetPlayerAnchor(0);
             if (southAnchor == null) return;
 
-            _localHandView ??= GetComponent<LocalHandView>() ?? gameObject.AddComponent<LocalHandView>();
+            var localHandView = GetComponent<LocalHandView>() ?? gameObject.AddComponent<LocalHandView>();
+            BindLocalHandView(localHandView);
 
-            _localHandView.Configure(
+            localHandView.Configure(
                 cardPrefab: _localHandCardPrefab,
                 handAnchor: southAnchor,
                 uiParent: southAnchor.transform.parent != null ? southAnchor.transform.parent : southAnchor.transform);
 
-            _localHandView.BeginReveal(localHandCards);
+            localHandView.BeginReveal(localHandCards);
+            UpdatePlayButtonState(selectedCount: localHandView.SelectedCards?.Count ?? 0);
         }
 
         private bool TryGetLocalHand(Match match, out IReadOnlyList<Card> cards)

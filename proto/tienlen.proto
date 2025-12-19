@@ -114,6 +114,7 @@ message CardPlayedEvent {
 message TurnPassedEvent {
   string user_id = 1;
   string next_turn_user_id = 2;
+  bool new_round = 3; // True if this pass results in a round reset
 }
 
 message GameEndedEvent {

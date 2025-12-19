@@ -161,7 +161,8 @@ func (s *Service) PlayCards(game *domain.Game, actorUserID string, cards []domai
 	}
 
 	// 3. Validate against previous play
-	if game.LastPlayedCombination.Type != domain.Invalid { // If there was a previous play
+	newRound := game.LastPlayedCombination.Type == domain.Invalid
+	if !newRound { // If there was a previous play
 		if !domain.CanBeat(game.LastPlayedCombination.Cards, playedCombo.Cards) {
 			return nil, ErrCannotBeat
 		}
@@ -176,8 +177,9 @@ func (s *Service) PlayCards(game *domain.Game, actorUserID string, cards []domai
 		{
 			Kind: EventCardPlayed,
 			Payload: CardPlayedPayload{
-				UserID: actorUserID,
-				Cards:  cards,
+				UserID:   actorUserID,
+				Cards:    cards,
+				NewRound: newRound,
 			},
 		},
 	}
@@ -207,6 +209,7 @@ func (s *Service) PlayCards(game *domain.Game, actorUserID string, cards []domai
 			UserID:         actorUserID,
 			Cards:          cards,
 			NextTurnUserID: game.CurrentTurn,
+			NewRound:       newRound,
 		}
 	}
 
@@ -231,13 +234,49 @@ func (s *Service) PassTurn(game *domain.Game, actorUserID string) ([]Event, erro
 
 	pl.HasPassed = true
 
-	// Advance turn
-	nextPlayerID := s.findNextPlayer(game, actorUserID, game.Players)
-	game.CurrentTurn = nextPlayerID
+	// Check if the round should reset.
+	// The round resets if only one active (non-finished) player remains who hasn't passed.
+	// This player is the "winner" of the round and starts the new one.
+	activeCount := 0
+	activeNotPassedCount := 0
+	var lastActivePlayerID string
 
-	// If the turn comes back to the player who played the last combo,
-	// they start a new round.
-	if game.CurrentTurn == game.LastPlayerToPlay {
+	for _, p := range game.Players {
+		if !p.Finished {
+			activeCount++
+			if !p.HasPassed {
+				activeNotPassedCount++
+				lastActivePlayerID = p.UserID
+			}
+		}
+	}
+
+	// If everyone passed (activeNotPassedCount == 0), it means the last person to play 
+	// (who is now finished) won the round.
+	// The turn should go to the next active player after them, and the board clears.
+	// OR if only one person hasn't passed, they won.
+
+	newRound := false
+	nextTurnID := ""
+
+	if activeNotPassedCount == 0 {
+		// This happens if the person who played last just finished, and everyone else passed.
+		// The round ends. The turn goes to the next active player after the person who finished.
+		// We need to find who is next after LastPlayerToPlay.
+		newRound = true
+		nextTurnID = s.findNextActivePlayerInOrder(game, game.LastPlayerToPlay)
+	} else if activeNotPassedCount == 1 {
+		// Standard case: Everyone else passed, leaving one winner.
+		newRound = true
+		nextTurnID = lastActivePlayerID
+	} else {
+		// Round continues, find next player
+		nextTurnID = s.findNextPlayer(game, actorUserID, game.Players)
+	}
+
+	game.CurrentTurn = nextTurnID
+
+	if newRound {
 		// Reset LastPlayedCombination for new round
 		game.LastPlayedCombination = domain.CardCombination{Type: domain.Invalid}
 		// Reset pass status for all active players
@@ -250,10 +289,48 @@ func (s *Service) PassTurn(game *domain.Game, actorUserID string) ([]Event, erro
 
 	return []Event{
 		{
-			Kind:    EventTurnPassed,
-			Payload: TurnPassedPayload{UserID: actorUserID, NextTurnUserID: game.CurrentTurn},
+			Kind: EventTurnPassed,
+			Payload: TurnPassedPayload{
+				UserID:         actorUserID,
+				NextTurnUserID: game.CurrentTurn,
+				NewRound:       newRound,
+			},
 		},
 	}, nil
+}
+
+// findNextActivePlayerInOrder finds the next active player seat-wise after the given userID.
+func (s *Service) findNextActivePlayerInOrder(game *domain.Game, currentUserID string) string {
+	// Get players in seat order
+	var orderedPlayers []*domain.Player
+	for _, pl := range game.Players {
+		orderedPlayers = append(orderedPlayers, pl)
+	}
+	sort.Slice(orderedPlayers, func(i, j int) bool {
+		return orderedPlayers[i].Seat < orderedPlayers[j].Seat
+	})
+
+	// Find current index
+	startIdx := -1
+	for i, pl := range orderedPlayers {
+		if pl.UserID == currentUserID {
+			startIdx = i
+			break
+		}
+	}
+
+	if startIdx == -1 {
+		return ""
+	}
+
+	// Loop to find next not finished
+	for i := 1; i <= len(orderedPlayers); i++ {
+		idx := (startIdx + i) % len(orderedPlayers)
+		if !orderedPlayers[idx].Finished {
+			return orderedPlayers[idx].UserID
+		}
+	}
+	return ""
 }
 
 // playerHasCards checks if a player's hand contains all cards in 'toCheck'.

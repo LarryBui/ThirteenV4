@@ -41,11 +41,13 @@ type CardPlayedPayload struct {
 	UserID         string
 	Cards          []domain.Card
 	NextTurnUserID string
+	NewRound       bool
 }
 
 type TurnPassedPayload struct {
 	UserID         string
 	NextTurnUserID string
+	NewRound       bool
 }
 
 type GameEndedPayload struct {
