@@ -54,7 +54,6 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
             UpdatePlayButtonState(selectedCount: 0);
-            if (_passButton != null) _passButton.interactable = false;
 
             if (_matchHandler == null)
             {
@@ -280,8 +279,6 @@ namespace TienLen.Presentation.GameRoomScreen
             _isLeaving = true;
 
             if (_leaveButton != null) _leaveButton.interactable = false;
-            if (_playButton != null) _playButton.interactable = false;
-            if (_passButton != null) _passButton.interactable = false;
 
             try
             {
@@ -331,30 +328,14 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             var match = _matchHandler?.CurrentMatch;
             var isPlaying = match != null && string.Equals(match.Phase, "Playing", StringComparison.OrdinalIgnoreCase);
+            var isMyTurn = isPlaying && IsLocalPlayersTurn(match);
+            var showActions = isPlaying && isMyTurn;
 
-            if (!isPlaying)
-            {
-                if (_playButton != null) _playButton.interactable = false;
-                if (_passButton != null) _passButton.interactable = false;
-                return;
-            }
+            // Keep action buttons hidden until the game is live and it's the local player's turn.
+            if (_playButton != null) _playButton.gameObject.SetActive(showActions);
+            if (_passButton != null) _passButton.gameObject.SetActive(showActions);
 
-            var isMyTurn = IsLocalPlayersTurn(match);
-
-            if (_playButton != null)
-            {
-                // Enable Play button if it's my turn, regardless of selection.
-                // Validation happens on click (or server side).
-                _playButton.interactable = isMyTurn;
-            }
-
-            if (_passButton != null)
-            {
-                // Can pass if it's my turn AND I am not the one who cleared the board (leading).
-                // Leading means CurrentBoard is empty.
-                bool isLeading = match.CurrentBoard == null || match.CurrentBoard.Count == 0;
-                _passButton.interactable = isMyTurn && !isLeading;
-            }
+            if (!showActions) return;
         }
 
         private bool IsLocalPlayersTurn(Match match)
