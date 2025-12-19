@@ -52,6 +52,11 @@ namespace TienLen.Application
         UniTask SendJoinMatchAsync(string matchId);
 
         /// <summary>
+        /// Sends a request to leave the current match.
+        /// </summary>
+        UniTask SendLeaveMatchAsync();
+
+        /// <summary>
         /// Sends a request to start the game in the current match.
         /// </summary>
         UniTask SendStartGameAsync();

@@ -106,6 +106,28 @@ namespace TienLen.Infrastructure.Match
             }
         }
 
+        /// <inheritdoc />
+        public async UniTask SendLeaveMatchAsync()
+        {
+            var matchId = _matchId;
+
+            // Clear local subscription filters immediately so late match-state frames are ignored.
+            _matchId = null;
+            ClearPresenceCache();
+
+            if (string.IsNullOrWhiteSpace(matchId))
+            {
+                return;
+            }
+
+            if (Socket == null || !Socket.IsConnected)
+            {
+                return;
+            }
+
+            await Socket.LeaveMatchAsync(matchId);
+        }
+
         public async UniTask SendStartGameAsync()
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
@@ -284,6 +306,7 @@ namespace TienLen.Infrastructure.Match
         private async UniTask SendAsync(long opcode, byte[] payload)
         {
             if (Socket == null || !Socket.IsConnected) return;
+            if (string.IsNullOrWhiteSpace(_matchId)) return;
 
             await Socket.SendMatchStateAsync(_matchId, opcode, payload);
         }

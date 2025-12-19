@@ -9,6 +9,7 @@ using VContainer;
 using TienLen.Application;
 using Cysharp.Threading.Tasks;
 using Newtonsoft.Json;
+using UnityEngine.SceneManagement;
 
 namespace TienLen.Presentation.GameRoomScreen
 {
@@ -28,6 +29,8 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private Button _playButton;
         [Tooltip("Pass button that skips the turn.")]
         [SerializeField] private Button _passButton;
+        [Tooltip("Leave button that exits the match and returns to the Home screen.")]
+        [SerializeField] private Button _leaveButton;
 
         [Header("Player Profiles")]
         [SerializeField] private PlayerProfileUI localPlayerProfile;
@@ -38,6 +41,7 @@ namespace TienLen.Presentation.GameRoomScreen
         private TienLenMatchHandler _matchHandler;
         private IGameSessionContext _gameSessionContext;
         private LocalHandView _localHandView;
+        private bool _isLeaving;
 
         [Inject]
         public void Construct(TienLenMatchHandler matchHandler, IGameSessionContext gameSessionContext)
@@ -90,6 +94,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleGameStarted()
         {
+            if (_isLeaving) return;
             PrepareLocalHandReveal();
 
             Debug.Log("GameRoomController: AnimateDeal 52 cards over 2.0 seconds.");
@@ -101,6 +106,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleGameRoomStateUpdated()
         {
+            if (_isLeaving) return;
             RefreshGameRoomUI();
             UpdatePlayButtonState(_localHandView?.SelectedCards?.Count ?? 0);
         }
@@ -200,6 +206,7 @@ namespace TienLen.Presentation.GameRoomScreen
         /// </summary>
         public void OnStartGameClicked()
         {
+            if (_isLeaving) return;
             if (_matchHandler != null && _matchHandler.CurrentMatch != null)
             {
                 var match = _matchHandler.CurrentMatch;
@@ -225,6 +232,7 @@ namespace TienLen.Presentation.GameRoomScreen
         /// </summary>
         public void OnPlayClicked()
         {
+            if (_isLeaving) return;
             var selectedCards = _localHandView?.SelectedCards;
             var selectedCount = selectedCards?.Count ?? 0;
             Debug.Log($"GameRoomController: Play clicked (selectedCount={selectedCount})");
@@ -248,11 +256,52 @@ namespace TienLen.Presentation.GameRoomScreen
         /// </summary>
         public void OnPassClicked()
         {
+            if (_isLeaving) return;
             Debug.Log("GameRoomController: Pass clicked");
             if (_matchHandler != null)
             {
                 _matchHandler.PassTurnAsync().Forget();
                 _localHandView?.ClearSelection();
+            }
+        }
+
+        /// <summary>
+        /// UI callback for the "Leave" button.
+        /// Leaves the current match (best-effort) and unloads the GameRoom scene to return to Home.
+        /// </summary>
+        public void OnLeaveClicked()
+        {
+            LeaveToHomeAsync().Forget();
+        }
+
+        private async UniTaskVoid LeaveToHomeAsync()
+        {
+            if (_isLeaving) return;
+            _isLeaving = true;
+
+            if (_leaveButton != null) _leaveButton.interactable = false;
+            if (_playButton != null) _playButton.interactable = false;
+            if (_passButton != null) _passButton.interactable = false;
+
+            try
+            {
+                if (_matchHandler != null)
+                {
+                    await _matchHandler.LeaveMatchAsync();
+                }
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"GameRoomController: Leave failed: {ex.Message}");
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                var scene = gameObject.scene;
+                if (scene.IsValid() && scene.isLoaded)
+                {
+                    await SceneManager.UnloadSceneAsync(scene);
+                }
             }
         }
 
@@ -321,6 +370,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleCardArrivedAtPlayerAnchor(int playerIndex, Vector3 anchorWorldPosition)
         {
+            if (_isLeaving) return;
             // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
             if (playerIndex != 0) return;
             _localHandView?.RevealNextCard(anchorWorldPosition);

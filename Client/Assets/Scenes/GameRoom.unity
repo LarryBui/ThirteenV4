@@ -397,7 +397,20 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 338565337}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1130013619}
+        m_TargetAssemblyTypeName: TienLen.Presentation.GameRoomScreen.GameRoomController,
+          TienLen.Presentation
+        m_MethodName: OnLeaveClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &338565337
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -553,7 +566,20 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 551816066}
   m_OnClick:
     m_PersistentCalls:
-      m_Calls: []
+      m_Calls:
+      - m_Target: {fileID: 1130013619}
+        m_TargetAssemblyTypeName: TienLen.Presentation.GameRoomScreen.GameRoomController,
+          TienLen.Presentation
+        m_MethodName: OnPassClicked
+        m_Mode: 1
+        m_Arguments:
+          m_ObjectArgument: {fileID: 0}
+          m_ObjectArgumentAssemblyTypeName: UnityEngine.Object, UnityEngine
+          m_IntArgument: 0
+          m_FloatArgument: 0
+          m_StringArgument: 
+          m_BoolArgument: 0
+        m_CallState: 2
 --- !u!114 &551816066
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1470,6 +1496,8 @@ MonoBehaviour:
   _cardDealer: {fileID: 1130013621}
   _localHandCardPrefab: {fileID: 4931620541885055150, guid: dddf76dc0c583de48b7249f117ee441c, type: 3}
   _playButton: {fileID: 753827556}
+  _passButton: {fileID: 551816065}
+  _leaveButton: {fileID: 338565336}
   localPlayerProfile: {fileID: 16907759}
   opponentProfile_1: {fileID: 1059197322}
   opponentProfile_2: {fileID: 778642234}

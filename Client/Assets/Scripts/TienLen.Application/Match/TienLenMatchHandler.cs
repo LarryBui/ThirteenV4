@@ -101,6 +101,26 @@ namespace TienLen.Application
             }
         }
 
+        /// <summary>
+        /// Leaves the current match (best-effort), clears local match state, and allows the UI to return to Home.
+        /// </summary>
+        public async UniTask LeaveMatchAsync()
+        {
+            try
+            {
+                await _networkClient.SendLeaveMatchAsync();
+            }
+            catch (Exception ex)
+            {
+                Debug.LogWarning($"MatchHandler: LeaveMatchAsync failed: {ex.Message}");
+            }
+            finally
+            {
+                CurrentMatch = null;
+                _gameSessionContext.ClearMatch();
+            }
+        }
+
         public async UniTask StartGameAsync()
         {
             if (CurrentMatch == null) throw new InvalidOperationException("No active match.");
