@@ -8,7 +8,6 @@ using UnityEngine.UI;
 using VContainer;
 using TienLen.Application;
 using Cysharp.Threading.Tasks;
-using Newtonsoft.Json;
 using UnityEngine.SceneManagement;
 
 namespace TienLen.Presentation.GameRoomScreen
@@ -96,7 +95,6 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_isLeaving) return;
             PrepareLocalHandReveal();
 
-            Debug.Log("GameRoomController: AnimateDeal 52 cards over 2.0 seconds.");
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
 
@@ -113,7 +111,6 @@ namespace TienLen.Presentation.GameRoomScreen
         private void RefreshGameRoomUI()
         {
             var match = _matchHandler?.CurrentMatch;
-            Debug.Log($"RefreshGameRoomUI: {JsonConvert.SerializeObject(match)}");
 
             if (match == null || match.Seats == null || match.Seats.Length < SeatCount)
             {
@@ -208,15 +205,6 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_isLeaving) return;
             if (_matchHandler != null && _matchHandler.CurrentMatch != null)
             {
-                var match = _matchHandler.CurrentMatch;
-                var matchId = match.Id;
-                var seatIndex = ResolveLocalSeatIndex(match.Seats);
-                var localUserId = _gameSessionContext?.Identity?.UserId;
-                var localUserIdShort = string.IsNullOrEmpty(localUserId)
-                    ? "<unknown>"
-                    : (localUserId.Length <= 8 ? localUserId : localUserId.Substring(0, 8));
-
-                Debug.Log($"GameRoomController: StartGame clicked (matchId={matchId}, seatIndex={seatIndex}, userId={localUserIdShort})");
                 _matchHandler.StartGameAsync().Forget();
             }
             else
@@ -234,7 +222,6 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_isLeaving) return;
             var selectedCards = _localHandView?.SelectedCards;
             var selectedCount = selectedCards?.Count ?? 0;
-            Debug.Log($"GameRoomController: Play clicked (selectedCount={selectedCount})");
 
             if (selectedCount > 0 && _matchHandler != null)
             {
@@ -256,7 +243,6 @@ namespace TienLen.Presentation.GameRoomScreen
         public void OnPassClicked()
         {
             if (_isLeaving) return;
-            Debug.Log("GameRoomController: Pass clicked");
             if (_matchHandler != null)
             {
                 _matchHandler.PassTurnAsync().Forget();
