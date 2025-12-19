@@ -1495,6 +1495,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cardDealer: {fileID: 1130013621}
   _localHandCardPrefab: {fileID: 4931620541885055150, guid: dddf76dc0c583de48b7249f117ee441c, type: 3}
+  _startGameButton: {fileID: 1649188828}
   _playButton: {fileID: 753827556}
   _passButton: {fileID: 551816065}
   _leaveButton: {fileID: 338565336}

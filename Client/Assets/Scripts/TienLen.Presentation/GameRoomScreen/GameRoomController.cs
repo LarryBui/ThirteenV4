@@ -23,6 +23,8 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private GameObject _localHandCardPrefab;
 
         [Header("Actions")]
+        [Tooltip("Start Game button visible only to the match owner.")]
+        [SerializeField] private Button _startGameButton;
         [Tooltip("Play button that submits the currently selected cards.")]
         [SerializeField] private Button _playButton;
         [Tooltip("Pass button that skips the turn.")]
@@ -49,6 +51,8 @@ namespace TienLen.Presentation.GameRoomScreen
         private void Start()
         {
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
+            InitializeStartGameButton();
+            UpdateStartGameButtonState();
             UpdatePlayButtonState();
 
             if (_matchHandler == null)
@@ -101,6 +105,7 @@ namespace TienLen.Presentation.GameRoomScreen
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
 
+            UpdateStartGameButtonState();
             UpdatePlayButtonState();
         }
 
@@ -109,6 +114,7 @@ namespace TienLen.Presentation.GameRoomScreen
             Debug.Log($"GameRoomController: Game room state updated. seatid={_matchHandler?.CurrentMatch?.LocalSeatIndex}");
             if (_isLeaving) return;
             RefreshGameRoomUI();
+            UpdateStartGameButtonState();
             UpdatePlayButtonState();
         }
 
@@ -319,6 +325,26 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_passButton != null) _passButton.gameObject.SetActive(showActions);
         }
 
+        private void InitializeStartGameButton()
+        {
+            if (_startGameButton == null) return;
+            _startGameButton.interactable = false;
+            _startGameButton.gameObject.SetActive(false);
+        }
+
+        private void UpdateStartGameButtonState()
+        {
+            if (_startGameButton == null) return;
+
+            var match = _matchHandler?.CurrentMatch;
+            var localSeatIndex = match?.LocalSeatIndex ?? -1;
+            var ownerSeat = match?.OwnerSeat ?? -1;
+            var isOwner = localSeatIndex >= 0 && ownerSeat == localSeatIndex;
+
+            _startGameButton.gameObject.SetActive(isOwner);
+            _startGameButton.interactable = isOwner;
+        }
+
         private bool IsLocalPlayersTurn(Match match)
         {
             if (match == null) return false;
@@ -367,6 +393,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 uiParent: southAnchor.transform.parent != null ? southAnchor.transform.parent : southAnchor.transform);
 
             localHandView.BeginReveal(localHandCards);
+            UpdateStartGameButtonState();
             UpdatePlayButtonState();
         }
 
