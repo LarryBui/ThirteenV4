@@ -20,13 +20,13 @@ const (
 
 // MatchState holds the authoritative runtime state for the Nakama match handler.
 type MatchState struct {
-	Seats        [4]string                   `json:"seats"`          // Array of user IDs, empty string means seat is empty
-	OwnerID      string                      `json:"owner_id"`       // User ID of the match owner
-	LastWinnerID string                      `json:"last_winner_id"` // User ID of the winner of the last game
-	Tick         int64                       `json:"tick"`           // Current tick of the match for turn-based logic
-	Presences    map[string]runtime.Presence `json:"-"`              // Map UserId -> Presence for targeted messaging
-	App          *app.Service                `json:"-"`              // TienLen app service with game logic
-	Game         *domain.Game                `json:"-"`              // Current active game state (nil if in lobby)
+	Seats          [4]string                   `json:"seats"`           // Array of user IDs, empty string means seat is empty
+	OwnerSeat      int                         `json:"owner_seat"`      // Seat index of the match owner
+	LastWinnerSeat int                         `json:"last_winner_seat"` // Seat index of the winner of the last game
+	Tick           int64                       `json:"tick"`            // Current tick of the match for turn-based logic
+	Presences      map[string]runtime.Presence `json:"-"`               // Map UserId -> Presence for targeted messaging
+	App            *app.Service                `json:"-"`               // TienLen app service with game logic
+	Game           *domain.Game                `json:"-"`               // Current active game state (nil if in lobby)
 }
 
 func (ms *MatchState) GetOpenSeatsCount() int {
@@ -61,9 +61,11 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 	logger.Debug("MatchInit: Initializing match handler.")
 
 	state := &MatchState{
-		Tick:      time.Now().Unix(),
-		Presences: make(map[string]runtime.Presence),
-		App:       app.NewService(nil), // Initialize the app service
+		Tick:           time.Now().Unix(),
+		Presences:      make(map[string]runtime.Presence),
+		App:            app.NewService(nil), // Initialize the app service
+		OwnerSeat:      -1,
+		LastWinnerSeat: -1,
 	}
 
 	// Initial match label: 4 open seats
@@ -118,10 +120,15 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 			logger.Warn("MatchJoin: User %s joined but no seat was empty.", p.GetUserId())
 			continue
 		}
+	}
 
-		// Assign owner if none exists
-		if matchState.OwnerID == "" {
-			matchState.OwnerID = p.GetUserId()
+	// Assign owner if none exists
+	if matchState.OwnerSeat == -1 {
+		for i, userId := range matchState.Seats {
+			if userId != "" {
+				matchState.OwnerSeat = i
+				break
+			}
 		}
 	}
 
@@ -143,8 +150,8 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 
 		playerStates = append(playerStates, &pb.PlayerState{
 			UserId:         userId,
-			Seat:           int32(i + 1), // 1-based seat
-			IsOwner:        userId == matchState.OwnerID,
+			Seat:           int32(i), // 0-based seat
+			IsOwner:        i == matchState.OwnerSeat,
 			CardsRemaining: 0, // Lobby state
 			DisplayName:    displayName,
 			AvatarIndex:    0, // Default for now
@@ -152,10 +159,10 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 	}
 
 	snapshot := &pb.MatchStateSnapshot{
-		Seats:   matchState.Seats[:],
-		OwnerId: matchState.OwnerID,
-		Tick:    matchState.Tick,
-		Players: playerStates,
+		Seats:     matchState.Seats[:],
+		OwnerSeat: int32(matchState.OwnerSeat),
+		Tick:      matchState.Tick,
+		Players:   playerStates,
 	}
 	snapshotPayload, err := proto.Marshal(snapshot)
 	if err != nil {
@@ -187,13 +194,13 @@ func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, d
 				matchState.Seats[i] = ""
 				logger.Debug("MatchLeave: User %s left, seat %d freed.", p.GetUserId(), i)
 
-				if matchState.OwnerID == p.GetUserId() {
-					matchState.OwnerID = ""
+				if matchState.OwnerSeat == i {
+					matchState.OwnerSeat = -1
 					// Assign new owner
-					for _, newOwnerId := range matchState.Seats {
+					for j, newOwnerId := range matchState.Seats {
 						if newOwnerId != "" {
-							matchState.OwnerID = newOwnerId
-							logger.Debug("MatchLeave: Owner %s left, new owner is %s.", p.GetUserId(), newOwnerId)
+							matchState.OwnerSeat = j
+							logger.Debug("MatchLeave: Owner left, new owner is seat %d.", j)
 							break
 						}
 					}
@@ -232,7 +239,15 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 
 func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
 	senderID := msg.GetUserId()
-	logger.Info("StartGame: Request received from %s (owner=%s, occupied=%d)", senderID, state.OwnerID, state.GetOccupiedSeatCount())
+	senderSeat := -1
+	for i, seatUserId := range state.Seats {
+		if seatUserId == senderID {
+			senderSeat = i
+			break
+		}
+	}
+
+	logger.Info("StartGame: Request received from %s (seat=%d, owner_seat=%d, occupied=%d)", senderID, senderSeat, state.OwnerSeat, state.GetOccupiedSeatCount())
 
 	// Validate request payload even if it is currently empty; helps detect client/proto mismatches early.
 	request := &pb.StartGameRequest{}
@@ -241,8 +256,8 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 		return
 	}
 
-	if senderID != state.OwnerID {
-		logger.Warn("StartGame: User %s tried to start game but is not owner (%s)", senderID, state.OwnerID)
+	if senderSeat != state.OwnerSeat {
+		logger.Warn("StartGame: User %s tried to start game but is not owner (owner_seat=%d)", senderID, state.OwnerSeat)
 		return
 	}
 
@@ -253,7 +268,7 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 	}
 
 	// Initialize the domain Game via the Service
-	game, events, err := state.App.StartGame(state.Seats[:], state.LastWinnerID)
+	game, events, err := state.App.StartGame(state.Seats[:], state.LastWinnerSeat)
 	if err != nil {
 		logger.Error("StartGame: Failed to start game: %v", err)
 		return
@@ -272,6 +287,14 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 
 func (mh *matchHandler) handlePlayCards(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
 	senderID := msg.GetUserId()
+	senderSeat := -1
+	for i, seatUserId := range state.Seats {
+		if seatUserId == senderID {
+			senderSeat = i
+			break
+		}
+	}
+
 	if state.Game == nil {
 		logger.Warn("handlePlayCards: Game not started.")
 		return
@@ -293,9 +316,9 @@ func (mh *matchHandler) handlePlayCards(state *MatchState, dispatcher runtime.Ma
 	}
 
 	// Call app service
-	events, err := state.App.PlayCards(state.Game, senderID, domainCards)
+	events, err := state.App.PlayCards(state.Game, senderSeat, domainCards)
 	if err != nil {
-		logger.Warn("handlePlayCards: User %s failed to play cards: %v", senderID, err)
+		logger.Warn("handlePlayCards: User %s (seat %d) failed to play cards: %v", senderID, senderSeat, err)
 		return
 	}
 
@@ -307,15 +330,23 @@ func (mh *matchHandler) handlePlayCards(state *MatchState, dispatcher runtime.Ma
 
 func (mh *matchHandler) handlePassTurn(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
 	senderID := msg.GetUserId()
+	senderSeat := -1
+	for i, seatUserId := range state.Seats {
+		if seatUserId == senderID {
+			senderSeat = i
+			break
+		}
+	}
+
 	if state.Game == nil {
 		logger.Warn("handlePassTurn: Game not started.")
 		return
 	}
 
 	// Call app service
-	events, err := state.App.PassTurn(state.Game, senderID)
+	events, err := state.App.PassTurn(state.Game, senderSeat)
 	if err != nil {
-		logger.Warn("handlePassTurn: User %s failed to pass turn: %v", senderID, err)
+		logger.Warn("handlePassTurn: User %s (seat %d) failed to pass turn: %v", senderID, senderSeat, err)
 		return
 	}
 
@@ -344,7 +375,7 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		opCode = int64(pb.OpCode_OP_CODE_CARD_PLAYED)
 		p := ev.Payload.(app.CardPlayedPayload)
 		payload = &pb.CardPlayedEvent{
-			UserId:       p.UserID,
+			Seat:         int32(p.Seat),
 			Cards:        toProtoCards(p.Cards),
 			NextTurnSeat: int32(p.NextTurnSeat),
 			NewRound:     p.NewRound,
@@ -353,19 +384,23 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
 		p := ev.Payload.(app.TurnPassedPayload)
 		payload = &pb.TurnPassedEvent{
-			UserId:       p.UserID,
+			Seat:         int32(p.Seat),
 			NextTurnSeat: int32(p.NextTurnSeat),
 			NewRound:     p.NewRound,
 		}
 	case app.EventGameEnded:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_ENDED)
 		p := ev.Payload.(app.GameEndedPayload)
+		protoSeats := make([]int32, len(p.FinishOrderSeats))
+		for i, seat := range p.FinishOrderSeats {
+			protoSeats[i] = int32(seat)
+		}
 		payload = &pb.GameEndedEvent{
-			FinishOrder: p.FinishOrder,
+			FinishOrderSeats: protoSeats,
 		}
 		// Save the winner for the next game
-		if len(p.FinishOrder) > 0 {
-			state.LastWinnerID = p.FinishOrder[0]
+		if len(p.FinishOrderSeats) > 0 {
+			state.LastWinnerSeat = p.FinishOrderSeats[0]
 		}
 	default:
 		logger.Warn("Unknown event kind: %v", ev.Kind)

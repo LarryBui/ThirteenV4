@@ -611,7 +611,8 @@ func (x *PlayerJoinedEvent) GetPlayer() *PlayerState {
 
 type PlayerLeftEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Seat          int32                  `protobuf:"varint,1,opt,name=seat,proto3" json:"seat,omitempty"` // 0-based index
+	UserId        string                 `protobuf:"bytes,2,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -646,6 +647,13 @@ func (*PlayerLeftEvent) Descriptor() ([]byte, []int) {
 	return file_tienlen_proto_rawDescGZIP(), []int{7}
 }
 
+func (x *PlayerLeftEvent) GetSeat() int32 {
+	if x != nil {
+		return x.Seat
+	}
+	return 0
+}
+
 func (x *PlayerLeftEvent) GetUserId() string {
 	if x != nil {
 		return x.UserId
@@ -657,7 +665,7 @@ func (x *PlayerLeftEvent) GetUserId() string {
 type MatchStateSnapshot struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Seats         []string               `protobuf:"bytes,1,rep,name=seats,proto3" json:"seats,omitempty"`
-	OwnerId       string                 `protobuf:"bytes,2,opt,name=owner_id,json=ownerId,proto3" json:"owner_id,omitempty"`
+	OwnerSeat     int32                  `protobuf:"varint,2,opt,name=owner_seat,json=ownerSeat,proto3" json:"owner_seat,omitempty"` // 0-based index
 	Tick          int64                  `protobuf:"varint,3,opt,name=tick,proto3" json:"tick,omitempty"`
 	Players       []*PlayerState         `protobuf:"bytes,4,rep,name=players,proto3" json:"players,omitempty"` // Full player details
 	unknownFields protoimpl.UnknownFields
@@ -701,11 +709,11 @@ func (x *MatchStateSnapshot) GetSeats() []string {
 	return nil
 }
 
-func (x *MatchStateSnapshot) GetOwnerId() string {
+func (x *MatchStateSnapshot) GetOwnerSeat() int32 {
 	if x != nil {
-		return x.OwnerId
+		return x.OwnerSeat
 	}
-	return ""
+	return 0
 }
 
 func (x *MatchStateSnapshot) GetTick() int64 {
@@ -784,7 +792,7 @@ func (x *GameStartedEvent) GetHand() []*Card {
 
 type CardPlayedEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Seat          int32                  `protobuf:"varint,1,opt,name=seat,proto3" json:"seat,omitempty"` // 0-based index
 	Cards         []*Card                `protobuf:"bytes,2,rep,name=cards,proto3" json:"cards,omitempty"`
 	NextTurnSeat  int32                  `protobuf:"varint,3,opt,name=next_turn_seat,json=nextTurnSeat,proto3" json:"next_turn_seat,omitempty"` // 0-based index
 	NewRound      bool                   `protobuf:"varint,4,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`               // True if this clears the board
@@ -822,11 +830,11 @@ func (*CardPlayedEvent) Descriptor() ([]byte, []int) {
 	return file_tienlen_proto_rawDescGZIP(), []int{10}
 }
 
-func (x *CardPlayedEvent) GetUserId() string {
+func (x *CardPlayedEvent) GetSeat() int32 {
 	if x != nil {
-		return x.UserId
+		return x.Seat
 	}
-	return ""
+	return 0
 }
 
 func (x *CardPlayedEvent) GetCards() []*Card {
@@ -852,7 +860,7 @@ func (x *CardPlayedEvent) GetNewRound() bool {
 
 type TurnPassedEvent struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Seat          int32                  `protobuf:"varint,1,opt,name=seat,proto3" json:"seat,omitempty"`                                       // 0-based index
 	NextTurnSeat  int32                  `protobuf:"varint,2,opt,name=next_turn_seat,json=nextTurnSeat,proto3" json:"next_turn_seat,omitempty"` // 0-based index
 	NewRound      bool                   `protobuf:"varint,3,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`               // True if this pass results in a round reset
 	unknownFields protoimpl.UnknownFields
@@ -889,11 +897,11 @@ func (*TurnPassedEvent) Descriptor() ([]byte, []int) {
 	return file_tienlen_proto_rawDescGZIP(), []int{11}
 }
 
-func (x *TurnPassedEvent) GetUserId() string {
+func (x *TurnPassedEvent) GetSeat() int32 {
 	if x != nil {
-		return x.UserId
+		return x.Seat
 	}
-	return ""
+	return 0
 }
 
 func (x *TurnPassedEvent) GetNextTurnSeat() int32 {
@@ -911,10 +919,10 @@ func (x *TurnPassedEvent) GetNewRound() bool {
 }
 
 type GameEndedEvent struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	FinishOrder   []string               `protobuf:"bytes,1,rep,name=finish_order,json=finishOrder,proto3" json:"finish_order,omitempty"` // UserIDs in rank order (1st, 2nd, 3rd...)
-	unknownFields protoimpl.UnknownFields
-	sizeCache     protoimpl.SizeCache
+	state            protoimpl.MessageState `protogen:"open.v1"`
+	FinishOrderSeats []int32                `protobuf:"varint,1,rep,packed,name=finish_order_seats,json=finishOrderSeats,proto3" json:"finish_order_seats,omitempty"` // 0-based seat indices in rank order
+	unknownFields    protoimpl.UnknownFields
+	sizeCache        protoimpl.SizeCache
 }
 
 func (x *GameEndedEvent) Reset() {
@@ -947,9 +955,9 @@ func (*GameEndedEvent) Descriptor() ([]byte, []int) {
 	return file_tienlen_proto_rawDescGZIP(), []int{12}
 }
 
-func (x *GameEndedEvent) GetFinishOrder() []string {
+func (x *GameEndedEvent) GetFinishOrderSeats() []int32 {
 	if x != nil {
-		return x.FinishOrder
+		return x.FinishOrderSeats
 	}
 	return nil
 }
@@ -1028,29 +1036,31 @@ const file_tienlen_proto_rawDesc = "" +
 	"\x0fPassTurnRequest\"\x17\n" +
 	"\x15RequestNewGameRequest\"D\n" +
 	"\x11PlayerJoinedEvent\x12/\n" +
-	"\x06player\x18\x01 \x01(\v2\x17.tienlen.v1.PlayerStateR\x06player\"*\n" +
-	"\x0fPlayerLeftEvent\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\"\x8c\x01\n" +
+	"\x06player\x18\x01 \x01(\v2\x17.tienlen.v1.PlayerStateR\x06player\">\n" +
+	"\x0fPlayerLeftEvent\x12\x12\n" +
+	"\x04seat\x18\x01 \x01(\x05R\x04seat\x12\x17\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"\x90\x01\n" +
 	"\x12MatchStateSnapshot\x12\x14\n" +
-	"\x05seats\x18\x01 \x03(\tR\x05seats\x12\x19\n" +
-	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
+	"\x05seats\x18\x01 \x03(\tR\x05seats\x12\x1d\n" +
+	"\n" +
+	"owner_seat\x18\x02 \x01(\x05R\townerSeat\x12\x12\n" +
 	"\x04tick\x18\x03 \x01(\x03R\x04tick\x121\n" +
 	"\aplayers\x18\x04 \x03(\v2\x17.tienlen.v1.PlayerStateR\aplayers\"\x8d\x01\n" +
 	"\x10GameStartedEvent\x12&\n" +
 	"\x0ffirst_turn_seat\x18\x01 \x01(\x05R\rfirstTurnSeat\x12+\n" +
 	"\x05phase\x18\x02 \x01(\x0e2\x15.tienlen.v1.GamePhaseR\x05phase\x12$\n" +
-	"\x04hand\x18\x03 \x03(\v2\x10.tienlen.v1.CardR\x04hand\"\x95\x01\n" +
-	"\x0fCardPlayedEvent\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12&\n" +
+	"\x04hand\x18\x03 \x03(\v2\x10.tienlen.v1.CardR\x04hand\"\x90\x01\n" +
+	"\x0fCardPlayedEvent\x12\x12\n" +
+	"\x04seat\x18\x01 \x01(\x05R\x04seat\x12&\n" +
 	"\x05cards\x18\x02 \x03(\v2\x10.tienlen.v1.CardR\x05cards\x12$\n" +
 	"\x0enext_turn_seat\x18\x03 \x01(\x05R\fnextTurnSeat\x12\x1b\n" +
-	"\tnew_round\x18\x04 \x01(\bR\bnewRound\"m\n" +
-	"\x0fTurnPassedEvent\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12$\n" +
+	"\tnew_round\x18\x04 \x01(\bR\bnewRound\"h\n" +
+	"\x0fTurnPassedEvent\x12\x12\n" +
+	"\x04seat\x18\x01 \x01(\x05R\x04seat\x12$\n" +
 	"\x0enext_turn_seat\x18\x02 \x01(\x05R\fnextTurnSeat\x12\x1b\n" +
-	"\tnew_round\x18\x03 \x01(\bR\bnewRound\"3\n" +
-	"\x0eGameEndedEvent\x12!\n" +
-	"\ffinish_order\x18\x01 \x03(\tR\vfinishOrder\">\n" +
+	"\tnew_round\x18\x03 \x01(\bR\bnewRound\">\n" +
+	"\x0eGameEndedEvent\x12,\n" +
+	"\x12finish_order_seats\x18\x01 \x03(\x05R\x10finishOrderSeats\">\n" +
 	"\x0eGameErrorEvent\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage*K\n" +

@@ -38,18 +38,33 @@ type GameStartedPayload struct {
 }
 
 type CardPlayedPayload struct {
-	UserID       string
+
+	Seat         int
+
 	Cards        []domain.Card
+
 	NextTurnSeat int
+
 	NewRound     bool
+
 }
+
+
 
 type TurnPassedPayload struct {
-	UserID       string
+
+	Seat         int
+
 	NextTurnSeat int
+
 	NewRound     bool
+
 }
 
+
+
 type GameEndedPayload struct {
-	FinishOrder []string
+
+	FinishOrderSeats []int
+
 }

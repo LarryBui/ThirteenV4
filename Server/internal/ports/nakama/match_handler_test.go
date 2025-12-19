@@ -81,6 +81,7 @@ func TestMatchJoin_BroadcastsPlayerJoinedSnapshot(t *testing.T) {
 	state := &MatchState{
 		Tick:      123,
 		Presences: make(map[string]runtime.Presence),
+		OwnerSeat: -1,
 	}
 	presence := testPresence{userID: "user-1"}
 
@@ -93,8 +94,8 @@ func TestMatchJoin_BroadcastsPlayerJoinedSnapshot(t *testing.T) {
 	if matchState.Seats[0] != "user-1" {
 		t.Fatalf("expected seat 0 to be user-1, got %q", matchState.Seats[0])
 	}
-	if matchState.OwnerID != "user-1" {
-		t.Fatalf("expected owner to be user-1, got %q", matchState.OwnerID)
+	if matchState.OwnerSeat != 0 {
+		t.Fatalf("expected owner seat to be 0, got %d", matchState.OwnerSeat)
 	}
 
 	if len(dispatcher.broadcasts) != 1 {
@@ -114,8 +115,8 @@ func TestMatchJoin_BroadcastsPlayerJoinedSnapshot(t *testing.T) {
 		t.Fatalf("failed to unmarshal match state: %v", err)
 	}
 
-	if payloadState.OwnerId != "user-1" {
-		t.Fatalf("expected payload owner user-1, got %q", payloadState.OwnerId)
+	if payloadState.OwnerSeat != 0 {
+		t.Fatalf("expected payload owner seat 0, got %d", payloadState.OwnerSeat)
 	}
 	if len(payloadState.Seats) != len(matchState.Seats) {
 		t.Fatalf("expected %d seats, got %d", len(matchState.Seats), len(payloadState.Seats))

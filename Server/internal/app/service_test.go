@@ -12,7 +12,7 @@ func TestStartGameDealsHands(t *testing.T) {
 	svc := NewService(rng)
 	
 	// Pass player IDs directly to StartGame
-	game, evs, err := svc.StartGame([]string{"u1", "u2"}, "")
+	game, evs, err := svc.StartGame([]string{"u1", "u2"}, -1)
 	if err != nil {
 		t.Fatalf("start game error: %v", err)
 	}
@@ -39,7 +39,7 @@ func TestPlayCardsAndEnd(t *testing.T) {
 	rng := rand.New(rand.NewSource(99))
 	svc := NewService(rng)
 	
-	game, _, err := svc.StartGame([]string{"u1", "u2"}, "")
+	game, _, err := svc.StartGame([]string{"u1", "u2"}, -1)
 	if err != nil {
 		t.Fatalf("start game error: %v", err)
 	}
@@ -52,7 +52,7 @@ func TestPlayCardsAndEnd(t *testing.T) {
 	// Make sure it's u1's turn (since StartGame defaults to first player)
 	game.CurrentTurn = 0 // u1 is seat 1 (index 0)
 
-	evs, err := svc.PlayCards(game, "u1", []domain.Card{{Suit: 0, Rank: 0}})
+	evs, err := svc.PlayCards(game, 0, []domain.Card{{Suit: 0, Rank: 0}})
 	if err != nil {
 		t.Fatalf("play cards error: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestPlayCardsAndEnd(t *testing.T) {
 func TestPassAndRoundReset(t *testing.T) {
 	svc := NewService(nil)
 	players := []string{"u1", "u2", "u3"}
-	game, _, _ := svc.StartGame(players, "")
+	game, _, _ := svc.StartGame(players, -1)
 
 	// Force hands to ensure they don't finish immediately
 	for _, p := range game.Players {
@@ -88,23 +88,23 @@ func TestPassAndRoundReset(t *testing.T) {
 
 	// u1 plays a single
 	cards := []domain.Card{{Suit: 0, Rank: 5}}
-	_, err := svc.PlayCards(game, "u1", cards)
+	_, err := svc.PlayCards(game, 0, cards)
 	if err != nil {
 		t.Fatalf("u1 play error: %v", err)
 	}
 
-	if game.LastPlayerToPlay != "u1" {
-		t.Fatalf("expected last player to be u1, got %s", game.LastPlayerToPlay)
+	if game.LastPlayerToPlaySeat != 0 {
+		t.Fatalf("expected last player seat to be 0, got %d", game.LastPlayerToPlaySeat)
 	}
 
 	// u2 passes
-	_, err = svc.PassTurn(game, "u2")
+	_, err = svc.PassTurn(game, 1)
 	if err != nil {
 		t.Fatalf("u2 pass error: %v", err)
 	}
 
 	// u3 passes
-	_, err = svc.PassTurn(game, "u3")
+	_, err = svc.PassTurn(game, 2)
 	if err != nil {
 		t.Fatalf("u3 pass error: %v", err)
 	}
@@ -129,19 +129,19 @@ func TestPassAndRoundReset(t *testing.T) {
 func TestPlayErrors(t *testing.T) {
 	svc := NewService(nil)
 	players := []string{"u1", "u2"}
-	game, _, _ := svc.StartGame(players, "")
+	game, _, _ := svc.StartGame(players, -1)
 
 	game.Players["u1"].Hand = []domain.Card{{Suit: 0, Rank: 0}} // 3 Spades
 	game.CurrentTurn = 0 // u1
 
 	// 1. Play out of turn
-	_, err := svc.PlayCards(game, "u2", []domain.Card{{Suit: 0, Rank: 0}})
+	_, err := svc.PlayCards(game, 1, []domain.Card{{Suit: 0, Rank: 0}})
 	if err != ErrNotYourTurn {
 		t.Errorf("expected ErrNotYourTurn, got %v", err)
 	}
 
 	// 2. Play cards not in hand
-	_, err = svc.PlayCards(game, "u1", []domain.Card{{Suit: 3, Rank: 12}}) // 2 Hearts
+	_, err = svc.PlayCards(game, 0, []domain.Card{{Suit: 3, Rank: 12}}) // 2 Hearts
 	if err != ErrCardsNotInHand {
 		t.Errorf("expected ErrCardsNotInHand, got %v", err)
 	}
@@ -151,7 +151,7 @@ func TestPlayErrors(t *testing.T) {
 		Type:  domain.Single,
 		Cards: []domain.Card{{Suit: 3, Rank: 0}}, // 3 Hearts
 	}
-	_, err = svc.PlayCards(game, "u1", []domain.Card{{Suit: 0, Rank: 0}}) // 3 Spades
+	_, err = svc.PlayCards(game, 0, []domain.Card{{Suit: 0, Rank: 0}}) // 3 Spades
 	if err != ErrCannotBeat {
 		t.Errorf("expected ErrCannotBeat, got %v", err)
 	}
@@ -160,14 +160,14 @@ func TestPlayErrors(t *testing.T) {
 func TestRoundResetsWhenLastPlayerFinishes(t *testing.T) {
 	svc := NewService(nil)
 	players := []string{"u1", "u2", "u3"}
-	game, _, _ := svc.StartGame(players, "")
+	game, _, _ := svc.StartGame(players, -1)
 
 	// Force u1 to have only one card
 	game.Players["u1"].Hand = []domain.Card{{Suit: 3, Rank: 12}} // 2 Hearts
 	game.CurrentTurn = 0 // u1
 
 	// u1 plays their last card and finishes
-	_, err := svc.PlayCards(game, "u1", []domain.Card{{Suit: 3, Rank: 12}})
+	_, err := svc.PlayCards(game, 0, []domain.Card{{Suit: 3, Rank: 12}})
 	if err != nil {
 		t.Fatalf("u1 play error: %v", err)
 	}
@@ -177,13 +177,13 @@ func TestRoundResetsWhenLastPlayerFinishes(t *testing.T) {
 	}
 
 	// u2 passes
-	_, err = svc.PassTurn(game, "u2")
+	_, err = svc.PassTurn(game, 1)
 	if err != nil {
 		t.Fatalf("u2 pass error: %v", err)
 	}
 
 	// u3 passes
-	_, err = svc.PassTurn(game, "u3")
+	_, err = svc.PassTurn(game, 2)
 	if err != nil {
 		t.Fatalf("u3 pass error: %v", err)
 	}

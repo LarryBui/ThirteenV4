@@ -38,7 +38,7 @@ var (
 
 // StartGame initializes a new Game domain object with the provided players.
 // It expects a list of userIDs representing the players in seat order (empty strings for empty seats).
-func (s *Service) StartGame(playerIDs []string, lastWinnerID string) (*domain.Game, []Event, error) {
+func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int) (*domain.Game, []Event, error) {
 	activePlayers := make(map[string]*domain.Player)
 	var seats []string // Active players' UIDs in seat order
 
@@ -62,8 +62,9 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerID string) (*domain.Ga
 	deck = domain.ShuffleDeck(deck)
 
 	game := &domain.Game{
-		Phase:   domain.PhasePlaying,
-		Players: activePlayers,
+		Phase:                domain.PhasePlaying,
+		Players:              activePlayers,
+		LastPlayerToPlaySeat: -1, // Initialize to -1 as no one has played yet
 	}
 
 	// Deal cards
@@ -80,12 +81,17 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerID string) (*domain.Ga
 	// Determine FirstTurn
 	firstTurnSeat := 0
 
-	// If last winner is provided and is in the current game, they go first
-	if lastWinnerID != "" {
-		if pl, ok := activePlayers[lastWinnerID]; ok {
-			firstTurnSeat = pl.Seat - 1 // Convert 1-based domain seat to 0-based
+	// If last winner seat is valid (0-3), check if that seat is occupied
+	if lastWinnerSeat >= 0 && lastWinnerSeat < 4 {
+		winnerID := playerIDs[lastWinnerSeat]
+		if winnerID != "" {
+			if _, ok := activePlayers[winnerID]; ok {
+				firstTurnSeat = lastWinnerSeat
+			}
 		}
-	} else {
+	}
+	
+	if lastWinnerSeat < 0 || playerIDs[firstTurnSeat] == "" {
 		// Fallback to lowest card if no last winner or last winner left
 		var lowestCardVal int32 = 9999
 		lowestSeat := 0
@@ -125,100 +131,214 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerID string) (*domain.Ga
 }
 
 // PlayCards processes a play action and emits resulting events.
-func (s *Service) PlayCards(game *domain.Game, actorUserID string, cards []domain.Card) ([]Event, error) {
+
+func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Card) ([]Event, error) {
+
 	if game.Phase != domain.PhasePlaying {
+
 		return nil, ErrNotPlaying
+
 	}
-	if pl, ok := game.Players[actorUserID]; !ok {
-		return nil, ErrUnknownPlayer
-	} else if game.CurrentTurn != pl.Seat-1 {
-		return nil, ErrNotYourTurn
-	} else if pl.Finished {
-		return nil, ErrPlayerFinished
-	} else {
-		// Scoping 'pl' correctly for verification
-		// 1. Verify player has the cards
-		if !playerHasCards(pl.Hand, cards) {
-			return nil, ErrCardsNotInHand
+
+
+
+	// Find player by seat
+
+	var pl *domain.Player
+
+	for _, p := range game.Players {
+
+		if p.Seat-1 == actorSeat {
+
+			pl = p
+
+			break
+
 		}
-		// Logic continues below...
+
 	}
-	
-	// Re-fetch pl for use in logic (simplification for tool replace context match)
-	pl := game.Players[actorUserID]
+
+
+
+	if pl == nil {
+
+		return nil, ErrUnknownPlayer
+
+	}
+
+	if game.CurrentTurn != actorSeat {
+
+		return nil, ErrNotYourTurn
+
+	}
+
+	if pl.Finished {
+
+		return nil, ErrPlayerFinished
+
+	}
+
+	if len(cards) == 0 {
+
+		return nil, ErrInvalidPlay // Must play at least one card
+
+	}
+
+
+
+	// 1. Verify player has the cards
+
+	if !playerHasCards(pl.Hand, cards) {
+
+		return nil, ErrCardsNotInHand
+
+	}
+
+
 
 	// 2. Identify the combination of played cards
+
 	playedCombo := domain.IdentifyCombination(cards)
+
 	if playedCombo.Type == domain.Invalid {
+
 		return nil, ErrInvalidPlay
+
 	}
+
+
 
 	// 3. Validate against previous play
+
 	newRound := game.LastPlayedCombination.Type == domain.Invalid
+
 	if !newRound { // If there was a previous play
+
 		if !domain.CanBeat(game.LastPlayedCombination.Cards, playedCombo.Cards) {
+
 			return nil, ErrCannotBeat
+
 		}
+
 	}
+
+
 
 	// If valid, update game state
+
 	pl.Hand = domain.RemoveCards(pl.Hand, cards)
+
 	game.LastPlayedCombination = playedCombo
-	game.LastPlayerToPlay = actorUserID
+
+	game.LastPlayerToPlaySeat = actorSeat
+
+
 
 	events := []Event{
+
 		{
+
 			Kind: EventCardPlayed,
+
 			Payload: CardPlayedPayload{
-				UserID:   actorUserID,
+
+				Seat:     actorSeat,
+
 				Cards:    cards,
+
 				NewRound: newRound,
+
 			},
+
 		},
+
 	}
+
+
 
 	if len(pl.Hand) == 0 && !pl.Finished {
+
 		pl.Finished = true
-		game.FinishOrder = append(game.FinishOrder, actorUserID)
+
+		game.FinishOrderSeats = append(game.FinishOrderSeats, actorSeat)
+
 	}
+
+
 
 	// Check if game ended
-	if domain.CountPlayersWithCards(game) <= 1 {
-		game.Phase = domain.PhaseEnded
-		events = append(events, Event{
-			Kind:    EventGameEnded,
-			Payload: GameEndedPayload{FinishOrder: game.FinishOrder},
-		})
-	} else {
-		// Advance turn
-		game.CurrentTurn = s.findNextPlayer(game, pl.Seat-1, game.Players)
 
-		// Note: If findNextPlayer returns actorUserID, it means everyone else is finished/passed.
-		// But actorUserID just played, so they can't be passed.
-		// However, if actorUserID just played, they initiated a new round or continued.
+	if domain.CountPlayersWithCards(game) <= 1 {
+
+		game.Phase = domain.PhaseEnded
+
+		events = append(events, Event{
+
+			Kind:    EventGameEnded,
+
+			Payload: GameEndedPayload{FinishOrderSeats: game.FinishOrderSeats},
+
+		})
+
+	} else {
+
+		// Advance turn
+
+		game.CurrentTurn = s.findNextPlayer(game, actorSeat, game.Players)
+
+
+
+		// Note: If findNextPlayer returns actorSeat, it means everyone else is finished/passed.
+
+		// But actorSeat just played, so they can't be passed.
+
+		// However, if actorSeat just played, they initiated a new round or continued.
+
 		// The logic for clearing the board happens in PassTurn.
 
+
+
 		events[0].Payload = CardPlayedPayload{ // Update payload to include next turn
-			UserID:       actorUserID,
+
+			Seat:         actorSeat,
+
 			Cards:        cards,
+
 			NextTurnSeat: game.CurrentTurn,
+
 			NewRound:     newRound,
+
 		}
+
 	}
 
+
+
 	return events, nil
+
 }
 
+
+
 // PassTurn marks a player's pass action.
-func (s *Service) PassTurn(game *domain.Game, actorUserID string) ([]Event, error) {
+func (s *Service) PassTurn(game *domain.Game, actorSeat int) ([]Event, error) {
 	if game.Phase != domain.PhasePlaying {
 		return nil, ErrNotPlaying
 	}
-	pl, ok := game.Players[actorUserID]
-	if !ok {
+
+	// Find player by seat
+	var pl *domain.Player
+	for _, p := range game.Players {
+		if p.Seat-1 == actorSeat {
+			pl = p
+			break
+		}
+	}
+
+	if pl == nil {
 		return nil, ErrUnknownPlayer
 	}
-	if game.CurrentTurn != pl.Seat-1 {
+	if game.CurrentTurn != actorSeat {
 		return nil, ErrNotYourTurn
 	}
 	if pl.Finished {
@@ -230,13 +350,11 @@ func (s *Service) PassTurn(game *domain.Game, actorUserID string) ([]Event, erro
 	// Check if the round should reset.
 	// The round resets if only one active (non-finished) player remains who hasn't passed.
 	// This player is the "winner" of the round and starts the new one.
-	activeCount := 0
 	activeNotPassedCount := 0
 	var lastActivePlayerSeat int
 
 	for _, p := range game.Players {
 		if !p.Finished {
-			activeCount++
 			if !p.HasPassed {
 				activeNotPassedCount++
 				lastActivePlayerSeat = p.Seat - 1
@@ -244,32 +362,21 @@ func (s *Service) PassTurn(game *domain.Game, actorUserID string) ([]Event, erro
 		}
 	}
 
-	// If everyone passed (activeNotPassedCount == 0), it means the last person to play 
-	// (who is now finished) won the round.
-	// The turn should go to the next active player after them, and the board clears.
-	// OR if only one person hasn't passed, they won.
-
 	newRound := false
 	nextTurnSeat := 0
 
 	if activeNotPassedCount == 0 {
 		// This happens if the person who played last just finished, and everyone else passed.
 		// The round ends. The turn goes to the next active player after the person who finished.
-		// We need to find who is next after LastPlayerToPlay.
 		newRound = true
-		// Resolve LastPlayerToPlay seat
-		lastPlayerSeat := 0
-		if lp, ok := game.Players[game.LastPlayerToPlay]; ok {
-			lastPlayerSeat = lp.Seat - 1
-		}
-		nextTurnSeat = s.findNextActivePlayerInOrder(game, lastPlayerSeat)
+		nextTurnSeat = s.findNextActivePlayerInOrder(game, game.LastPlayerToPlaySeat)
 	} else if activeNotPassedCount == 1 {
 		// Standard case: Everyone else passed, leaving one winner.
 		newRound = true
 		nextTurnSeat = lastActivePlayerSeat
 	} else {
 		// Round continues, find next player
-		nextTurnSeat = s.findNextPlayer(game, pl.Seat-1, game.Players)
+		nextTurnSeat = s.findNextPlayer(game, actorSeat, game.Players)
 	}
 
 	game.CurrentTurn = nextTurnSeat
@@ -289,7 +396,7 @@ func (s *Service) PassTurn(game *domain.Game, actorUserID string) ([]Event, erro
 		{
 			Kind: EventTurnPassed,
 			Payload: TurnPassedPayload{
-				UserID:       actorUserID,
+				Seat:         actorSeat,
 				NextTurnSeat: game.CurrentTurn,
 				NewRound:     newRound,
 			},
