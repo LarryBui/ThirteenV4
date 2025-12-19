@@ -20,7 +20,72 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private float _cardSpacing = 60f;
         [SerializeField] private float _revealMoveDuration = 0.15f;
 
+        [Header("Selection")]
+        [Tooltip("When enabled, clicking a card toggles its selection state.")]
+        [SerializeField] private bool _enableSelection = true;
+        [Tooltip("World-space Y offset applied to selected cards.")]
+        [SerializeField] private float _selectedYOffset = 30f;
+        [Tooltip("Duration (seconds) for select/deselect movement.")]
+        [SerializeField] private float _selectionMoveDuration = 0.08f;
+
+        /// <summary>
+        /// Raised whenever the selected card set changes.
+        /// </summary>
+        public event Action<IReadOnlyList<Card>> SelectionChanged;
+
+        /// <summary>
+        /// Current set of selected cards, ordered as they appear in the hand.
+        /// Treat this list as read-only; copy it if you need a snapshot.
+        /// </summary>
+        public IReadOnlyList<Card> SelectedCards => _selectedCards;
+
+        /// <summary>
+        /// Clears the current selection and animates any selected cards back to their base positions.
+        /// </summary>
+        public void ClearSelection()
+        {
+            var selectionChanged = false;
+
+            foreach (var entry in _handCards)
+            {
+                if (entry == null) continue;
+                if (!entry.IsSelected) continue;
+
+                entry.IsSelected = false;
+                selectionChanged = true;
+
+                if (entry.Rect != null)
+                {
+                    AnimateTo(entry, entry.BaseWorldPosition, _selectionMoveDuration).Forget();
+                }
+            }
+
+            if (!selectionChanged) return;
+
+            RefreshSelectedCards();
+            SelectionChanged?.Invoke(_selectedCards);
+        }
+
+        private sealed class HandCardEntry
+        {
+            public Card Card { get; }
+            public RectTransform Rect { get; }
+            public Vector3 BaseWorldPosition { get; }
+            public bool IsSelected { get; set; }
+            public int AnimationToken { get; set; }
+
+            public HandCardEntry(Card card, RectTransform rect, Vector3 baseWorldPosition)
+            {
+                Card = card;
+                Rect = rect;
+                BaseWorldPosition = baseWorldPosition;
+            }
+        }
+
         private readonly System.Collections.Generic.List<RectTransform> _spawnedCardRects = new();
+        private readonly System.Collections.Generic.List<HandCardEntry> _handCards = new();
+        private readonly System.Collections.Generic.List<Card> _selectedCards = new();
+
         private IReadOnlyList<Card> _cardsToReveal = Array.Empty<Card>();
         private int _nextRevealIndex;
 
@@ -82,12 +147,26 @@ namespace TienLen.Presentation.GameRoomScreen
             cardRect.position = fromWorldPosition;
             cardRect.SetAsLastSibling();
 
-            ApplyCardLabel(cardObject, card);
+            var targetWorldPosition = GetTargetWorldPosition(cardIndex, _cardsToReveal.Count);
+            var entry = new HandCardEntry(card, cardRect, targetWorldPosition);
+
+            ApplyCardLabel(cardObject, card, enableRaycasts: _enableSelection);
+
+            if (_enableSelection)
+            {
+                var selectionInput = cardObject.GetComponent<HandCardSelectionInput>();
+                if (selectionInput == null)
+                {
+                    selectionInput = cardObject.AddComponent<HandCardSelectionInput>();
+                }
+
+                selectionInput.Bind(() => ToggleSelection(entry));
+            }
 
             _spawnedCardRects.Add(cardRect);
+            _handCards.Add(entry);
 
-            var targetWorldPosition = GetTargetWorldPosition(cardIndex, _cardsToReveal.Count);
-            AnimateTo(cardRect, targetWorldPosition).Forget();
+            AnimateTo(entry, targetWorldPosition, _revealMoveDuration).Forget();
         }
 
         /// <summary>
@@ -102,8 +181,12 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             _spawnedCardRects.Clear();
+            _handCards.Clear();
             _cardsToReveal = Array.Empty<Card>();
             _nextRevealIndex = 0;
+
+            _selectedCards.Clear();
+            SelectionChanged?.Invoke(_selectedCards);
         }
 
         private Vector3 GetTargetWorldPosition(int cardIndex, int totalCards)
@@ -114,32 +197,75 @@ namespace TienLen.Presentation.GameRoomScreen
             return _handAnchor.position + (Vector3.right * (offsetFromCenter * _cardSpacing));
         }
 
-        private async UniTask AnimateTo(RectTransform rect, Vector3 targetWorldPosition)
+        private void ToggleSelection(HandCardEntry entry)
         {
+            if (entry == null) return;
+            if (!_enableSelection) return;
+            if (entry.Rect == null) return;
+
+            entry.IsSelected = !entry.IsSelected;
+
+            var targetWorldPosition = entry.BaseWorldPosition + (entry.IsSelected ? GetSelectionOffset() : Vector3.zero);
+            AnimateTo(entry, targetWorldPosition, _selectionMoveDuration).Forget();
+
+            RefreshSelectedCards();
+            SelectionChanged?.Invoke(_selectedCards);
+        }
+
+        private Vector3 GetSelectionOffset()
+        {
+            var axisUp = _handAnchor != null ? _handAnchor.up : Vector3.up;
+            return axisUp * _selectedYOffset;
+        }
+
+        private void RefreshSelectedCards()
+        {
+            _selectedCards.Clear();
+
+            foreach (var entry in _handCards)
+            {
+                if (entry == null) continue;
+                if (!entry.IsSelected) continue;
+                _selectedCards.Add(entry.Card);
+            }
+        }
+
+        private async UniTask AnimateTo(HandCardEntry entry, Vector3 targetWorldPosition, float durationSeconds)
+        {
+            if (entry == null) return;
+
+            var rect = entry.Rect;
             if (rect == null) return;
+            if (durationSeconds <= 0f)
+            {
+                rect.position = targetWorldPosition;
+                return;
+            }
+
+            var token = ++entry.AnimationToken;
 
             var startPosition = rect.position;
             var startTime = Time.time;
 
-            while (rect != null && Time.time < startTime + _revealMoveDuration)
+            while (rect != null && entry.AnimationToken == token && Time.time < startTime + durationSeconds)
             {
-                var t = (Time.time - startTime) / _revealMoveDuration;
+                var t = (Time.time - startTime) / durationSeconds;
                 rect.position = Vector3.Lerp(startPosition, targetWorldPosition, 1 - (1 - t) * (1 - t));
                 await UniTask.Yield();
             }
 
-            if (rect != null)
+            if (rect != null && entry.AnimationToken == token)
             {
                 rect.position = targetWorldPosition;
             }
         }
 
-        private static void ApplyCardLabel(GameObject cardObject, Card card)
+        private static void ApplyCardLabel(GameObject cardObject, Card card, bool enableRaycasts)
         {
             var image = cardObject.GetComponent<Image>();
             if (image != null)
             {
-                image.raycastTarget = false;
+                image.raycastTarget = enableRaycasts;
             }
 
             if (cardObject.TryGetComponent<FrontCardView>(out var frontCardView))
@@ -168,6 +294,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 label.raycastTarget = false;
             }
 
+            label.raycastTarget = false;
             label.text = $"{ToRankString(card.Rank)}{ToSuitSymbol(card.Suit)}";
             label.color = ToSuitColor(card.Suit);
         }
