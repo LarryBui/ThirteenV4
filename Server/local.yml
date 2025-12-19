@@ -8,6 +8,10 @@ database:
 
 runtime:
   path: "/nakama/data/modules"
+  env:
+    - "tienlen_bots_enabled=true"
+    - "tienlen_bot_min_delay_sec=1"
+    - "tienlen_bot_max_delay_sec=3"
 
 console:
   port: 7351

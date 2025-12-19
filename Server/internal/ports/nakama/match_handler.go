@@ -4,9 +4,13 @@ import (
 	"context"
 	"database/sql"
 	"encoding/json"
+	"math/rand"
+	"strconv"
+	"strings"
 	"time"
 
 	"tienlen/internal/app"
+	"tienlen/internal/bot"
 	"tienlen/internal/domain"
 	pb "tienlen/proto"
 
@@ -20,13 +24,17 @@ const (
 
 // MatchState holds the authoritative runtime state for the Nakama match handler.
 type MatchState struct {
-	Seats          [4]string                   `json:"seats"`           // Array of user IDs, empty string means seat is empty
-	OwnerSeat      int                         `json:"owner_seat"`      // Seat index of the match owner
-	LastWinnerSeat int                         `json:"last_winner_seat"` // Seat index of the winner of the last game
-	Tick           int64                       `json:"tick"`            // Current tick of the match for turn-based logic
-	Presences      map[string]runtime.Presence `json:"-"`               // Map UserId -> Presence for targeted messaging
-	App            *app.Service                `json:"-"`               // TienLen app service with game logic
-	Game           *domain.Game                `json:"-"`               // Current active game state (nil if in lobby)
+	Seats             [4]string                   `json:"seats"`           // Array of user IDs, empty string means seat is empty
+	OwnerSeat         int                         `json:"owner_seat"`      // Seat index of the match owner
+	LastWinnerSeat    int                         `json:"last_winner_seat"` // Seat index of the winner of the last game
+	Tick              int64                       `json:"tick"`            // Current tick of the match for turn-based logic
+	Presences         map[string]runtime.Presence `json:"-"`               // Map UserId -> Presence for targeted messaging
+	App               *app.Service                `json:"-"`               // TienLen app service with game logic
+	Game              *domain.Game                `json:"-"`               // Current active game state (nil if in lobby)
+	BotsEnabled       bool                        `json:"bots_enabled"`    // Whether AI players are allowed
+	BotMinDelay       int                         `json:"bot_min_delay"`   // Min seconds a bot waits
+	BotMaxDelay       int                         `json:"bot_max_delay"`   // Max seconds a bot waits
+	BotWaitUntil      int64                       `json:"bot_wait_until"`  // Tick when the bot should act
 }
 
 func (ms *MatchState) GetOpenSeatsCount() int {
@@ -43,6 +51,16 @@ func (ms *MatchState) GetOccupiedSeatCount() int {
 	count := 0
 	for _, seat := range ms.Seats {
 		if seat != "" {
+			count++
+		}
+	}
+	return count
+}
+
+func (ms *MatchState) GetHumanPlayerCount() int {
+	count := 0
+	for _, seat := range ms.Seats {
+		if seat != "" && !strings.HasPrefix(seat, "bot:") {
 			count++
 		}
 	}
@@ -68,6 +86,30 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		LastWinnerSeat: -1,
 	}
 
+	// Read environment variables for bot configuration
+	env := ctx.Value(runtime.RUNTIME_CTX_ENV).(map[string]string)
+	if val, ok := env["tienlen_bots_enabled"]; ok {
+		state.BotsEnabled = val == "true"
+	}
+	if val, ok := env["tienlen_bot_min_delay_sec"]; ok {
+		if i, err := strconv.Atoi(val); err == nil {
+			state.BotMinDelay = i
+		}
+	}
+	if val, ok := env["tienlen_bot_max_delay_sec"]; ok {
+		if i, err := strconv.Atoi(val); err == nil {
+			state.BotMaxDelay = i
+		}
+	}
+
+	// Defaults if not set
+	if state.BotMinDelay == 0 {
+		state.BotMinDelay = 1
+	}
+	if state.BotMaxDelay == 0 {
+		state.BotMaxDelay = 3
+	}
+
 	// Initial match label: 4 open seats
 	label := map[string]int{
 		MatchLabelKey_OpenSeats: state.GetOpenSeatsCount(),
@@ -88,8 +130,20 @@ func (mh *matchHandler) MatchJoinAttempt(ctx context.Context, logger runtime.Log
 		return state, false, "state not found"
 	}
 
+	// Allow join if there is an empty seat OR a bot to replace (if game hasn't started)
 	if matchState.GetOpenSeatsCount() <= 0 {
-		return state, false, "Match full"
+		hasBot := false
+		if matchState.Game == nil {
+			for _, seat := range matchState.Seats {
+				if strings.HasPrefix(seat, "bot:") {
+					hasBot = true
+					break
+				}
+			}
+		}
+		if !hasBot {
+			return state, false, "Match full"
+		}
 	}
 
 	return state, true, ""
@@ -106,7 +160,7 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 		// Store presence
 		matchState.Presences[p.GetUserId()] = p
 
-		// Assign seat
+		// Assign seat: Try empty seats first, then bots (if lobby)
 		assigned := false
 		for i, seatUserId := range matchState.Seats {
 			if seatUserId == "" {
@@ -116,8 +170,19 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 			}
 		}
 
+		if !assigned && matchState.Game == nil {
+			for i, seatUserId := range matchState.Seats {
+				if strings.HasPrefix(seatUserId, "bot:") {
+					logger.Info("MatchJoin: Replacing bot %s with human %s in seat %d", seatUserId, p.GetUserId(), i)
+					matchState.Seats[i] = p.GetUserId()
+					assigned = true
+					break
+				}
+			}
+		}
+
 		if !assigned {
-			logger.Warn("MatchJoin: User %s joined but no seat was empty.", p.GetUserId())
+			logger.Warn("MatchJoin: User %s joined but no seat (empty or bot) was available.", p.GetUserId())
 			continue
 		}
 	}
@@ -135,45 +200,8 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 	// Update match label
 	mh.updateLabel(matchState, dispatcher, logger)
 
-	// Build PlayerState list for snapshot
-	var playerStates []*pb.PlayerState
-	for i, userId := range matchState.Seats {
-		if userId == "" {
-			continue
-		}
-
-		p, exists := matchState.Presences[userId]
-		displayName := ""
-		if exists {
-			displayName = p.GetUsername()
-		}
-
-		playerStates = append(playerStates, &pb.PlayerState{
-			UserId:         userId,
-			Seat:           int32(i), // 0-based seat
-			IsOwner:        i == matchState.OwnerSeat,
-			CardsRemaining: 0, // Lobby state
-			DisplayName:    displayName,
-			AvatarIndex:    0, // Default for now
-		})
-	}
-
-	snapshot := &pb.MatchStateSnapshot{
-		Seats:     matchState.Seats[:],
-		OwnerSeat: int32(matchState.OwnerSeat),
-		Tick:      matchState.Tick,
-		Players:   playerStates,
-	}
-	snapshotPayload, err := proto.Marshal(snapshot)
-	if err != nil {
-		logger.Error("MatchJoin: Failed to marshal match state snapshot: %v", err)
-		return matchState
-	}
-
 	// Broadcast the current match state to all presences after join.
-	if err := dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_PLAYER_JOINED), snapshotPayload, nil, nil, true); err != nil {
-		logger.Error("MatchJoin: Failed to broadcast player joined snapshot: %v", err)
-	}
+	mh.broadcastMatchState(matchState, dispatcher, logger)
 
 	return matchState
 }
@@ -221,6 +249,9 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 		return state
 	}
 
+	matchState.Tick = tick
+
+	// Handle incoming messages
 	for _, msg := range messages {
 		switch msg.GetOpCode() {
 		case int64(pb.OpCode_OP_CODE_START_GAME):
@@ -234,7 +265,118 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 		}
 	}
 
+	// AI Logic
+	if matchState.BotsEnabled {
+		mh.processBots(matchState, dispatcher, logger)
+	}
+
 	return matchState
+}
+
+func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
+	// 1. Auto-fill lobby with bots if there's only one human player
+	if state.Game == nil && state.GetHumanPlayerCount() == 1 {
+		added := false
+		for i, seat := range state.Seats {
+			if seat == "" {
+				botID := "bot:" + strconv.Itoa(i)
+				state.Seats[i] = botID
+				logger.Info("processBots: Added bot %s to seat %d", botID, i)
+				added = true
+			}
+		}
+		if added {
+			mh.updateLabel(state, dispatcher, logger)
+			mh.broadcastMatchState(state, dispatcher, logger)
+		}
+	}
+
+	// 2. Handle bot turns in-game
+	if state.Game != nil && state.Game.Phase == domain.PhasePlaying {
+		currentTurn := state.Game.CurrentTurn
+		currentUserID := state.Seats[currentTurn]
+
+		if strings.HasPrefix(currentUserID, "bot:") {
+			if state.BotWaitUntil == 0 {
+				// Initialize random delay
+				delay := rand.Intn(state.BotMaxDelay-state.BotMinDelay+1) + state.BotMinDelay
+				state.BotWaitUntil = state.Tick + int64(delay)
+				logger.Debug("processBots: Bot %s (seat %d) will act at tick %d (current %d)", currentUserID, currentTurn, state.BotWaitUntil, state.Tick)
+			}
+
+			if state.Tick >= state.BotWaitUntil {
+				state.BotWaitUntil = 0 // Reset for next turn
+				move, err := bot.CalculateMove(state.Game, currentTurn)
+				if err != nil {
+					logger.Error("processBots: Bot %s failed to calculate move: %v", currentUserID, err)
+					return
+				}
+
+				if move.Pass {
+					events, err := state.App.PassTurn(state.Game, currentTurn)
+					if err == nil {
+						for _, ev := range events {
+							mh.broadcastEvent(state, dispatcher, logger, ev)
+						}
+					}
+				} else {
+					events, err := state.App.PlayCards(state.Game, currentTurn, move.Cards)
+					if err == nil {
+						for _, ev := range events {
+							mh.broadcastEvent(state, dispatcher, logger, ev)
+						}
+					}
+				}
+			}
+		} else {
+			// Not a bot turn, reset wait if it was set
+			state.BotWaitUntil = 0
+		}
+	}
+}
+
+func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
+	var playerStates []*pb.PlayerState
+	for i, userId := range state.Seats {
+		if userId == "" {
+			continue
+		}
+
+		displayName := userId
+		if p, exists := state.Presences[userId]; exists {
+			displayName = p.GetUsername()
+		} else if strings.HasPrefix(userId, "bot:") {
+			displayName = "AI Player " + userId[4:]
+		}
+
+		cardsRemaining := 0
+		if state.Game != nil {
+			for _, p := range state.Game.Players {
+				if p.Seat-1 == i {
+					cardsRemaining = len(p.Hand)
+					break
+				}
+			}
+		}
+
+		playerStates = append(playerStates, &pb.PlayerState{
+			UserId:         userId,
+			Seat:           int32(i),
+			IsOwner:        i == state.OwnerSeat,
+			CardsRemaining: int32(cardsRemaining),
+			DisplayName:    displayName,
+			AvatarIndex:    0,
+		})
+	}
+
+	snapshot := &pb.MatchStateSnapshot{
+		Seats:     state.Seats[:],
+		OwnerSeat: int32(state.OwnerSeat),
+		Tick:      state.Tick,
+		Players:   playerStates,
+	}
+	bytes, _ := proto.Marshal(snapshot)
+	dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_PLAYER_JOINED), bytes, nil, nil, true)
 }
 
 func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
