@@ -90,10 +90,6 @@ namespace TienLen.Infrastructure.Match
                 // Join the match on Nakama.
                 var match = await Socket.JoinMatchAsync(matchId);
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                Debug.Log("MatchClient: JoinMatchAsync response: " + TrySerializeForDebug(match));
-#endif
-
                 // Use returned id when available; otherwise fall back to the requested match id.
                 _matchId = string.IsNullOrEmpty(match?.Id) ? matchId : match.Id;
 
@@ -130,9 +126,6 @@ namespace TienLen.Infrastructure.Match
 
         public async UniTask SendStartGameAsync()
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Debug.Log($"MatchClient: SendStartGameAsync (matchId={_matchId ?? "<null>"}, socketConnected={(Socket != null && Socket.IsConnected)})");
-#endif
             var request = new Proto.StartGameRequest();
             await SendAsync((long)Proto.OpCode.StartGame, request.ToByteArray());
         }
@@ -239,9 +232,6 @@ namespace TienLen.Infrastructure.Match
                             foreach (var c in payload.Hand) hand.Add(ToDomain(c));
                         }
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                        Debug.Log($"MatchClient: Received GameStartedEvent (matchId={state.MatchId}, phase={payload.Phase}, firstTurnSeat={payload.FirstTurnSeat}, handCount={hand.Count})");
-#endif
                         OnGameStarted?.Invoke(hand, payload.FirstTurnSeat);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameStartedEvent: {e}"); }

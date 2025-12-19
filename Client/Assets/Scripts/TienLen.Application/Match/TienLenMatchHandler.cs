@@ -5,7 +5,6 @@ using TienLen.Application.Session;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
-using Newtonsoft.Json;
 
 namespace TienLen.Application
 {
@@ -124,11 +123,6 @@ namespace TienLen.Application
         public async UniTask StartGameAsync()
         {
             if (CurrentMatch == null) throw new InvalidOperationException("No active match.");
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            var userId = _authService?.CurrentUserId;
-            var userIdShort = string.IsNullOrEmpty(userId) ? "<unknown>" : (userId.Length <= 8 ? userId : userId.Substring(0, 8));
-            Debug.Log($"MatchHandler: Sending StartGame request (matchId={CurrentMatch.Id}, userId={userIdShort})");
-#endif
             await _networkClient.SendStartGameAsync();
             // Domain update happens on OnGameStarted event
         }
@@ -211,9 +205,6 @@ namespace TienLen.Application
         private void HandleGameStarted(List<Card> hand, int firstTurnSeat)
         {
             if (CurrentMatch == null) return;
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Debug.Log($"MatchHandler: OnGameStarted received (matchId={CurrentMatch.Id}, handCount={(hand?.Count ?? 0)}, firstTurnSeat={firstTurnSeat})");
-#endif
             CurrentMatch.StartGame(firstTurnSeat);
             
             // Deal cards to self
@@ -230,9 +221,6 @@ namespace TienLen.Application
 
         private void HandlePlayerJoinedOP(MatchStateSnapshotDto snapshot)
         {
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Debug.Log("Handler op50: MatchStateSnapshot received: " + JsonConvert.SerializeObject(snapshot));
-#endif
             if (CurrentMatch == null) return;
 
             Array.Clear(CurrentMatch.Seats, 0, CurrentMatch.Seats.Length);
