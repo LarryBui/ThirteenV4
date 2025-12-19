@@ -32,22 +32,22 @@ type PlayerLeftPayload struct {
 }
 
 type GameStartedPayload struct {
-	Phase           domain.Phase
-	FirstTurnUserID string
-	Hand            []domain.Card
+	Phase         domain.Phase
+	FirstTurnSeat int
+	Hand          []domain.Card
 }
 
 type CardPlayedPayload struct {
-	UserID         string
-	Cards          []domain.Card
-	NextTurnUserID string
-	NewRound       bool
+	UserID       string
+	Cards        []domain.Card
+	NextTurnSeat int
+	NewRound     bool
 }
 
 type TurnPassedPayload struct {
-	UserID         string
-	NextTurnUserID string
-	NewRound       bool
+	UserID       string
+	NextTurnSeat int
+	NewRound     bool
 }
 
 type GameEndedPayload struct {

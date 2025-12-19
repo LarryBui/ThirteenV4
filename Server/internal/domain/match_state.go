@@ -33,9 +33,9 @@ type Game struct {
 	Phase                 Phase
 	Players               map[string]*Player
 	FinishOrder           []string
-	CurrentTurn           string
-	LastPlayedCombination CardCombination // The last valid combination played on the table
-	LastPlayerToPlay      string          // The UserID of the player who played the last combination
+	CurrentTurn           int // Seat index (0-based)
+	LastPlayedCombination CardCombination
+	LastPlayerToPlay      string // UserID remains useful for tracking who played last
 }
 
 // CountPlayersWithCards returns the number of active players with cards remaining.

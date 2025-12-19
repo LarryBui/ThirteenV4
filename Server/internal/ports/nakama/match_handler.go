@@ -334,28 +334,28 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 	case app.EventGameStarted:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_STARTED)
 		p := ev.Payload.(app.GameStartedPayload)
-		logger.Debug("Event: game_started (firstTurnUserId=%s, handCount=%d, recipients=%d)", p.FirstTurnUserID, len(p.Hand), len(ev.Recipients))
+		logger.Debug("Event: game_started (firstTurnSeat=%d, handCount=%d, recipients=%d)", p.FirstTurnSeat, len(p.Hand), len(ev.Recipients))
 		payload = &pb.GameStartedEvent{
-			Phase:           pb.GamePhase_PHASE_PLAYING,
-			FirstTurnUserId: p.FirstTurnUserID,
-			Hand:            toProtoCards(p.Hand),
+			Phase:         pb.GamePhase_PHASE_PLAYING,
+			FirstTurnSeat: int32(p.FirstTurnSeat),
+			Hand:          toProtoCards(p.Hand),
 		}
 	case app.EventCardPlayed:
 		opCode = int64(pb.OpCode_OP_CODE_CARD_PLAYED)
 		p := ev.Payload.(app.CardPlayedPayload)
 		payload = &pb.CardPlayedEvent{
-			UserId:         p.UserID,
-			Cards:          toProtoCards(p.Cards),
-			NextTurnUserId: p.NextTurnUserID,
-			NewRound:       p.NewRound,
+			UserId:       p.UserID,
+			Cards:        toProtoCards(p.Cards),
+			NextTurnSeat: int32(p.NextTurnSeat),
+			NewRound:     p.NewRound,
 		}
 	case app.EventTurnPassed:
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
 		p := ev.Payload.(app.TurnPassedPayload)
 		payload = &pb.TurnPassedEvent{
-			UserId:         p.UserID,
-			NextTurnUserId: p.NextTurnUserID,
-			NewRound:       p.NewRound,
+			UserId:       p.UserID,
+			NextTurnSeat: int32(p.NextTurnSeat),
+			NewRound:     p.NewRound,
 		}
 	case app.EventGameEnded:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_ENDED)

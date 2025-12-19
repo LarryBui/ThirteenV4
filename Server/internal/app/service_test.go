@@ -50,7 +50,7 @@ func TestPlayCardsAndEnd(t *testing.T) {
 	game.Players["u2"].Hand = []domain.Card{{Suit: 3, Rank: 1}}
 
 	// Make sure it's u1's turn (since StartGame defaults to first player)
-	game.CurrentTurn = "u1"
+	game.CurrentTurn = 0 // u1 is seat 1 (index 0)
 
 	evs, err := svc.PlayCards(game, "u1", []domain.Card{{Suit: 0, Rank: 0}})
 	if err != nil {
@@ -84,7 +84,7 @@ func TestPassAndRoundReset(t *testing.T) {
 		p.Hand = []domain.Card{{Suit: 0, Rank: 5}, {Suit: 1, Rank: 5}}
 	}
 
-	game.CurrentTurn = "u1"
+	game.CurrentTurn = 0 // u1 is seat 1 -> index 0
 
 	// u1 plays a single
 	cards := []domain.Card{{Suit: 0, Rank: 5}}
@@ -109,9 +109,9 @@ func TestPassAndRoundReset(t *testing.T) {
 		t.Fatalf("u3 pass error: %v", err)
 	}
 
-	// Now it should be u1's turn again, and the round should reset
-	if game.CurrentTurn != "u1" {
-		t.Fatalf("expected turn to return to u1, got %s", game.CurrentTurn)
+	// Now it should be u1's turn again (seat 0), and the round should reset
+	if game.CurrentTurn != 0 {
+		t.Fatalf("expected turn to return to u1 (seat 0), got %d", game.CurrentTurn)
 	}
 
 	if game.LastPlayedCombination.Type != domain.Invalid {
@@ -132,7 +132,7 @@ func TestPlayErrors(t *testing.T) {
 	game, _, _ := svc.StartGame(players, "")
 
 	game.Players["u1"].Hand = []domain.Card{{Suit: 0, Rank: 0}} // 3 Spades
-	game.CurrentTurn = "u1"
+	game.CurrentTurn = 0 // u1
 
 	// 1. Play out of turn
 	_, err := svc.PlayCards(game, "u2", []domain.Card{{Suit: 0, Rank: 0}})
@@ -164,7 +164,7 @@ func TestRoundResetsWhenLastPlayerFinishes(t *testing.T) {
 
 	// Force u1 to have only one card
 	game.Players["u1"].Hand = []domain.Card{{Suit: 3, Rank: 12}} // 2 Hearts
-	game.CurrentTurn = "u1"
+	game.CurrentTurn = 0 // u1
 
 	// u1 plays their last card and finishes
 	_, err := svc.PlayCards(game, "u1", []domain.Card{{Suit: 3, Rank: 12}})
@@ -189,8 +189,9 @@ func TestRoundResetsWhenLastPlayerFinishes(t *testing.T) {
 	}
 
 	// Now it should be u2's turn (since u1 is finished), and the round should reset
-	if game.CurrentTurn != "u2" {
-		t.Fatalf("expected turn to go to u2, got %s", game.CurrentTurn)
+	// u2 is seat 2 -> index 1
+	if game.CurrentTurn != 1 {
+		t.Fatalf("expected turn to go to u2 (seat index 1), got %d", game.CurrentTurn)
 	}
 
 	if game.LastPlayedCombination.Type != domain.Invalid {

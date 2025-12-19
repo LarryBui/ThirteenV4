@@ -723,12 +723,12 @@ func (x *MatchStateSnapshot) GetPlayers() []*PlayerState {
 }
 
 type GameStartedEvent struct {
-	state           protoimpl.MessageState `protogen:"open.v1"`
-	FirstTurnUserId string                 `protobuf:"bytes,1,opt,name=first_turn_user_id,json=firstTurnUserId,proto3" json:"first_turn_user_id,omitempty"`
-	Phase           GamePhase              `protobuf:"varint,2,opt,name=phase,proto3,enum=tienlen.v1.GamePhase" json:"phase,omitempty"`
-	Hand            []*Card                `protobuf:"bytes,3,rep,name=hand,proto3" json:"hand,omitempty"`
-	unknownFields   protoimpl.UnknownFields
-	sizeCache       protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	FirstTurnSeat int32                  `protobuf:"varint,1,opt,name=first_turn_seat,json=firstTurnSeat,proto3" json:"first_turn_seat,omitempty"` // 0-based index
+	Phase         GamePhase              `protobuf:"varint,2,opt,name=phase,proto3,enum=tienlen.v1.GamePhase" json:"phase,omitempty"`
+	Hand          []*Card                `protobuf:"bytes,3,rep,name=hand,proto3" json:"hand,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *GameStartedEvent) Reset() {
@@ -761,11 +761,11 @@ func (*GameStartedEvent) Descriptor() ([]byte, []int) {
 	return file_tienlen_proto_rawDescGZIP(), []int{9}
 }
 
-func (x *GameStartedEvent) GetFirstTurnUserId() string {
+func (x *GameStartedEvent) GetFirstTurnSeat() int32 {
 	if x != nil {
-		return x.FirstTurnUserId
+		return x.FirstTurnSeat
 	}
-	return ""
+	return 0
 }
 
 func (x *GameStartedEvent) GetPhase() GamePhase {
@@ -783,13 +783,13 @@ func (x *GameStartedEvent) GetHand() []*Card {
 }
 
 type CardPlayedEvent struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	UserId         string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	Cards          []*Card                `protobuf:"bytes,2,rep,name=cards,proto3" json:"cards,omitempty"`
-	NextTurnUserId string                 `protobuf:"bytes,3,opt,name=next_turn_user_id,json=nextTurnUserId,proto3" json:"next_turn_user_id,omitempty"` // Inform everyone who goes next immediately
-	NewRound       bool                   `protobuf:"varint,4,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`                      // True if this clears the board
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	Cards         []*Card                `protobuf:"bytes,2,rep,name=cards,proto3" json:"cards,omitempty"`
+	NextTurnSeat  int32                  `protobuf:"varint,3,opt,name=next_turn_seat,json=nextTurnSeat,proto3" json:"next_turn_seat,omitempty"` // 0-based index
+	NewRound      bool                   `protobuf:"varint,4,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`               // True if this clears the board
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *CardPlayedEvent) Reset() {
@@ -836,11 +836,11 @@ func (x *CardPlayedEvent) GetCards() []*Card {
 	return nil
 }
 
-func (x *CardPlayedEvent) GetNextTurnUserId() string {
+func (x *CardPlayedEvent) GetNextTurnSeat() int32 {
 	if x != nil {
-		return x.NextTurnUserId
+		return x.NextTurnSeat
 	}
-	return ""
+	return 0
 }
 
 func (x *CardPlayedEvent) GetNewRound() bool {
@@ -851,12 +851,12 @@ func (x *CardPlayedEvent) GetNewRound() bool {
 }
 
 type TurnPassedEvent struct {
-	state          protoimpl.MessageState `protogen:"open.v1"`
-	UserId         string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
-	NextTurnUserId string                 `protobuf:"bytes,2,opt,name=next_turn_user_id,json=nextTurnUserId,proto3" json:"next_turn_user_id,omitempty"`
-	NewRound       bool                   `protobuf:"varint,3,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"` // True if this pass results in a round reset
-	unknownFields  protoimpl.UnknownFields
-	sizeCache      protoimpl.SizeCache
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	UserId        string                 `protobuf:"bytes,1,opt,name=user_id,json=userId,proto3" json:"user_id,omitempty"`
+	NextTurnSeat  int32                  `protobuf:"varint,2,opt,name=next_turn_seat,json=nextTurnSeat,proto3" json:"next_turn_seat,omitempty"` // 0-based index
+	NewRound      bool                   `protobuf:"varint,3,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`               // True if this pass results in a round reset
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
 }
 
 func (x *TurnPassedEvent) Reset() {
@@ -896,11 +896,11 @@ func (x *TurnPassedEvent) GetUserId() string {
 	return ""
 }
 
-func (x *TurnPassedEvent) GetNextTurnUserId() string {
+func (x *TurnPassedEvent) GetNextTurnSeat() int32 {
 	if x != nil {
-		return x.NextTurnUserId
+		return x.NextTurnSeat
 	}
-	return ""
+	return 0
 }
 
 func (x *TurnPassedEvent) GetNewRound() bool {
@@ -1035,19 +1035,19 @@ const file_tienlen_proto_rawDesc = "" +
 	"\x05seats\x18\x01 \x03(\tR\x05seats\x12\x19\n" +
 	"\bowner_id\x18\x02 \x01(\tR\aownerId\x12\x12\n" +
 	"\x04tick\x18\x03 \x01(\x03R\x04tick\x121\n" +
-	"\aplayers\x18\x04 \x03(\v2\x17.tienlen.v1.PlayerStateR\aplayers\"\x92\x01\n" +
-	"\x10GameStartedEvent\x12+\n" +
-	"\x12first_turn_user_id\x18\x01 \x01(\tR\x0ffirstTurnUserId\x12+\n" +
+	"\aplayers\x18\x04 \x03(\v2\x17.tienlen.v1.PlayerStateR\aplayers\"\x8d\x01\n" +
+	"\x10GameStartedEvent\x12&\n" +
+	"\x0ffirst_turn_seat\x18\x01 \x01(\x05R\rfirstTurnSeat\x12+\n" +
 	"\x05phase\x18\x02 \x01(\x0e2\x15.tienlen.v1.GamePhaseR\x05phase\x12$\n" +
-	"\x04hand\x18\x03 \x03(\v2\x10.tienlen.v1.CardR\x04hand\"\x9a\x01\n" +
+	"\x04hand\x18\x03 \x03(\v2\x10.tienlen.v1.CardR\x04hand\"\x95\x01\n" +
 	"\x0fCardPlayedEvent\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12&\n" +
-	"\x05cards\x18\x02 \x03(\v2\x10.tienlen.v1.CardR\x05cards\x12)\n" +
-	"\x11next_turn_user_id\x18\x03 \x01(\tR\x0enextTurnUserId\x12\x1b\n" +
-	"\tnew_round\x18\x04 \x01(\bR\bnewRound\"r\n" +
+	"\x05cards\x18\x02 \x03(\v2\x10.tienlen.v1.CardR\x05cards\x12$\n" +
+	"\x0enext_turn_seat\x18\x03 \x01(\x05R\fnextTurnSeat\x12\x1b\n" +
+	"\tnew_round\x18\x04 \x01(\bR\bnewRound\"m\n" +
 	"\x0fTurnPassedEvent\x12\x17\n" +
-	"\auser_id\x18\x01 \x01(\tR\x06userId\x12)\n" +
-	"\x11next_turn_user_id\x18\x02 \x01(\tR\x0enextTurnUserId\x12\x1b\n" +
+	"\auser_id\x18\x01 \x01(\tR\x06userId\x12$\n" +
+	"\x0enext_turn_seat\x18\x02 \x01(\x05R\fnextTurnSeat\x12\x1b\n" +
 	"\tnew_round\x18\x03 \x01(\bR\bnewRound\"3\n" +
 	"\x0eGameEndedEvent\x12!\n" +
 	"\ffinish_order\x18\x01 \x03(\tR\vfinishOrder\">\n" +
