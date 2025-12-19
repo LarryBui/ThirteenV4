@@ -208,6 +208,16 @@ namespace TienLen.Presentation.GameRoomScreen
             }
         }
 
+        /// <summary>
+        /// UI callback for the "Play" button.
+        /// For now this logs the current selection; later steps will send selected cards to the server.
+        /// </summary>
+        public void OnPlayClicked()
+        {
+            var selectedCount = _localHandView?.SelectedCards?.Count ?? 0;
+            Debug.Log($"GameRoomController: Play clicked (selectedCount={selectedCount})");
+        }
+
         private void HandleCardArrivedAtPlayerAnchor(int playerIndex, Vector3 anchorWorldPosition)
         {
             // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
