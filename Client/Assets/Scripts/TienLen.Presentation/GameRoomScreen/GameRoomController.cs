@@ -90,6 +90,12 @@ namespace TienLen.Presentation.GameRoomScreen
         private void HandleGameStarted()
         {
             if (_isLeaving) return;
+            var match = _matchHandler?.CurrentMatch;
+            if (match != null)
+            {
+                Debug.Log(
+                    $"GameRoomController: Game started. matchId={match.Id}, localSeat={match.LocalSeatIndex}, firstTurnSeat={match.CurrentTurnSeat}");
+            }
             PrepareLocalHandReveal();
 
             // 52 cards, 2.0 seconds duration
@@ -100,6 +106,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleGameRoomStateUpdated()
         {
+            Debug.Log($"GameRoomController: Game room state updated. seatid={_matchHandler?.CurrentMatch?.LocalSeatIndex}");
             if (_isLeaving) return;
             RefreshGameRoomUI();
             UpdatePlayButtonState();
@@ -183,6 +190,7 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_isLeaving) return;
             if (_matchHandler != null && _matchHandler.CurrentMatch != null)
             {
+
                 _matchHandler.StartGameAsync().Forget();
             }
             else
