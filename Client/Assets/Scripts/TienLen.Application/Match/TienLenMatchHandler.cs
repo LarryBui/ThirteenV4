@@ -136,7 +136,20 @@ namespace TienLen.Application
         public async UniTask PlayCardsAsync(List<Card> cards)
         {
             if (CurrentMatch == null) throw new InvalidOperationException("No active match.");
-            
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+            var localUserId = _gameSessionContext?.Identity?.UserId;
+            if (string.IsNullOrWhiteSpace(localUserId))
+            {
+                localUserId = _authService?.CurrentUserId;
+            }
+
+            var localSeatIndex = FindSeatIndex(CurrentMatch.Seats, localUserId);
+            var cardCount = cards?.Count ?? 0;
+            Debug.Log(
+                $"[QA] PlayCardsAsync: matchId={CurrentMatch.Id}, currentTurnSeat={CurrentMatch.CurrentTurnSeat}, localSeat={localSeatIndex}, cardCount={cardCount}");
+#endif
+
             // 2. Send to network
             await _networkClient.SendPlayCardsAsync(cards);
         }
@@ -193,8 +206,31 @@ namespace TienLen.Application
             
             try
             {
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                var beforeTurnSeat = CurrentMatch.CurrentTurnSeat;
+                var cardCount = cards?.Count ?? 0;
+                Debug.Log(
+                    $"[QA] OnCardsPlayed(before): currentTurnSeat={beforeTurnSeat}, playedBySeat={seat}, nextTurnSeat={nextTurnSeat}, newRound={newRound}, cardCount={cardCount}");
+                if (beforeTurnSeat != seat)
+                {
+                    Debug.LogWarning(
+                        $"[QA] OnCardsPlayed: currentTurnSeat mismatch before apply (currentTurnSeat={beforeTurnSeat}, playedBySeat={seat})");
+                }
+#endif
+
                 CurrentMatch.PlayTurn(seat, cards, nextTurnSeat, newRound);
                 GameRoomStateUpdated?.Invoke();
+
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                var afterTurnSeat = CurrentMatch.CurrentTurnSeat;
+                Debug.Log(
+                    $"[QA] OnCardsPlayed(after): currentTurnSeat={afterTurnSeat}, expectedNextTurnSeat={nextTurnSeat}");
+                if (afterTurnSeat != nextTurnSeat)
+                {
+                    Debug.LogWarning(
+                        $"[QA] OnCardsPlayed: currentTurnSeat mismatch after apply (currentTurnSeat={afterTurnSeat}, expectedNextTurnSeat={nextTurnSeat})");
+                }
+#endif
             }
             catch (Exception ex)
             {

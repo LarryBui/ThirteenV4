@@ -244,6 +244,10 @@ namespace TienLen.Infrastructure.Match
                         var cards = new List<Card>();
                         foreach (var c in payload.Cards) cards.Add(ToDomain(c));
                         // payload.Seat is int32, NextTurnSeat is int32
+#if UNITY_EDITOR || DEVELOPMENT_BUILD
+                        Debug.Log(
+                            $"[QA] CardPlayedEvent: currentTurnSeat(before)={payload.Seat}, currentTurnSeat(after)={payload.NextTurnSeat}, newRound={payload.NewRound}, cardCount={cards.Count}");
+#endif
                         OnCardsPlayed?.Invoke(payload.Seat, cards, payload.NextTurnSeat, payload.NewRound);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse CardPlayedEvent: {e}"); }
