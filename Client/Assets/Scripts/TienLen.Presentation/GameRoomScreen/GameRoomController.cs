@@ -146,12 +146,6 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private int ResolveLocalSeatIndex(string[] seats)
         {
-            var seatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
-            if (seatIndex >= 0)
-            {
-                return seatIndex;
-            }
-
             var localUserId = _gameSessionContext?.Identity?.UserId;
             if (string.IsNullOrEmpty(localUserId) || seats == null)
             {
@@ -206,10 +200,11 @@ namespace TienLen.Presentation.GameRoomScreen
         /// </summary>
         public void OnStartGameClicked()
         {
-            if (_matchHandler != null)
+            if (_matchHandler != null && _matchHandler.CurrentMatch != null)
             {
-                var matchId = _gameSessionContext?.CurrentMatch?.MatchId ?? _matchHandler.CurrentMatch?.Id ?? "<unknown>";
-                var seatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
+                var match = _matchHandler.CurrentMatch;
+                var matchId = match.Id;
+                var seatIndex = ResolveLocalSeatIndex(match.Seats);
                 var localUserId = _gameSessionContext?.Identity?.UserId;
                 var localUserIdShort = string.IsNullOrEmpty(localUserId)
                     ? "<unknown>"
@@ -220,7 +215,7 @@ namespace TienLen.Presentation.GameRoomScreen
             }
             else
             {
-                Debug.LogError("GameRoomController: Cannot start game, Match Handler is null.");
+                Debug.LogError("GameRoomController: Cannot start game, Match Handler or Match is null.");
             }
         }
 
@@ -299,7 +294,9 @@ namespace TienLen.Presentation.GameRoomScreen
 
             if (_playButton != null)
             {
-                _playButton.interactable = isMyTurn && selectedCount > 0;
+                // Enable Play button if it's my turn, regardless of selection.
+                // Validation happens on click (or server side).
+                _playButton.interactable = isMyTurn;
             }
 
             if (_passButton != null)
@@ -315,8 +312,7 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (match == null) return false;
 
-            // Session seat index is 0-based.
-            var localSeatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
+            var localSeatIndex = ResolveLocalSeatIndex(match.Seats);
             if (localSeatIndex < 0) return false;
 
             // CurrentTurnSeat is 0-based from server.
@@ -367,16 +363,8 @@ namespace TienLen.Presentation.GameRoomScreen
             cards = Array.Empty<Card>();
 
             var localUserId = _gameSessionContext?.Identity?.UserId;
-            if (string.IsNullOrWhiteSpace(localUserId))
-            {
-                var seatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
-                if (seatIndex >= 0 && match.Seats != null && seatIndex < match.Seats.Length)
-                {
-                    localUserId = match.Seats[seatIndex];
-                }
-            }
-
             if (string.IsNullOrWhiteSpace(localUserId)) return false;
+            
             if (match.Players == null) return false;
             if (!match.Players.TryGetValue(localUserId, out var player)) return false;
             if (player?.Hand == null) return false;

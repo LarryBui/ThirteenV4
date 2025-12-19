@@ -204,6 +204,7 @@ namespace TienLen.Application
                 player.Hand.AddCards(hand);
             }
 
+            GameRoomStateUpdated?.Invoke();
             GameStarted?.Invoke();
         }
 
