@@ -62,11 +62,48 @@ func (ms *MatchState) GetOccupiedSeatCount() int {
 func (ms *MatchState) GetHumanPlayerCount() int {
 	count := 0
 	for _, seat := range ms.Seats {
-		if seat != "" && !strings.HasPrefix(seat, "bot:") {
+		if seat != "" && !isBotUserId(seat) {
 			count++
 		}
 	}
 	return count
+}
+
+// isBotUserId reports whether the given user id represents a bot seat.
+func isBotUserId(userId string) bool {
+	return strings.HasPrefix(userId, "bot:")
+}
+
+// isHumanSeat reports whether the seat index belongs to a human player.
+func isHumanSeat(seats []string, seatIndex int) bool {
+	if seatIndex < 0 || seatIndex >= len(seats) {
+		return false
+	}
+	userId := seats[seatIndex]
+	return userId != "" && !isBotUserId(userId)
+}
+
+// findFirstHumanSeat returns the first seat index with a human occupant or -1 if none exist.
+func findFirstHumanSeat(seats []string) int {
+	for i, userId := range seats {
+		if userId != "" && !isBotUserId(userId) {
+			return i
+		}
+	}
+	return -1
+}
+
+// shouldTerminateAllBots returns true when there are no humans and at least one bot seat.
+func shouldTerminateAllBots(seats []string) bool {
+	if findFirstHumanSeat(seats) != -1 {
+		return false
+	}
+	for _, userId := range seats {
+		if isBotUserId(userId) {
+			return true
+		}
+	}
+	return false
 }
 
 // NewMatch is the factory function registered with Nakama.
@@ -197,13 +234,11 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 		}
 	}
 
-	// Assign owner if none exists
-	if matchState.OwnerSeat == -1 {
-		for i, userId := range matchState.Seats {
-			if userId != "" {
-				matchState.OwnerSeat = i
-				break
-			}
+	// Ensure owner seat is assigned to a human player only.
+	if !isHumanSeat(matchState.Seats[:], matchState.OwnerSeat) {
+		matchState.OwnerSeat = findFirstHumanSeat(matchState.Seats[:])
+		if matchState.OwnerSeat >= 0 {
+			logger.Debug("MatchJoin: Owner set to human seat %d.", matchState.OwnerSeat)
 		}
 	}
 
@@ -224,6 +259,7 @@ func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, d
 		return state
 	}
 
+	ownerLeft := false
 	for _, p := range presences {
 		delete(matchState.Presences, p.GetUserId())
 
@@ -233,19 +269,26 @@ func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, d
 				logger.Debug("MatchLeave: User %s left, seat %d freed.", p.GetUserId(), i)
 
 				if matchState.OwnerSeat == i {
-					matchState.OwnerSeat = -1
-					// Assign new owner
-					for j, newOwnerId := range matchState.Seats {
-						if newOwnerId != "" {
-							matchState.OwnerSeat = j
-							logger.Debug("MatchLeave: Owner left, new owner is seat %d.", j)
-							break
-						}
-					}
+					ownerLeft = true
 				}
 				break
 			}
 		}
+	}
+
+	newOwnerSeat := findFirstHumanSeat(matchState.Seats[:])
+	if newOwnerSeat != matchState.OwnerSeat {
+		matchState.OwnerSeat = newOwnerSeat
+		if newOwnerSeat >= 0 {
+			logger.Debug("MatchLeave: Owner set to human seat %d.", newOwnerSeat)
+		} else if ownerLeft {
+			logger.Debug("MatchLeave: Owner left and no human owner is available.")
+		}
+	}
+
+	if shouldTerminateAllBots(matchState.Seats[:]) {
+		logger.Info("MatchLeave: Terminating match with bots only.")
+		return nil
 	}
 
 	mh.updateLabel(matchState, dispatcher, logger)
