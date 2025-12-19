@@ -317,6 +317,8 @@ namespace TienLen.Application
             }
 
             var seatIndex = FindSeatIndex(CurrentMatch.Seats, localUserId);
+            // Cache the local seat on the match so the GameRoom can rely on CurrentMatch only.
+            CurrentMatch.LocalSeatIndex = seatIndex;
             _gameSessionContext.SetMatch(CurrentMatch.Id, seatIndex);
         }
 

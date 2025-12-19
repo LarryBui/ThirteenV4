@@ -17,6 +17,8 @@ namespace TienLen.Domain.Aggregates
         public Dictionary<string, Player> Players { get; }
         /// <summary>Seats indexed 0..N-1 containing userIds or empty strings.</summary>
         public string[] Seats { get; }
+        /// <summary>Seat index for the local player (0-based). -1 when unknown.</summary>
+        public int LocalSeatIndex { get; set; } = -1;
         /// <summary>Seat of the current owner (0-based).</summary>
         public int OwnerSeat { get; set; }
         /// <summary>Seat whose turn it is (0-based).</summary>
@@ -127,10 +129,7 @@ namespace TienLen.Domain.Aggregates
                 // This implies I am STARTING a round.
             }
             
-            // If newRound is true, it means the board was empty (or cleared) BEFORE this play.
-            // So this play IS the board.
-            if (newRound) CurrentBoard.Clear();
-            
+            // newRound means this play starts the round, so this play becomes the board.
             // Add cards to board? Tien Len usually replaces the "top" combo.
             // But visually we might want to stack. For logic, we just track the current combo.
             CurrentBoard = new List<Card>(cards);

@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using TienLen.Application.Session;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
@@ -38,21 +37,19 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private PlayerProfileUI opponentProfile_3;
 
         private TienLenMatchHandler _matchHandler;
-        private IGameSessionContext _gameSessionContext;
         private LocalHandView _localHandView;
         private bool _isLeaving;
 
         [Inject]
-        public void Construct(TienLenMatchHandler matchHandler, IGameSessionContext gameSessionContext)
+        public void Construct(TienLenMatchHandler matchHandler)
         {
             _matchHandler = matchHandler;
-            _gameSessionContext = gameSessionContext;
         }
 
         private void Start()
         {
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
-            UpdatePlayButtonState(selectedCount: 0);
+            UpdatePlayButtonState();
 
             if (_matchHandler == null)
             {
@@ -98,14 +95,14 @@ namespace TienLen.Presentation.GameRoomScreen
             // 52 cards, 2.0 seconds duration
             _cardDealer.AnimateDeal(52, 2.0f).Forget();
 
-            UpdatePlayButtonState(selectedCount: _localHandView?.SelectedCards?.Count ?? 0);
+            UpdatePlayButtonState();
         }
 
         private void HandleGameRoomStateUpdated()
         {
             if (_isLeaving) return;
             RefreshGameRoomUI();
-            UpdatePlayButtonState(_localHandView?.SelectedCards?.Count ?? 0);
+            UpdatePlayButtonState();
         }
 
         private void RefreshGameRoomUI()
@@ -118,7 +115,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 return;
             }
 
-            var localSeatIndex = ResolveLocalSeatIndex(match.Seats);
+            var localSeatIndex = match.LocalSeatIndex;
             if (localSeatIndex < 0 || localSeatIndex >= SeatCount)
             {
                 // Fallback to "seat 0 is local" until we can resolve the actual local seat index.
@@ -144,25 +141,6 @@ namespace TienLen.Presentation.GameRoomScreen
             if (slot == null) return;
             slot.ClearProfile();
             slot.SetActive(false);
-        }
-
-        private int ResolveLocalSeatIndex(string[] seats)
-        {
-            var localUserId = _gameSessionContext?.Identity?.UserId;
-            if (string.IsNullOrEmpty(localUserId) || seats == null)
-            {
-                return -1;
-            }
-
-            for (int i = 0; i < seats.Length; i++)
-            {
-                if (seats[i] == localUserId)
-                {
-                    return i;
-                }
-            }
-
-            return -1;
         }
 
         private static void RenderSeat(PlayerProfileUI slot, Match match, int seatIndex)
@@ -227,7 +205,7 @@ namespace TienLen.Presentation.GameRoomScreen
             var match = _matchHandler?.CurrentMatch;
             if (match != null)
             {
-                var localSeatIndex = ResolveLocalSeatIndex(match.Seats);
+                var localSeatIndex = match.LocalSeatIndex;
                 var isLocalPlayersTurn = localSeatIndex >= 0 && match.CurrentTurnSeat == localSeatIndex;
                 Debug.Log(
                     $"[QA] OnPlayClicked: currentTurnSeat={match.CurrentTurnSeat}, localSeat={localSeatIndex}, isMyTurn={isLocalPlayersTurn}, selectedCount={selectedCount}");
@@ -318,10 +296,10 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleLocalHandSelectionChanged(IReadOnlyList<Card> selectedCards)
         {
-            UpdatePlayButtonState(selectedCards?.Count ?? 0);
+            UpdatePlayButtonState();
         }
 
-        private void UpdatePlayButtonState(int selectedCount)
+        private void UpdatePlayButtonState()
         {
             var match = _matchHandler?.CurrentMatch;
             var isPlaying = match != null && string.Equals(match.Phase, "Playing", StringComparison.OrdinalIgnoreCase);
@@ -331,15 +309,13 @@ namespace TienLen.Presentation.GameRoomScreen
             // Keep action buttons hidden until the game is live and it's the local player's turn.
             if (_playButton != null) _playButton.gameObject.SetActive(showActions);
             if (_passButton != null) _passButton.gameObject.SetActive(showActions);
-
-            if (!showActions) return;
         }
 
         private bool IsLocalPlayersTurn(Match match)
         {
             if (match == null) return false;
 
-            var localSeatIndex = ResolveLocalSeatIndex(match.Seats);
+            var localSeatIndex = match.LocalSeatIndex;
             if (localSeatIndex < 0) return false;
 
             // CurrentTurnSeat is 0-based from server.
@@ -383,16 +359,20 @@ namespace TienLen.Presentation.GameRoomScreen
                 uiParent: southAnchor.transform.parent != null ? southAnchor.transform.parent : southAnchor.transform);
 
             localHandView.BeginReveal(localHandCards);
-            UpdatePlayButtonState(selectedCount: localHandView.SelectedCards?.Count ?? 0);
+            UpdatePlayButtonState();
         }
 
         private bool TryGetLocalHand(Match match, out IReadOnlyList<Card> cards)
         {
             cards = Array.Empty<Card>();
 
-            var localUserId = _gameSessionContext?.Identity?.UserId;
+            if (match == null || match.Seats == null) return false;
+            var localSeatIndex = match.LocalSeatIndex;
+            if (localSeatIndex < 0 || localSeatIndex >= match.Seats.Length) return false;
+
+            var localUserId = match.Seats[localSeatIndex];
             if (string.IsNullOrWhiteSpace(localUserId)) return false;
-            
+
             if (match.Players == null) return false;
             if (!match.Players.TryGetValue(localUserId, out var player)) return false;
             if (player?.Hand == null) return false;
