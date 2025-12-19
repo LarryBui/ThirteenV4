@@ -31,10 +31,12 @@ type MatchState struct {
 	Presences         map[string]runtime.Presence `json:"-"`               // Map UserId -> Presence for targeted messaging
 	App               *app.Service                `json:"-"`               // TienLen app service with game logic
 	Game              *domain.Game                `json:"-"`               // Current active game state (nil if in lobby)
-	BotsEnabled       bool                        `json:"bots_enabled"`    // Whether AI players are allowed
-	BotMinDelay       int                         `json:"bot_min_delay"`   // Min seconds a bot waits
-	BotMaxDelay       int                         `json:"bot_max_delay"`   // Max seconds a bot waits
-	BotWaitUntil      int64                       `json:"bot_wait_until"`  // Tick when the bot should act
+	BotsEnabled          bool                        `json:"bots_enabled"`           // Whether AI players are allowed
+	BotMinDelay          int                         `json:"bot_min_delay"`          // Min seconds a bot waits
+	BotMaxDelay          int                         `json:"bot_max_delay"`          // Max seconds a bot waits
+	BotAutoFillDelay     int                         `json:"bot_auto_fill_delay"`    // Seconds to wait before auto-filling with bots
+	BotWaitUntil         int64                       `json:"bot_wait_until"`         // Tick when the bot should act
+	LastSinglePlayerTick int64                       `json:"last_single_player_tick"` // Tick when a single player started waiting
 }
 
 func (ms *MatchState) GetOpenSeatsCount() int {
@@ -101,6 +103,11 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 			state.BotMaxDelay = i
 		}
 	}
+	if val, ok := env["tienlen_bot_auto_fill_delay_sec"]; ok {
+		if i, err := strconv.Atoi(val); err == nil {
+			state.BotAutoFillDelay = i
+		}
+	}
 
 	// Defaults if not set
 	if state.BotMinDelay == 0 {
@@ -108,6 +115,9 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 	}
 	if state.BotMaxDelay == 0 {
 		state.BotMaxDelay = 3
+	}
+	if state.BotAutoFillDelay == 0 {
+		state.BotAutoFillDelay = 5
 	}
 
 	// Initial match label: 4 open seats
@@ -274,20 +284,35 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 }
 
 func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
-	// 1. Auto-fill lobby with bots if there's only one human player
-	if state.Game == nil && state.GetHumanPlayerCount() == 1 {
-		added := false
-		for i, seat := range state.Seats {
-			if seat == "" {
-				botID := "bot:" + strconv.Itoa(i)
-				state.Seats[i] = botID
-				logger.Info("processBots: Added bot %s to seat %d", botID, i)
-				added = true
+	// 1. Auto-fill lobby with bots if there's only one human player after delay
+	if state.Game == nil {
+		humanCount := state.GetHumanPlayerCount()
+		if humanCount == 1 {
+			if state.LastSinglePlayerTick == 0 {
+				state.LastSinglePlayerTick = state.Tick
+				logger.Debug("processBots: Single player detected, starting auto-fill timer.")
 			}
-		}
-		if added {
-			mh.updateLabel(state, dispatcher, logger)
-			mh.broadcastMatchState(state, dispatcher, logger)
+
+			if state.Tick-state.LastSinglePlayerTick >= int64(state.BotAutoFillDelay) {
+				added := false
+				for i, seat := range state.Seats {
+					if seat == "" {
+						botID := "bot:" + strconv.Itoa(i)
+						state.Seats[i] = botID
+						logger.Info("processBots: Added bot %s to seat %d", botID, i)
+						added = true
+					}
+				}
+				if added {
+					mh.updateLabel(state, dispatcher, logger)
+					mh.broadcastMatchState(state, dispatcher, logger)
+				}
+				// Reset timer so it doesn't keep "adding" every tick (though seats are full now)
+				state.LastSinglePlayerTick = 0
+			}
+		} else {
+			// Reset timer if 0 or >1 humans
+			state.LastSinglePlayerTick = 0
 		}
 	}
 
