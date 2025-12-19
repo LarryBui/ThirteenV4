@@ -17,13 +17,11 @@ namespace TienLen.Domain.Aggregates
         public Dictionary<string, Player> Players { get; }
         /// <summary>Seats indexed 0..N-1 containing userIds or empty strings.</summary>
         public string[] Seats { get; }
-        /// <summary>UserId of the current owner.</summary>
-        public string OwnerUserID { get; set; }
-        /// <summary>Seat whose turn it is (1-based).</summary>
+        /// <summary>Seat of the current owner (0-based).</summary>
+        public int OwnerSeat { get; set; }
+        /// <summary>Seat whose turn it is (0-based).</summary>
         public int CurrentTurnSeat { get; set; }
-        /// <summary>Seat that led the current round (1-based).</summary>
-        public int RoundLeaderSeat { get; set; }
-        /// <summary>Seat that last played cards (1-based).</summary>
+        /// <summary>Seat that last played cards (0-based).</summary>
         public int LastPlaySeat { get; set; }
         /// <summary>Finish order (userIds) as players empty their hands.</summary>
         public List<string> FinishOrder { get; }
@@ -43,6 +41,7 @@ namespace TienLen.Domain.Aggregates
             FinishOrder = new List<string>();
             CurrentBoard = new List<Card>();
             Phase = "Lobby";
+            OwnerSeat = -1;
         }
 
         /// <summary>
@@ -56,25 +55,28 @@ namespace TienLen.Domain.Aggregates
                 throw new InvalidOperationException($"Player {player.UserID} is already registered.");
             }
 
-            if (player.Seat < 1 || player.Seat > Seats.Length)
+            // Client uses 0-based internally for seats array, but let's check input
+            if (player.Seat < 0 || player.Seat >= Seats.Length)
             {
                 throw new ArgumentOutOfRangeException(nameof(player.Seat), "Seat number is out of range.");
             }
 
-            if (!string.IsNullOrEmpty(Seats[player.Seat - 1]))
+            if (!string.IsNullOrEmpty(Seats[player.Seat]))
             {
-                 throw new InvalidOperationException($"Seat {player.Seat} is already occupied.");
+                 // Replace placeholder or error? Assuming replacement/update allowed for now if ID matches
+                 if (Seats[player.Seat] != player.UserID)
+                    throw new InvalidOperationException($"Seat {player.Seat} is already occupied by {Seats[player.Seat]}.");
             }
 
             Players.Add(player.UserID, player);
-            Seats[player.Seat - 1] = player.UserID;
+            Seats[player.Seat] = player.UserID;
         }
 
         /// <summary>
         /// Starts the game, resetting state and setting up for a new round.
-        /// Server handles dealing; this just prepares the client state.
         /// </summary>
-        public void StartGame()
+        /// <param name="firstTurnSeat">The seat index (0-based) starting the game.</param>
+        public void StartGame(int firstTurnSeat)
         {
             // Clear existing hands
             foreach (var player in Players.Values)
@@ -88,143 +90,84 @@ namespace TienLen.Domain.Aggregates
             CurrentBoard.Clear();
             FinishOrder.Clear();
             Phase = "Playing";
-            
-            // CurrentTurnSeat should be set via GameStartedEvent from server
+            CurrentTurnSeat = firstTurnSeat;
         }
 
         /// <summary>
-        /// Plays a turn for the specified player.
+        /// Updates state based on a server CardPlayed event.
         /// </summary>
-        /// <param name="userId">User identifier.</param>
-        /// <param name="cards">Cards to play.</param>
-        public void PlayTurn(string userId, List<Card> cards)
+        /// <param name="seat">Seat that played the cards (0-based).</param>
+        /// <param name="cards">Cards played.</param>
+        /// <param name="nextTurnSeat">Next turn seat (0-based).</param>
+        /// <param name="newRound">Whether this play starts a new round (clears board).</param>
+        public void PlayTurn(int seat, List<Card> cards, int nextTurnSeat, bool newRound)
         {
-            if (Phase != "Playing") throw new InvalidOperationException("Match is not in Playing phase.");
-            if (!Players.TryGetValue(userId, out var player)) throw new ArgumentException("Player not found.");
-            
-            // Turn validation - Client trusts server events, but basic check ok
-            // if (player.Seat != CurrentTurnSeat) throw new InvalidOperationException("Not this player's turn.");
-            
-            // Hand validation / Update
-            // If we have the cards (local player), remove them.
-            // If we don't (opponent), just trust the move.
-            if (player.Hand.Cards.Count > 0)
-            {
-                if (player.Hand.HasCards(cards)) 
-                {
-                    player.Hand.RemoveCards(cards);
-                }
-                // Else: Desync or ghost hand, ignore
-            }
+            if (Phase != "Playing") return; // Or throw
 
+            var userId = Seats[seat];
+            if (string.IsNullOrEmpty(userId) || !Players.TryGetValue(userId, out var player)) return;
+
+            // Update hand if local or tracking known cards
+            if (player.Hand.Cards.Count > 0 && player.Hand.HasCards(cards)) 
+            {
+                player.Hand.RemoveCards(cards);
+            }
+            
             player.CardsRemaining -= cards.Count;
             if (player.CardsRemaining < 0) player.CardsRemaining = 0;
 
-            CurrentBoard = new List<Card>(cards); // Replace board (Tien Len overwrites, doesn't stack usually)
-            LastPlaySeat = player.Seat;
+            if (newRound)
+            {
+                CurrentBoard.Clear();
+                // Reset passes? Usually handled by specific event or implied by new round start
+                // Server sends "new_round" on the PLAY itself only if that play CLEARS the previous board?
+                // Actually, if I play and it's a new round, it means I'm leading.
+                // If I play on top of someone, newRound is false.
+                // Re-reading server logic: newRound is true if "LastPlayedCombination.Type == Invalid".
+                // This implies I am STARTING a round.
+            }
+            
+            // If newRound is true, it means the board was empty (or cleared) BEFORE this play.
+            // So this play IS the board.
+            if (newRound) CurrentBoard.Clear();
+            
+            // Add cards to board? Tien Len usually replaces the "top" combo.
+            // But visually we might want to stack. For logic, we just track the current combo.
+            CurrentBoard = new List<Card>(cards);
 
-            // Check Win
+            LastPlaySeat = seat;
+            CurrentTurnSeat = nextTurnSeat;
+
             if (player.CardsRemaining == 0)
             {
                 player.Finished = true;
-                FinishOrder.Add(userId);
+                if (!FinishOrder.Contains(userId)) FinishOrder.Add(userId);
             }
-
-            AdvanceTurn();
         }
 
         /// <summary>
-        /// Skips the turn for the specified player.
+        /// Updates state based on a server TurnPassed event.
         /// </summary>
-        /// <param name="userId">User identifier.</param>
-        public void SkipTurn(string userId)
+        /// <param name="seat">Seat that passed (0-based).</param>
+        /// <param name="nextTurnSeat">Next turn seat (0-based).</param>
+        /// <param name="newRound">Whether this pass triggered a round reset.</param>
+        public void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound)
         {
-             if (Phase != "Playing") throw new InvalidOperationException("Match is not in Playing phase.");
-             if (!Players.TryGetValue(userId, out var player)) throw new ArgumentException("Player not found.");
-             if (player.Seat != CurrentTurnSeat) throw new InvalidOperationException("Not this player's turn.");
+             if (Phase != "Playing") return;
+             
+             var userId = Seats[seat];
+             if (!string.IsNullOrEmpty(userId) && Players.TryGetValue(userId, out var player))
+             {
+                 player.HasPassed = true;
+             }
 
-             if (CurrentBoard.Count == 0) throw new InvalidOperationException("Cannot skip when you are leading the round.");
+             CurrentTurnSeat = nextTurnSeat;
 
-             player.HasPassed = true;
-             AdvanceTurn();
-        }
-
-        private void AdvanceTurn()
-        {
-            int checkSeat = CurrentTurnSeat;
-            int seatsChecked = 0;
-
-            while (seatsChecked < Seats.Length)
-            {
-                checkSeat = (checkSeat % Seats.Length) + 1; // 1-based next seat
-                seatsChecked++;
-
-                // If we wrapped back to the LastPlaySeat (everyone else passed)
-                // OR if the LastPlaySeat player finished, and we wrapped back to them, logic gets tricky.
-                // Simplified: If we found the person who played last, they win the round.
-                if (checkSeat == LastPlaySeat && CurrentBoard.Count > 0)
-                {
-                    // Round End: Winner of round starts new round
-                    StartNewRound(checkSeat);
-                    return;
-                }
-
-                var userId = Seats[checkSeat - 1];
-                if (string.IsNullOrEmpty(userId)) continue; // Empty seat
-
-                var player = Players[userId];
-                
-                // If player is still in game and hasn't passed (or it's a new round so passes don't count)
-                if (!player.Finished && !player.HasPassed)
-                {
-                    CurrentTurnSeat = checkSeat;
-                    return;
-                }
-            }
-
-            // If we get here, it might mean everyone finished or edge case with LastPlaySeat finishing.
-            // If LastPlaySeat finished, we need to pass lead to next active player.
-            if (CurrentBoard.Count > 0)
-            {
-                 // The person who last played has finished. 
-                 // We need to find the next person after them to start the new round.
-                 StartNewRound(LastPlaySeat);
-            }
-        }
-
-        private void StartNewRound(int winnerSeat)
-        {
-            CurrentBoard.Clear();
-            
-            // Reset passes for all active players
-            foreach (var p in Players.Values)
-            {
-                p.HasPassed = false;
-            }
-
-            // If the winner of the round has finished, the lead passes to the next person
-            int nextLeader = winnerSeat;
-            
-            // Check if winnerSeat is valid/active. If finished, find next active.
-            var winnerId = Seats[winnerSeat - 1];
-            if (!string.IsNullOrEmpty(winnerId) && Players[winnerId].Finished)
-            {
-                 int seatsChecked = 0;
-                 while(seatsChecked < Seats.Length)
-                 {
-                     nextLeader = (nextLeader % Seats.Length) + 1;
-                     seatsChecked++;
-                     var uid = Seats[nextLeader - 1];
-                     if(!string.IsNullOrEmpty(uid) && !Players[uid].Finished)
-                     {
-                         break;
-                     }
-                 }
-            }
-
-            CurrentTurnSeat = nextLeader;
-            RoundLeaderSeat = nextLeader;
-            LastPlaySeat = 0; // Reset last play since it's a fresh round
+             if (newRound)
+             {
+                 CurrentBoard.Clear();
+                 foreach(var p in Players.Values) p.HasPassed = false;
+             }
         }
     }
 }

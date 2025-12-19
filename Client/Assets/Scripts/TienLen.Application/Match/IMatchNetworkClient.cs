@@ -17,32 +17,27 @@ namespace TienLen.Application
         /// <summary>
         /// Fired when cards are played by a player in the match.
         /// </summary>
-        event Action<string, List<Card>> OnCardsPlayed; // userId, cards
+        event Action<int, List<Card>, int, bool> OnCardsPlayed; // seat, cards, nextTurnSeat, newRound
 
         /// <summary>
         /// Fired when a player skips their turn.
         /// </summary>
-        event Action<string> OnPlayerSkippedTurn; // userId
+        event Action<int, int, bool> OnTurnPassed; // seat, nextTurnSeat, newRound
 
         /// <summary>
         /// Fired when the game starts within the match (e.g., initial deal).
         /// </summary>
-        event Action<List<Card>> OnGameStarted;
+        event Action<List<Card>, int> OnGameStarted; // hand, firstTurnSeat
 
         /// <summary>
         /// Fired when a match state snapshot is received from the server (OP_CODE_PLAYER_JOINED).
         /// </summary>
-        event Action<MatchStateSnapshot> OnPlayerJoinedOP;
-        
-        /// <summary>
-        /// Fired when a player finishes their hand.
-        /// </summary>
-        event Action<string> OnPlayerFinished; // userId
+        event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
         
         /// <summary>
         /// Fired when the game ends.
         /// </summary>
-        event Action<List<string>> OnGameEnded; // finishOrder
+        event Action<List<int>> OnGameEnded; // finishOrderSeats
 
         /// <summary>
         /// Fired when a game error occurs.

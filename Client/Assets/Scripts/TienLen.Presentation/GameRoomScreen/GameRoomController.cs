@@ -26,6 +26,8 @@ namespace TienLen.Presentation.GameRoomScreen
         [Header("Actions")]
         [Tooltip("Play button that submits the currently selected cards.")]
         [SerializeField] private Button _playButton;
+        [Tooltip("Pass button that skips the turn.")]
+        [SerializeField] private Button _passButton;
 
         [Header("Player Profiles")]
         [SerializeField] private PlayerProfileUI localPlayerProfile;
@@ -48,6 +50,7 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
             UpdatePlayButtonState(selectedCount: 0);
+            if (_passButton != null) _passButton.interactable = false;
 
             if (_matchHandler == null)
             {
@@ -99,6 +102,7 @@ namespace TienLen.Presentation.GameRoomScreen
         private void HandleGameRoomStateUpdated()
         {
             RefreshGameRoomUI();
+            UpdatePlayButtonState(_localHandView?.SelectedCards?.Count ?? 0);
         }
 
         private void RefreshGameRoomUI()
@@ -222,12 +226,39 @@ namespace TienLen.Presentation.GameRoomScreen
 
         /// <summary>
         /// UI callback for the "Play" button.
-        /// For now this logs the current selection; later steps will send selected cards to the server.
+        /// Sends selected cards to the server.
         /// </summary>
         public void OnPlayClicked()
         {
-            var selectedCount = _localHandView?.SelectedCards?.Count ?? 0;
+            var selectedCards = _localHandView?.SelectedCards;
+            var selectedCount = selectedCards?.Count ?? 0;
             Debug.Log($"GameRoomController: Play clicked (selectedCount={selectedCount})");
+
+            if (selectedCount > 0 && _matchHandler != null)
+            {
+                // Create a copy list for the async call
+                var cardsToSend = new List<Card>(selectedCards);
+                _matchHandler.PlayCardsAsync(cardsToSend).Forget();
+                
+                // Optimistically clear selection or wait for server event?
+                // Server event will update the hand, which should trigger view refresh.
+                // But clearing selection immediately feels responsive.
+                _localHandView.ClearSelection();
+            }
+        }
+
+        /// <summary>
+        /// UI callback for the "Pass" button.
+        /// Sends a pass turn request to the server.
+        /// </summary>
+        public void OnPassClicked()
+        {
+            Debug.Log("GameRoomController: Pass clicked");
+            if (_matchHandler != null)
+            {
+                _matchHandler.PassTurnAsync().Forget();
+                _localHandView?.ClearSelection();
+            }
         }
 
         private void BindLocalHandView(LocalHandView view)
@@ -254,30 +285,42 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void UpdatePlayButtonState(int selectedCount)
         {
-            if (_playButton == null) return;
-
             var match = _matchHandler?.CurrentMatch;
-            if (match == null || !string.Equals(match.Phase, "Playing", StringComparison.OrdinalIgnoreCase))
+            var isPlaying = match != null && string.Equals(match.Phase, "Playing", StringComparison.OrdinalIgnoreCase);
+
+            if (!isPlaying)
             {
-                _playButton.interactable = false;
+                if (_playButton != null) _playButton.interactable = false;
+                if (_passButton != null) _passButton.interactable = false;
                 return;
             }
 
-            _playButton.interactable = IsLocalPlayersTurn(match) && selectedCount > 0;
+            var isMyTurn = IsLocalPlayersTurn(match);
+
+            if (_playButton != null)
+            {
+                _playButton.interactable = isMyTurn && selectedCount > 0;
+            }
+
+            if (_passButton != null)
+            {
+                // Can pass if it's my turn AND I am not the one who cleared the board (leading).
+                // Leading means CurrentBoard is empty.
+                bool isLeading = match.CurrentBoard == null || match.CurrentBoard.Count == 0;
+                _passButton.interactable = isMyTurn && !isLeading;
+            }
         }
 
         private bool IsLocalPlayersTurn(Match match)
         {
             if (match == null) return false;
 
-            // Domain seats are 1-based; session seat index is 0-based.
+            // Session seat index is 0-based.
             var localSeatIndex = _gameSessionContext?.CurrentMatch?.SeatIndex ?? -1;
-            if (localSeatIndex < 0) return true; // Unknown seat: don't block in early integration.
+            if (localSeatIndex < 0) return false;
 
-            if (match.CurrentTurnSeat <= 0) return true; // Server turn not yet plumbed: don't block in early integration.
-
-            var localSeat = localSeatIndex + 1;
-            return match.CurrentTurnSeat == localSeat;
+            // CurrentTurnSeat is 0-based from server.
+            return match.CurrentTurnSeat == localSeatIndex;
         }
 
         private void HandleCardArrivedAtPlayerAnchor(int playerIndex, Vector3 anchorWorldPosition)

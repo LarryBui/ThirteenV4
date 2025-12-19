@@ -6,12 +6,12 @@ namespace TienLen.Application
     /// <summary>
     /// Immutable snapshot of server match state for lobby synchronization.
     /// </summary>
-    public readonly struct MatchStateSnapshot
+    public readonly struct MatchStateSnapshotDto
     {
         /// <summary>Seat assignments in order (empty strings for open seats).</summary>
         public string[] Seats { get; }
-        /// <summary>User id of the current match owner.</summary>
-        public string OwnerId { get; }
+        /// <summary>Seat index of the current match owner.</summary>
+        public int OwnerSeat { get; }
         /// <summary>Server tick when the snapshot was generated.</summary>
         public long Tick { get; }
         /// <summary>Full list of player details in the match.</summary>
@@ -20,10 +20,10 @@ namespace TienLen.Application
         /// <summary>
         /// Creates a new snapshot, copying seat values to avoid external mutation.
         /// </summary>
-        public MatchStateSnapshot(string[] seats, string ownerId, long tick, IReadOnlyList<PlayerStateDTO> players)
+        public MatchStateSnapshotDto(string[] seats, int ownerSeat, long tick, IReadOnlyList<PlayerStateDTO> players)
         {
             Seats = seats == null ? Array.Empty<string>() : (string[])seats.Clone();
-            OwnerId = ownerId;
+            OwnerSeat = ownerSeat;
             Tick = tick;
             Players = players ?? Array.Empty<PlayerStateDTO>();
         }

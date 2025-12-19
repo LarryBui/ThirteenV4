@@ -33,12 +33,13 @@ namespace TienLen.Infrastructure.Match
         private readonly Dictionary<string, PresenceInfo> _presenceByUserId = new();
 
         // --- IMatchNetworkClient Events ---
-        public event Action<string, List<Card>> OnCardsPlayed;
+        public event Action<int, List<Card>, int, bool> OnCardsPlayed; // seat, cards, nextTurnSeat, newRound
         public event Action<string> OnPlayerSkippedTurn;
-        public event Action<List<Card>> OnGameStarted;
+        public event Action<int, int, bool> OnTurnPassed; // seat, nextTurnSeat, newRound
+        public event Action<List<Card>, int> OnGameStarted; // hand, firstTurnSeat
         /// <inheritdoc />
-        public event Action<MatchStateSnapshot> OnPlayerJoinedOP;
-        public event Action<List<string>> OnGameEnded;
+        public event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
+        public event Action<List<int>> OnGameEnded;
         public event Action<int, string> OnGameError;
         public event Action<string> OnPlayerFinished;
 
@@ -198,7 +199,8 @@ namespace TienLen.Infrastructure.Match
                                 p.AvatarIndex));
                         }
 
-                        var snapshot = new MatchStateSnapshot(seats, payload.OwnerId, payload.Tick, players);
+                        // Updated to use OwnerSeat (int) instead of OwnerId (string)
+                        var snapshot = new MatchStateSnapshotDto(seats, payload.OwnerSeat, payload.Tick, players);
                         OnPlayerJoinedOP?.Invoke(snapshot);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse MatchStateSnapshot: {e}"); }
@@ -216,9 +218,9 @@ namespace TienLen.Infrastructure.Match
                         }
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-                        Debug.Log($"MatchClient: Received GameStartedEvent (matchId={state.MatchId}, phase={payload.Phase}, firstTurnUserId={payload.FirstTurnUserId}, handCount={hand.Count})");
+                        Debug.Log($"MatchClient: Received GameStartedEvent (matchId={state.MatchId}, phase={payload.Phase}, firstTurnSeat={payload.FirstTurnSeat}, handCount={hand.Count})");
 #endif
-                        OnGameStarted?.Invoke(hand);
+                        OnGameStarted?.Invoke(hand, payload.FirstTurnSeat);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameStartedEvent: {e}"); }
                     break;
@@ -229,7 +231,8 @@ namespace TienLen.Infrastructure.Match
                         var payload = Proto.CardPlayedEvent.Parser.ParseFrom(state.State);
                         var cards = new List<Card>();
                         foreach (var c in payload.Cards) cards.Add(ToDomain(c));
-                        OnCardsPlayed?.Invoke(payload.UserId, cards);
+                        // payload.Seat is int32, NextTurnSeat is int32
+                        OnCardsPlayed?.Invoke(payload.Seat, cards, payload.NextTurnSeat, payload.NewRound);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse CardPlayedEvent: {e}"); }
                     break;
@@ -238,7 +241,7 @@ namespace TienLen.Infrastructure.Match
                     try
                     {
                         var payload = Proto.TurnPassedEvent.Parser.ParseFrom(state.State);
-                        OnPlayerSkippedTurn?.Invoke(payload.UserId);
+                        OnTurnPassed?.Invoke(payload.Seat, payload.NextTurnSeat, payload.NewRound);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse TurnPassedEvent: {e}"); }
                     break;
@@ -247,7 +250,7 @@ namespace TienLen.Infrastructure.Match
                     try
                     {
                         var payload = Proto.GameEndedEvent.Parser.ParseFrom(state.State);
-                        var finishOrder = new List<string>(payload.FinishOrder);
+                        var finishOrder = new List<int>(payload.FinishOrderSeats);
                         OnGameEnded?.Invoke(finishOrder);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameEndedEvent: {e}"); }

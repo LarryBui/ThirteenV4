@@ -113,12 +113,15 @@ namespace TienLen.Application
             // Domain update happens on OnGameStarted event
         }
 
+        public async UniTask PassTurnAsync()
+        {
+            if (CurrentMatch == null) throw new InvalidOperationException("No active match.");
+            await _networkClient.SendPassTurnAsync();
+        }
+
         public async UniTask PlayCardsAsync(List<Card> cards)
         {
             if (CurrentMatch == null) throw new InvalidOperationException("No active match.");
-            
-            // 1. Optimistic local validation (optional but good for UX)
-            // CurrentMatch.PlayTurn(_authService.CurrentUserId, cards); 
             
             // 2. Send to network
             await _networkClient.SendPlayCardsAsync(cards);
@@ -131,7 +134,7 @@ namespace TienLen.Application
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
             _networkClient.OnGameStarted += HandleGameStarted;
             _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
-            _networkClient.OnPlayerSkippedTurn += HandlePlayerSkippedTurn;
+            _networkClient.OnTurnPassed += HandleTurnPassed;
             _networkClient.OnGameEnded += HandleGameEnded;
         }
 
@@ -140,36 +143,44 @@ namespace TienLen.Application
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
             _networkClient.OnGameStarted -= HandleGameStarted;
             _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
-            _networkClient.OnPlayerSkippedTurn -= HandlePlayerSkippedTurn;
+            _networkClient.OnTurnPassed -= HandleTurnPassed;
             _networkClient.OnGameEnded -= HandleGameEnded;
         }
 
-        private void HandlePlayerSkippedTurn(string userId)
+        private void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound)
         {
             if (CurrentMatch == null) return;
             try
             {
-                CurrentMatch.SkipTurn(userId);
+                // TODO: Update Domain Match to use seat index for SkipTurn logic
+                // For now, we need to map seat to user ID if domain still uses UserID,
+                // or update Domain to use Seat.
+                // Assuming we update Domain Match to use SeatIndex as well.
+                CurrentMatch.HandleTurnPassed(seat, nextTurnSeat, newRound);
+                GameRoomStateUpdated?.Invoke();
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"Handler: Error applying SkipTurn: {ex.Message}");
+                Debug.LogWarning($"Handler: Error applying TurnPassed: {ex.Message}");
             }
         }
 
-        private void HandleGameEnded(List<string> finishOrder)
+        private void HandleGameEnded(List<int> finishOrderSeats)
         {
             if (CurrentMatch == null) return;
             CurrentMatch.Phase = "Finished";
+            // TODO: Process finish order seats
+            GameRoomStateUpdated?.Invoke();
         }
 
-        private void HandleCardsPlayed(string userId, List<Card> cards)
+        private void HandleCardsPlayed(int seat, List<Card> cards, int nextTurnSeat, bool newRound)
         {
             if (CurrentMatch == null) return;
             
             try
             {
-                CurrentMatch.PlayTurn(userId, cards);
+                CurrentMatch.PlayTurn(seat, cards, nextTurnSeat, newRound);
+                GameRoomStateUpdated?.Invoke();
             }
             catch (Exception ex)
             {
@@ -177,13 +188,13 @@ namespace TienLen.Application
             }
         }
 
-        private void HandleGameStarted(List<Card> hand)
+        private void HandleGameStarted(List<Card> hand, int firstTurnSeat)
         {
             if (CurrentMatch == null) return;
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
-            Debug.Log($"MatchHandler: OnGameStarted received (matchId={CurrentMatch.Id}, handCount={(hand?.Count ?? 0)})");
+            Debug.Log($"MatchHandler: OnGameStarted received (matchId={CurrentMatch.Id}, handCount={(hand?.Count ?? 0)}, firstTurnSeat={firstTurnSeat})");
 #endif
-            CurrentMatch.StartGame();
+            CurrentMatch.StartGame(firstTurnSeat);
             
             // Deal cards to self
             var localUserId = _authService.CurrentUserId;
@@ -196,7 +207,7 @@ namespace TienLen.Application
             GameStarted?.Invoke();
         }
 
-        private void HandlePlayerJoinedOP(MatchStateSnapshot snapshot)
+        private void HandlePlayerJoinedOP(MatchStateSnapshotDto snapshot)
         {
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
             Debug.Log("Handler op50: MatchStateSnapshot received: " + JsonConvert.SerializeObject(snapshot));
@@ -206,14 +217,14 @@ namespace TienLen.Application
             Array.Clear(CurrentMatch.Seats, 0, CurrentMatch.Seats.Length);
             var seatsToCopy = Math.Min(snapshot.Seats.Length, CurrentMatch.Seats.Length);
             Array.Copy(snapshot.Seats, CurrentMatch.Seats, seatsToCopy);
-            CurrentMatch.OwnerUserID = snapshot.OwnerId;
+            CurrentMatch.OwnerSeat = snapshot.OwnerSeat;
 
             ApplyGameRoomSnapshotToPlayers(snapshot);
             UpdateLocalSeatIndex();
             GameRoomStateUpdated?.Invoke();
         }
 
-        private void ApplyGameRoomSnapshotToPlayers(MatchStateSnapshot snapshot)
+        private void ApplyGameRoomSnapshotToPlayers(MatchStateSnapshotDto snapshot)
         {
             if (snapshot.Seats.Length > MaxPlayers)
             {

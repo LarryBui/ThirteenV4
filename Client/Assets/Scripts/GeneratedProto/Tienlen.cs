@@ -33,34 +33,35 @@ namespace Tienlen.V1 {
             "ZHNSZXF1ZXN0Eh8KBWNhcmRzGAEgAygLMhAudGllbmxlbi52MS5DYXJkIhEK",
             "D1Bhc3NUdXJuUmVxdWVzdCIXChVSZXF1ZXN0TmV3R2FtZVJlcXVlc3QiPAoR",
             "UGxheWVySm9pbmVkRXZlbnQSJwoGcGxheWVyGAEgASgLMhcudGllbmxlbi52",
-            "MS5QbGF5ZXJTdGF0ZSIiCg9QbGF5ZXJMZWZ0RXZlbnQSDwoHdXNlcl9pZBgB",
-            "IAEoCSJtChJNYXRjaFN0YXRlU25hcHNob3QSDQoFc2VhdHMYASADKAkSEAoI",
-            "b3duZXJfaWQYAiABKAkSDAoEdGljaxgDIAEoAxIoCgdwbGF5ZXJzGAQgAygL",
-            "MhcudGllbmxlbi52MS5QbGF5ZXJTdGF0ZSJ0ChBHYW1lU3RhcnRlZEV2ZW50",
-            "EhoKEmZpcnN0X3R1cm5fdXNlcl9pZBgBIAEoCRIkCgVwaGFzZRgCIAEoDjIV",
-            "LnRpZW5sZW4udjEuR2FtZVBoYXNlEh4KBGhhbmQYAyADKAsyEC50aWVubGVu",
-            "LnYxLkNhcmQicQoPQ2FyZFBsYXllZEV2ZW50Eg8KB3VzZXJfaWQYASABKAkS",
-            "HwoFY2FyZHMYAiADKAsyEC50aWVubGVuLnYxLkNhcmQSGQoRbmV4dF90dXJu",
-            "X3VzZXJfaWQYAyABKAkSEQoJbmV3X3JvdW5kGAQgASgIIj0KD1R1cm5QYXNz",
-            "ZWRFdmVudBIPCgd1c2VyX2lkGAEgASgJEhkKEW5leHRfdHVybl91c2VyX2lk",
-            "GAIgASgJIiYKDkdhbWVFbmRlZEV2ZW50EhQKDGZpbmlzaF9vcmRlchgBIAMo",
-            "CSIvCg5HYW1lRXJyb3JFdmVudBIMCgRjb2RlGAEgASgFEg8KB21lc3NhZ2UY",
-            "AiABKAkqSwoEU3VpdBIPCgtTVUlUX1NQQURFUxAAEg4KClNVSVRfQ0xVQlMQ",
-            "ARIRCg1TVUlUX0RJQU1PTkRTEAISDwoLU1VJVF9IRUFSVFMQAyrJAQoEUmFu",
-            "axIOCgpSQU5LX1RIUkVFEAASDQoJUkFOS19GT1VSEAESDQoJUkFOS19GSVZF",
-            "EAISDAoIUkFOS19TSVgQAxIOCgpSQU5LX1NFVkVOEAQSDgoKUkFOS19FSUdI",
-            "VBAFEg0KCVJBTktfTklORRAGEgwKCFJBTktfVEVOEAcSDQoJUkFOS19KQUNL",
-            "EAgSDgoKUkFOS19RVUVFThAJEg0KCVJBTktfS0lORxAKEgwKCFJBTktfQUNF",
-            "EAsSDAoIUkFOS19UV08QDCpFCglHYW1lUGhhc2USEQoNUEhBU0VfV0FJVElO",
-            "RxAAEhEKDVBIQVNFX1BMQVlJTkcQARISCg5QSEFTRV9GSU5JU0hFRBACKrYC",
-            "CgZPcENvZGUSFwoTT1BfQ09ERV9VTlNQRUNJRklFRBAAEhYKEk9QX0NPREVf",
-            "U1RBUlRfR0FNRRABEhYKEk9QX0NPREVfUExBWV9DQVJEUxACEhUKEU9QX0NP",
-            "REVfUEFTU19UVVJOEAMSHAoYT1BfQ09ERV9SRVFVRVNUX05FV19HQU1FEAQS",
-            "GQoVT1BfQ09ERV9QTEFZRVJfSk9JTkVEEDISFwoTT1BfQ09ERV9QTEFZRVJf",
-            "TEVGVBAzEhgKFE9QX0NPREVfR0FNRV9TVEFSVEVEEGQSFwoTT1BfQ09ERV9D",
-            "QVJEX1BMQVlFRBBmEhcKE09QX0NPREVfVFVSTl9QQVNTRUQQZxIWChJPUF9D",
-            "T0RFX0dBTUVfRU5ERUQQaBIWChJPUF9DT0RFX0dBTUVfRVJST1IQaUISWhB0",
-            "aWVubGVuL3Byb3RvO3BiYgZwcm90bzM="));
+            "MS5QbGF5ZXJTdGF0ZSIwCg9QbGF5ZXJMZWZ0RXZlbnQSDAoEc2VhdBgBIAEo",
+            "BRIPCgd1c2VyX2lkGAIgASgJIm8KEk1hdGNoU3RhdGVTbmFwc2hvdBINCgVz",
+            "ZWF0cxgBIAMoCRISCgpvd25lcl9zZWF0GAIgASgFEgwKBHRpY2sYAyABKAMS",
+            "KAoHcGxheWVycxgEIAMoCzIXLnRpZW5sZW4udjEuUGxheWVyU3RhdGUicQoQ",
+            "R2FtZVN0YXJ0ZWRFdmVudBIXCg9maXJzdF90dXJuX3NlYXQYASABKAUSJAoF",
+            "cGhhc2UYAiABKA4yFS50aWVubGVuLnYxLkdhbWVQaGFzZRIeCgRoYW5kGAMg",
+            "AygLMhAudGllbmxlbi52MS5DYXJkImsKD0NhcmRQbGF5ZWRFdmVudBIMCgRz",
+            "ZWF0GAEgASgFEh8KBWNhcmRzGAIgAygLMhAudGllbmxlbi52MS5DYXJkEhYK",
+            "Dm5leHRfdHVybl9zZWF0GAMgASgFEhEKCW5ld19yb3VuZBgEIAEoCCJKCg9U",
+            "dXJuUGFzc2VkRXZlbnQSDAoEc2VhdBgBIAEoBRIWCg5uZXh0X3R1cm5fc2Vh",
+            "dBgCIAEoBRIRCgluZXdfcm91bmQYAyABKAgiLAoOR2FtZUVuZGVkRXZlbnQS",
+            "GgoSZmluaXNoX29yZGVyX3NlYXRzGAEgAygFIi8KDkdhbWVFcnJvckV2ZW50",
+            "EgwKBGNvZGUYASABKAUSDwoHbWVzc2FnZRgCIAEoCSpLCgRTdWl0Eg8KC1NV",
+            "SVRfU1BBREVTEAASDgoKU1VJVF9DTFVCUxABEhEKDVNVSVRfRElBTU9ORFMQ",
+            "AhIPCgtTVUlUX0hFQVJUUxADKskBCgRSYW5rEg4KClJBTktfVEhSRUUQABIN",
+            "CglSQU5LX0ZPVVIQARINCglSQU5LX0ZJVkUQAhIMCghSQU5LX1NJWBADEg4K",
+            "ClJBTktfU0VWRU4QBBIOCgpSQU5LX0VJR0hUEAUSDQoJUkFOS19OSU5FEAYS",
+            "DAoIUkFOS19URU4QBxINCglSQU5LX0pBQ0sQCBIOCgpSQU5LX1FVRUVOEAkS",
+            "DQoJUkFOS19LSU5HEAoSDAoIUkFOS19BQ0UQCxIMCghSQU5LX1RXTxAMKkUK",
+            "CUdhbWVQaGFzZRIRCg1QSEFTRV9XQUlUSU5HEAASEQoNUEhBU0VfUExBWUlO",
+            "RxABEhIKDlBIQVNFX0ZJTklTSEVEEAIqtgIKBk9wQ29kZRIXChNPUF9DT0RF",
+            "X1VOU1BFQ0lGSUVEEAASFgoST1BfQ09ERV9TVEFSVF9HQU1FEAESFgoST1Bf",
+            "Q09ERV9QTEFZX0NBUkRTEAISFQoRT1BfQ09ERV9QQVNTX1RVUk4QAxIcChhP",
+            "UF9DT0RFX1JFUVVFU1RfTkVXX0dBTUUQBBIZChVPUF9DT0RFX1BMQVlFUl9K",
+            "T0lORUQQMhIXChNPUF9DT0RFX1BMQVlFUl9MRUZUEDMSGAoUT1BfQ09ERV9H",
+            "QU1FX1NUQVJURUQQZBIXChNPUF9DT0RFX0NBUkRfUExBWUVEEGYSFwoTT1Bf",
+            "Q09ERV9UVVJOX1BBU1NFRBBnEhYKEk9QX0NPREVfR0FNRV9FTkRFRBBoEhYK",
+            "Ek9QX0NPREVfR0FNRV9FUlJPUhBpQhJaEHRpZW5sZW4vcHJvdG87cGJiBnBy",
+            "b3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -71,12 +72,12 @@ namespace Tienlen.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PassTurnRequest), global::Tienlen.V1.PassTurnRequest.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.RequestNewGameRequest), global::Tienlen.V1.RequestNewGameRequest.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerJoinedEvent), global::Tienlen.V1.PlayerJoinedEvent.Parser, new[]{ "Player" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerLeftEvent), global::Tienlen.V1.PlayerLeftEvent.Parser, new[]{ "UserId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerId", "Tick", "Players" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnUserId", "Phase", "Hand" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardPlayedEvent), global::Tienlen.V1.CardPlayedEvent.Parser, new[]{ "UserId", "Cards", "NextTurnUserId", "NewRound" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.TurnPassedEvent), global::Tienlen.V1.TurnPassedEvent.Parser, new[]{ "UserId", "NextTurnUserId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameEndedEvent), global::Tienlen.V1.GameEndedEvent.Parser, new[]{ "FinishOrder" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerLeftEvent), global::Tienlen.V1.PlayerLeftEvent.Parser, new[]{ "Seat", "UserId" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerSeat", "Tick", "Players" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnSeat", "Phase", "Hand" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardPlayedEvent), global::Tienlen.V1.CardPlayedEvent.Parser, new[]{ "Seat", "Cards", "NextTurnSeat", "NewRound" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.TurnPassedEvent), global::Tienlen.V1.TurnPassedEvent.Parser, new[]{ "Seat", "NextTurnSeat", "NewRound" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameEndedEvent), global::Tienlen.V1.GameEndedEvent.Parser, new[]{ "FinishOrderSeats" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameErrorEvent), global::Tienlen.V1.GameErrorEvent.Parser, new[]{ "Code", "Message" }, null, null, null, null)
           }));
     }
@@ -1664,6 +1665,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public PlayerLeftEvent(PlayerLeftEvent other) : this() {
+      seat_ = other.seat_;
       userId_ = other.userId_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -1674,8 +1676,23 @@ namespace Tienlen.V1 {
       return new PlayerLeftEvent(this);
     }
 
+    /// <summary>Field number for the "seat" field.</summary>
+    public const int SeatFieldNumber = 1;
+    private int seat_;
+    /// <summary>
+    /// 0-based index
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Seat {
+      get { return seat_; }
+      set {
+        seat_ = value;
+      }
+    }
+
     /// <summary>Field number for the "user_id" field.</summary>
-    public const int UserIdFieldNumber = 1;
+    public const int UserIdFieldNumber = 2;
     private string userId_ = "";
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
@@ -1701,6 +1718,7 @@ namespace Tienlen.V1 {
       if (ReferenceEquals(other, this)) {
         return true;
       }
+      if (Seat != other.Seat) return false;
       if (UserId != other.UserId) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -1709,6 +1727,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
+      if (Seat != 0) hash ^= Seat.GetHashCode();
       if (UserId.Length != 0) hash ^= UserId.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -1728,8 +1747,12 @@ namespace Tienlen.V1 {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
+      if (Seat != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Seat);
+      }
       if (UserId.Length != 0) {
-        output.WriteRawTag(10);
+        output.WriteRawTag(18);
         output.WriteString(UserId);
       }
       if (_unknownFields != null) {
@@ -1742,8 +1765,12 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      if (Seat != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Seat);
+      }
       if (UserId.Length != 0) {
-        output.WriteRawTag(10);
+        output.WriteRawTag(18);
         output.WriteString(UserId);
       }
       if (_unknownFields != null) {
@@ -1756,6 +1783,9 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
+      if (Seat != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Seat);
+      }
       if (UserId.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(UserId);
       }
@@ -1770,6 +1800,9 @@ namespace Tienlen.V1 {
     public void MergeFrom(PlayerLeftEvent other) {
       if (other == null) {
         return;
+      }
+      if (other.Seat != 0) {
+        Seat = other.Seat;
       }
       if (other.UserId.Length != 0) {
         UserId = other.UserId;
@@ -1793,7 +1826,11 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
+          case 8: {
+            Seat = input.ReadInt32();
+            break;
+          }
+          case 18: {
             UserId = input.ReadString();
             break;
           }
@@ -1816,7 +1853,11 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 10: {
+          case 8: {
+            Seat = input.ReadInt32();
+            break;
+          }
+          case 18: {
             UserId = input.ReadString();
             break;
           }
@@ -1866,7 +1907,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public MatchStateSnapshot(MatchStateSnapshot other) : this() {
       seats_ = other.seats_.Clone();
-      ownerId_ = other.ownerId_;
+      ownerSeat_ = other.ownerSeat_;
       tick_ = other.tick_;
       players_ = other.players_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -1889,15 +1930,18 @@ namespace Tienlen.V1 {
       get { return seats_; }
     }
 
-    /// <summary>Field number for the "owner_id" field.</summary>
-    public const int OwnerIdFieldNumber = 2;
-    private string ownerId_ = "";
+    /// <summary>Field number for the "owner_seat" field.</summary>
+    public const int OwnerSeatFieldNumber = 2;
+    private int ownerSeat_;
+    /// <summary>
+    /// 0-based index
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string OwnerId {
-      get { return ownerId_; }
+    public int OwnerSeat {
+      get { return ownerSeat_; }
       set {
-        ownerId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        ownerSeat_ = value;
       }
     }
 
@@ -1943,7 +1987,7 @@ namespace Tienlen.V1 {
         return true;
       }
       if(!seats_.Equals(other.seats_)) return false;
-      if (OwnerId != other.OwnerId) return false;
+      if (OwnerSeat != other.OwnerSeat) return false;
       if (Tick != other.Tick) return false;
       if(!players_.Equals(other.players_)) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -1954,7 +1998,7 @@ namespace Tienlen.V1 {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= seats_.GetHashCode();
-      if (OwnerId.Length != 0) hash ^= OwnerId.GetHashCode();
+      if (OwnerSeat != 0) hash ^= OwnerSeat.GetHashCode();
       if (Tick != 0L) hash ^= Tick.GetHashCode();
       hash ^= players_.GetHashCode();
       if (_unknownFields != null) {
@@ -1976,9 +2020,9 @@ namespace Tienlen.V1 {
       output.WriteRawMessage(this);
     #else
       seats_.WriteTo(output, _repeated_seats_codec);
-      if (OwnerId.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(OwnerId);
+      if (OwnerSeat != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(OwnerSeat);
       }
       if (Tick != 0L) {
         output.WriteRawTag(24);
@@ -1996,9 +2040,9 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
       seats_.WriteTo(ref output, _repeated_seats_codec);
-      if (OwnerId.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(OwnerId);
+      if (OwnerSeat != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(OwnerSeat);
       }
       if (Tick != 0L) {
         output.WriteRawTag(24);
@@ -2016,8 +2060,8 @@ namespace Tienlen.V1 {
     public int CalculateSize() {
       int size = 0;
       size += seats_.CalculateSize(_repeated_seats_codec);
-      if (OwnerId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(OwnerId);
+      if (OwnerSeat != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(OwnerSeat);
       }
       if (Tick != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(Tick);
@@ -2036,8 +2080,8 @@ namespace Tienlen.V1 {
         return;
       }
       seats_.Add(other.seats_);
-      if (other.OwnerId.Length != 0) {
-        OwnerId = other.OwnerId;
+      if (other.OwnerSeat != 0) {
+        OwnerSeat = other.OwnerSeat;
       }
       if (other.Tick != 0L) {
         Tick = other.Tick;
@@ -2066,8 +2110,8 @@ namespace Tienlen.V1 {
             seats_.AddEntriesFrom(input, _repeated_seats_codec);
             break;
           }
-          case 18: {
-            OwnerId = input.ReadString();
+          case 16: {
+            OwnerSeat = input.ReadInt32();
             break;
           }
           case 24: {
@@ -2101,8 +2145,8 @@ namespace Tienlen.V1 {
             seats_.AddEntriesFrom(ref input, _repeated_seats_codec);
             break;
           }
-          case 18: {
-            OwnerId = input.ReadString();
+          case 16: {
+            OwnerSeat = input.ReadInt32();
             break;
           }
           case 24: {
@@ -2155,7 +2199,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GameStartedEvent(GameStartedEvent other) : this() {
-      firstTurnUserId_ = other.firstTurnUserId_;
+      firstTurnSeat_ = other.firstTurnSeat_;
       phase_ = other.phase_;
       hand_ = other.hand_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
@@ -2167,15 +2211,18 @@ namespace Tienlen.V1 {
       return new GameStartedEvent(this);
     }
 
-    /// <summary>Field number for the "first_turn_user_id" field.</summary>
-    public const int FirstTurnUserIdFieldNumber = 1;
-    private string firstTurnUserId_ = "";
+    /// <summary>Field number for the "first_turn_seat" field.</summary>
+    public const int FirstTurnSeatFieldNumber = 1;
+    private int firstTurnSeat_;
+    /// <summary>
+    /// 0-based index
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string FirstTurnUserId {
-      get { return firstTurnUserId_; }
+    public int FirstTurnSeat {
+      get { return firstTurnSeat_; }
       set {
-        firstTurnUserId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        firstTurnSeat_ = value;
       }
     }
 
@@ -2217,7 +2264,7 @@ namespace Tienlen.V1 {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (FirstTurnUserId != other.FirstTurnUserId) return false;
+      if (FirstTurnSeat != other.FirstTurnSeat) return false;
       if (Phase != other.Phase) return false;
       if(!hand_.Equals(other.hand_)) return false;
       return Equals(_unknownFields, other._unknownFields);
@@ -2227,7 +2274,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (FirstTurnUserId.Length != 0) hash ^= FirstTurnUserId.GetHashCode();
+      if (FirstTurnSeat != 0) hash ^= FirstTurnSeat.GetHashCode();
       if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) hash ^= Phase.GetHashCode();
       hash ^= hand_.GetHashCode();
       if (_unknownFields != null) {
@@ -2248,9 +2295,9 @@ namespace Tienlen.V1 {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (FirstTurnUserId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(FirstTurnUserId);
+      if (FirstTurnSeat != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(FirstTurnSeat);
       }
       if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
         output.WriteRawTag(16);
@@ -2267,9 +2314,9 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (FirstTurnUserId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(FirstTurnUserId);
+      if (FirstTurnSeat != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(FirstTurnSeat);
       }
       if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
         output.WriteRawTag(16);
@@ -2286,8 +2333,8 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (FirstTurnUserId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(FirstTurnUserId);
+      if (FirstTurnSeat != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(FirstTurnSeat);
       }
       if (Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
         size += 1 + pb::CodedOutputStream.ComputeEnumSize((int) Phase);
@@ -2305,8 +2352,8 @@ namespace Tienlen.V1 {
       if (other == null) {
         return;
       }
-      if (other.FirstTurnUserId.Length != 0) {
-        FirstTurnUserId = other.FirstTurnUserId;
+      if (other.FirstTurnSeat != 0) {
+        FirstTurnSeat = other.FirstTurnSeat;
       }
       if (other.Phase != global::Tienlen.V1.GamePhase.PhaseWaiting) {
         Phase = other.Phase;
@@ -2331,8 +2378,8 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            FirstTurnUserId = input.ReadString();
+          case 8: {
+            FirstTurnSeat = input.ReadInt32();
             break;
           }
           case 16: {
@@ -2362,8 +2409,8 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 10: {
-            FirstTurnUserId = input.ReadString();
+          case 8: {
+            FirstTurnSeat = input.ReadInt32();
             break;
           }
           case 16: {
@@ -2416,9 +2463,9 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public CardPlayedEvent(CardPlayedEvent other) : this() {
-      userId_ = other.userId_;
+      seat_ = other.seat_;
       cards_ = other.cards_.Clone();
-      nextTurnUserId_ = other.nextTurnUserId_;
+      nextTurnSeat_ = other.nextTurnSeat_;
       newRound_ = other.newRound_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
@@ -2429,15 +2476,18 @@ namespace Tienlen.V1 {
       return new CardPlayedEvent(this);
     }
 
-    /// <summary>Field number for the "user_id" field.</summary>
-    public const int UserIdFieldNumber = 1;
-    private string userId_ = "";
+    /// <summary>Field number for the "seat" field.</summary>
+    public const int SeatFieldNumber = 1;
+    private int seat_;
+    /// <summary>
+    /// 0-based index
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string UserId {
-      get { return userId_; }
+    public int Seat {
+      get { return seat_; }
       set {
-        userId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        seat_ = value;
       }
     }
 
@@ -2452,18 +2502,18 @@ namespace Tienlen.V1 {
       get { return cards_; }
     }
 
-    /// <summary>Field number for the "next_turn_user_id" field.</summary>
-    public const int NextTurnUserIdFieldNumber = 3;
-    private string nextTurnUserId_ = "";
+    /// <summary>Field number for the "next_turn_seat" field.</summary>
+    public const int NextTurnSeatFieldNumber = 3;
+    private int nextTurnSeat_;
     /// <summary>
-    /// Inform everyone who goes next immediately
+    /// 0-based index
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string NextTurnUserId {
-      get { return nextTurnUserId_; }
+    public int NextTurnSeat {
+      get { return nextTurnSeat_; }
       set {
-        nextTurnUserId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        nextTurnSeat_ = value;
       }
     }
 
@@ -2497,9 +2547,9 @@ namespace Tienlen.V1 {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (UserId != other.UserId) return false;
+      if (Seat != other.Seat) return false;
       if(!cards_.Equals(other.cards_)) return false;
-      if (NextTurnUserId != other.NextTurnUserId) return false;
+      if (NextTurnSeat != other.NextTurnSeat) return false;
       if (NewRound != other.NewRound) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
@@ -2508,9 +2558,9 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (UserId.Length != 0) hash ^= UserId.GetHashCode();
+      if (Seat != 0) hash ^= Seat.GetHashCode();
       hash ^= cards_.GetHashCode();
-      if (NextTurnUserId.Length != 0) hash ^= NextTurnUserId.GetHashCode();
+      if (NextTurnSeat != 0) hash ^= NextTurnSeat.GetHashCode();
       if (NewRound != false) hash ^= NewRound.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
@@ -2530,14 +2580,14 @@ namespace Tienlen.V1 {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (UserId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(UserId);
+      if (Seat != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Seat);
       }
       cards_.WriteTo(output, _repeated_cards_codec);
-      if (NextTurnUserId.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(NextTurnUserId);
+      if (NextTurnSeat != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(NextTurnSeat);
       }
       if (NewRound != false) {
         output.WriteRawTag(32);
@@ -2553,14 +2603,14 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (UserId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(UserId);
+      if (Seat != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Seat);
       }
       cards_.WriteTo(ref output, _repeated_cards_codec);
-      if (NextTurnUserId.Length != 0) {
-        output.WriteRawTag(26);
-        output.WriteString(NextTurnUserId);
+      if (NextTurnSeat != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(NextTurnSeat);
       }
       if (NewRound != false) {
         output.WriteRawTag(32);
@@ -2576,12 +2626,12 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (UserId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(UserId);
+      if (Seat != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Seat);
       }
       size += cards_.CalculateSize(_repeated_cards_codec);
-      if (NextTurnUserId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(NextTurnUserId);
+      if (NextTurnSeat != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(NextTurnSeat);
       }
       if (NewRound != false) {
         size += 1 + 1;
@@ -2598,12 +2648,12 @@ namespace Tienlen.V1 {
       if (other == null) {
         return;
       }
-      if (other.UserId.Length != 0) {
-        UserId = other.UserId;
+      if (other.Seat != 0) {
+        Seat = other.Seat;
       }
       cards_.Add(other.cards_);
-      if (other.NextTurnUserId.Length != 0) {
-        NextTurnUserId = other.NextTurnUserId;
+      if (other.NextTurnSeat != 0) {
+        NextTurnSeat = other.NextTurnSeat;
       }
       if (other.NewRound != false) {
         NewRound = other.NewRound;
@@ -2627,16 +2677,16 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            UserId = input.ReadString();
+          case 8: {
+            Seat = input.ReadInt32();
             break;
           }
           case 18: {
             cards_.AddEntriesFrom(input, _repeated_cards_codec);
             break;
           }
-          case 26: {
-            NextTurnUserId = input.ReadString();
+          case 24: {
+            NextTurnSeat = input.ReadInt32();
             break;
           }
           case 32: {
@@ -2662,16 +2712,16 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 10: {
-            UserId = input.ReadString();
+          case 8: {
+            Seat = input.ReadInt32();
             break;
           }
           case 18: {
             cards_.AddEntriesFrom(ref input, _repeated_cards_codec);
             break;
           }
-          case 26: {
-            NextTurnUserId = input.ReadString();
+          case 24: {
+            NextTurnSeat = input.ReadInt32();
             break;
           }
           case 32: {
@@ -2720,8 +2770,9 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public TurnPassedEvent(TurnPassedEvent other) : this() {
-      userId_ = other.userId_;
-      nextTurnUserId_ = other.nextTurnUserId_;
+      seat_ = other.seat_;
+      nextTurnSeat_ = other.nextTurnSeat_;
+      newRound_ = other.newRound_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2731,27 +2782,48 @@ namespace Tienlen.V1 {
       return new TurnPassedEvent(this);
     }
 
-    /// <summary>Field number for the "user_id" field.</summary>
-    public const int UserIdFieldNumber = 1;
-    private string userId_ = "";
+    /// <summary>Field number for the "seat" field.</summary>
+    public const int SeatFieldNumber = 1;
+    private int seat_;
+    /// <summary>
+    /// 0-based index
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string UserId {
-      get { return userId_; }
+    public int Seat {
+      get { return seat_; }
       set {
-        userId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        seat_ = value;
       }
     }
 
-    /// <summary>Field number for the "next_turn_user_id" field.</summary>
-    public const int NextTurnUserIdFieldNumber = 2;
-    private string nextTurnUserId_ = "";
+    /// <summary>Field number for the "next_turn_seat" field.</summary>
+    public const int NextTurnSeatFieldNumber = 2;
+    private int nextTurnSeat_;
+    /// <summary>
+    /// 0-based index
+    /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public string NextTurnUserId {
-      get { return nextTurnUserId_; }
+    public int NextTurnSeat {
+      get { return nextTurnSeat_; }
       set {
-        nextTurnUserId_ = pb::ProtoPreconditions.CheckNotNull(value, "value");
+        nextTurnSeat_ = value;
+      }
+    }
+
+    /// <summary>Field number for the "new_round" field.</summary>
+    public const int NewRoundFieldNumber = 3;
+    private bool newRound_;
+    /// <summary>
+    /// True if this pass results in a round reset
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool NewRound {
+      get { return newRound_; }
+      set {
+        newRound_ = value;
       }
     }
 
@@ -2770,8 +2842,9 @@ namespace Tienlen.V1 {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if (UserId != other.UserId) return false;
-      if (NextTurnUserId != other.NextTurnUserId) return false;
+      if (Seat != other.Seat) return false;
+      if (NextTurnSeat != other.NextTurnSeat) return false;
+      if (NewRound != other.NewRound) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2779,8 +2852,9 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      if (UserId.Length != 0) hash ^= UserId.GetHashCode();
-      if (NextTurnUserId.Length != 0) hash ^= NextTurnUserId.GetHashCode();
+      if (Seat != 0) hash ^= Seat.GetHashCode();
+      if (NextTurnSeat != 0) hash ^= NextTurnSeat.GetHashCode();
+      if (NewRound != false) hash ^= NewRound.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2799,13 +2873,17 @@ namespace Tienlen.V1 {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      if (UserId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(UserId);
+      if (Seat != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Seat);
       }
-      if (NextTurnUserId.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(NextTurnUserId);
+      if (NextTurnSeat != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(NextTurnSeat);
+      }
+      if (NewRound != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(NewRound);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
@@ -2817,13 +2895,17 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      if (UserId.Length != 0) {
-        output.WriteRawTag(10);
-        output.WriteString(UserId);
+      if (Seat != 0) {
+        output.WriteRawTag(8);
+        output.WriteInt32(Seat);
       }
-      if (NextTurnUserId.Length != 0) {
-        output.WriteRawTag(18);
-        output.WriteString(NextTurnUserId);
+      if (NextTurnSeat != 0) {
+        output.WriteRawTag(16);
+        output.WriteInt32(NextTurnSeat);
+      }
+      if (NewRound != false) {
+        output.WriteRawTag(24);
+        output.WriteBool(NewRound);
       }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
@@ -2835,11 +2917,14 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      if (UserId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(UserId);
+      if (Seat != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Seat);
       }
-      if (NextTurnUserId.Length != 0) {
-        size += 1 + pb::CodedOutputStream.ComputeStringSize(NextTurnUserId);
+      if (NextTurnSeat != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(NextTurnSeat);
+      }
+      if (NewRound != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2853,11 +2938,14 @@ namespace Tienlen.V1 {
       if (other == null) {
         return;
       }
-      if (other.UserId.Length != 0) {
-        UserId = other.UserId;
+      if (other.Seat != 0) {
+        Seat = other.Seat;
       }
-      if (other.NextTurnUserId.Length != 0) {
-        NextTurnUserId = other.NextTurnUserId;
+      if (other.NextTurnSeat != 0) {
+        NextTurnSeat = other.NextTurnSeat;
+      }
+      if (other.NewRound != false) {
+        NewRound = other.NewRound;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -2878,12 +2966,16 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            UserId = input.ReadString();
+          case 8: {
+            Seat = input.ReadInt32();
             break;
           }
-          case 18: {
-            NextTurnUserId = input.ReadString();
+          case 16: {
+            NextTurnSeat = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            NewRound = input.ReadBool();
             break;
           }
         }
@@ -2905,12 +2997,16 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 10: {
-            UserId = input.ReadString();
+          case 8: {
+            Seat = input.ReadInt32();
             break;
           }
-          case 18: {
-            NextTurnUserId = input.ReadString();
+          case 16: {
+            NextTurnSeat = input.ReadInt32();
+            break;
+          }
+          case 24: {
+            NewRound = input.ReadBool();
             break;
           }
         }
@@ -2955,7 +3051,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GameEndedEvent(GameEndedEvent other) : this() {
-      finishOrder_ = other.finishOrder_.Clone();
+      finishOrderSeats_ = other.finishOrderSeats_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2965,18 +3061,18 @@ namespace Tienlen.V1 {
       return new GameEndedEvent(this);
     }
 
-    /// <summary>Field number for the "finish_order" field.</summary>
-    public const int FinishOrderFieldNumber = 1;
-    private static readonly pb::FieldCodec<string> _repeated_finishOrder_codec
-        = pb::FieldCodec.ForString(10);
-    private readonly pbc::RepeatedField<string> finishOrder_ = new pbc::RepeatedField<string>();
+    /// <summary>Field number for the "finish_order_seats" field.</summary>
+    public const int FinishOrderSeatsFieldNumber = 1;
+    private static readonly pb::FieldCodec<int> _repeated_finishOrderSeats_codec
+        = pb::FieldCodec.ForInt32(10);
+    private readonly pbc::RepeatedField<int> finishOrderSeats_ = new pbc::RepeatedField<int>();
     /// <summary>
-    /// UserIDs in rank order (1st, 2nd, 3rd...)
+    /// 0-based seat indices in rank order
     /// </summary>
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
-    public pbc::RepeatedField<string> FinishOrder {
-      get { return finishOrder_; }
+    public pbc::RepeatedField<int> FinishOrderSeats {
+      get { return finishOrderSeats_; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -2994,7 +3090,7 @@ namespace Tienlen.V1 {
       if (ReferenceEquals(other, this)) {
         return true;
       }
-      if(!finishOrder_.Equals(other.finishOrder_)) return false;
+      if(!finishOrderSeats_.Equals(other.finishOrderSeats_)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3002,7 +3098,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override int GetHashCode() {
       int hash = 1;
-      hash ^= finishOrder_.GetHashCode();
+      hash ^= finishOrderSeats_.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3021,7 +3117,7 @@ namespace Tienlen.V1 {
     #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       output.WriteRawMessage(this);
     #else
-      finishOrder_.WriteTo(output, _repeated_finishOrder_codec);
+      finishOrderSeats_.WriteTo(output, _repeated_finishOrderSeats_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3032,7 +3128,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
-      finishOrder_.WriteTo(ref output, _repeated_finishOrder_codec);
+      finishOrderSeats_.WriteTo(ref output, _repeated_finishOrderSeats_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -3043,7 +3139,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public int CalculateSize() {
       int size = 0;
-      size += finishOrder_.CalculateSize(_repeated_finishOrder_codec);
+      size += finishOrderSeats_.CalculateSize(_repeated_finishOrderSeats_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -3056,7 +3152,7 @@ namespace Tienlen.V1 {
       if (other == null) {
         return;
       }
-      finishOrder_.Add(other.finishOrder_);
+      finishOrderSeats_.Add(other.finishOrderSeats_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -3076,8 +3172,9 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
             break;
-          case 10: {
-            finishOrder_.AddEntriesFrom(input, _repeated_finishOrder_codec);
+          case 10:
+          case 8: {
+            finishOrderSeats_.AddEntriesFrom(input, _repeated_finishOrderSeats_codec);
             break;
           }
         }
@@ -3099,8 +3196,9 @@ namespace Tienlen.V1 {
           default:
             _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
             break;
-          case 10: {
-            finishOrder_.AddEntriesFrom(ref input, _repeated_finishOrder_codec);
+          case 10:
+          case 8: {
+            finishOrderSeats_.AddEntriesFrom(ref input, _repeated_finishOrderSeats_codec);
             break;
           }
         }
