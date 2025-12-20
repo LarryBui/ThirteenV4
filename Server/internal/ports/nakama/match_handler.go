@@ -37,6 +37,7 @@ type MatchState struct {
 	BotAutoFillDelay     int                         `json:"bot_auto_fill_delay"`    // Seconds to wait before auto-filling with bots
 	BotWaitUntil         int64                       `json:"bot_wait_until"`         // Tick when the bot should act
 	LastSinglePlayerTick int64                       `json:"last_single_player_tick"` // Tick when a single player started waiting
+	BotBrains            map[string]bot.Brain        `json:"-"`                       // AI Logic for each bot
 }
 
 func (ms *MatchState) GetOpenSeatsCount() int {
@@ -115,6 +116,7 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		App:            app.NewService(nil), // Initialize the app service
 		OwnerSeat:      -1,
 		LastWinnerSeat: -1,
+		BotBrains:      make(map[string]bot.Brain),
 	}
 
 	// Read environment variables for bot configuration
@@ -214,6 +216,7 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 			for i, seatUserId := range matchState.Seats {
 				if strings.HasPrefix(seatUserId, "bot:") {
 					logger.Info("MatchJoin: Replacing bot %s with human %s in seat %d", seatUserId, p.GetUserId(), i)
+					delete(matchState.BotBrains, seatUserId) // Cleanup AI
 					matchState.Seats[i] = p.GetUserId()
 					assigned = true
 					break
@@ -335,6 +338,14 @@ func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchD
 					if seat == "" {
 						botID := "bot:" + strconv.Itoa(i)
 						state.Seats[i] = botID
+						// Assign AI Brain (Default to Smart for now)
+						brain, err := bot.NewBrain(bot.BotLevelSmart)
+						if err != nil {
+							logger.Error("Failed to create bot brain: %v", err)
+						} else {
+							state.BotBrains[botID] = brain
+						}
+
 						logger.Info("processBots: Added bot %s to seat %d", botID, i)
 						added = true
 					}
@@ -367,7 +378,20 @@ func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchD
 
 			if state.Tick >= state.BotWaitUntil {
 				state.BotWaitUntil = 0 // Reset for next turn
-				move, err := bot.CalculateMove(state.Game, currentTurn)
+				
+				brain, exists := state.BotBrains[currentUserID]
+				if !exists {
+					// Fallback if brain missing (shouldn't happen for new bots)
+					var err error
+					brain, err = bot.NewBrain(bot.BotLevelSmart)
+					if err != nil {
+						logger.Error("processBots: Failed to create fallback brain: %v", err)
+						return
+					}
+					state.BotBrains[currentUserID] = brain
+				}
+
+				move, err := brain.CalculateMove(state.Game, currentTurn)
 				if err != nil {
 					logger.Error("processBots: Bot %s failed to calculate move: %v", currentUserID, err)
 					return
