@@ -5,7 +5,6 @@ import (
 	"database/sql"
 	"math/rand"
 	"strconv"
-	"strings"
 	"time"
 
 	"tienlen/internal/app"
@@ -38,6 +37,7 @@ type MatchState struct {
 	BotWaitUntil         int64                       `json:"bot_wait_until"`         // Tick when the bot should act
 	LastSinglePlayerTick int64                       `json:"last_single_player_tick"` // Tick when a single player started waiting
 	BotBrains            map[string]bot.Brain        `json:"-"`                       // AI Logic for each bot
+	BotUsernames         map[string]string           `json:"-"`                       // Fake usernames for bots
 }
 
 func (ms *MatchState) GetOpenSeatsCount() int {
@@ -72,7 +72,7 @@ func (ms *MatchState) GetHumanPlayerCount() int {
 
 // isBotUserId reports whether the given user id represents a bot seat.
 func isBotUserId(userId string) bool {
-	return strings.HasPrefix(userId, "bot:")
+	return bot.IsBot(userId)
 }
 
 // isHumanSeat reports whether the seat index belongs to a human player.
@@ -110,6 +110,11 @@ type matchHandler struct{}
 func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, params map[string]interface{}) (interface{}, int, string) {
 	logger.Debug("MatchInit: Initializing match handler.")
 
+	// Load bot identities from data folder
+	if err := bot.LoadIdentities("data/bot_identities.json"); err != nil {
+		logger.Warn("MatchInit: Could not load bot identities: %v", err)
+	}
+
 	state := &MatchState{
 		Tick:           time.Now().Unix(),
 		Presences:      make(map[string]runtime.Presence),
@@ -117,6 +122,7 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		OwnerSeat:      -1,
 		LastWinnerSeat: -1,
 		BotBrains:      make(map[string]bot.Brain),
+		BotUsernames:   make(map[string]string),
 	}
 
 	// Read environment variables for bot configuration
@@ -177,7 +183,7 @@ func (mh *matchHandler) MatchJoinAttempt(ctx context.Context, logger runtime.Log
 		hasBot := false
 		if matchState.Game == nil {
 			for _, seat := range matchState.Seats {
-				if strings.HasPrefix(seat, "bot:") {
+				if isBotUserId(seat) {
 					hasBot = true
 					break
 				}
@@ -214,9 +220,10 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 
 		if !assigned && matchState.Game == nil {
 			for i, seatUserId := range matchState.Seats {
-				if strings.HasPrefix(seatUserId, "bot:") {
+				if isBotUserId(seatUserId) {
 					logger.Info("MatchJoin: Replacing bot %s with human %s in seat %d", seatUserId, p.GetUserId(), i)
 					delete(matchState.BotBrains, seatUserId) // Cleanup AI
+					delete(matchState.BotUsernames, seatUserId)
 					matchState.Seats[i] = p.GetUserId()
 					assigned = true
 					break
@@ -336,8 +343,11 @@ func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchD
 				added := false
 				for i, seat := range state.Seats {
 					if seat == "" {
-						botID := "bot:" + strconv.Itoa(i)
+						identity := bot.GetBotIdentity(i)
+						botID := identity.UserID
 						state.Seats[i] = botID
+						state.BotUsernames[botID] = identity.Username
+
 						// Assign AI Brain (Default to Smart for now)
 						brain, err := bot.NewBrain(bot.BotLevelSmart)
 						if err != nil {
@@ -346,7 +356,7 @@ func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchD
 							state.BotBrains[botID] = brain
 						}
 
-						logger.Info("processBots: Added bot %s to seat %d", botID, i)
+						logger.Info("processBots: Added bot %s (%s) to seat %d", identity.Username, botID, i)
 						added = true
 					}
 				}
@@ -368,7 +378,7 @@ func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchD
 		currentTurn := state.Game.CurrentTurn
 		currentUserID := state.Seats[currentTurn]
 
-		if strings.HasPrefix(currentUserID, "bot:") {
+		if isBotUserId(currentUserID) {
 			if state.BotWaitUntil == 0 {
 				// Initialize random delay
 				delay := rand.Intn(state.BotMaxDelay-state.BotMinDelay+1) + state.BotMinDelay
@@ -430,8 +440,8 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 		displayName := userId
 		if p, exists := state.Presences[userId]; exists {
 			displayName = p.GetUsername()
-		} else if strings.HasPrefix(userId, "bot:") {
-			displayName = "AI Player " + userId[4:]
+		} else if name, exists := state.BotUsernames[userId]; exists {
+			displayName = name
 		}
 
 		cardsRemaining := 0

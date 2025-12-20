@@ -14,3 +14,4 @@ FROM heroiclabs/nakama:3.35.1
 
 COPY --from=builder /out/tienlen.so /nakama/data/modules/tienlen.so
 COPY local.yml /nakama/data/local.yml
+COPY data/bot_identities.json /nakama/data/bot_identities.json

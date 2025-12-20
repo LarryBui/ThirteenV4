@@ -2,13 +2,24 @@ package nakama
 
 import (
 	"testing"
+	"tienlen/internal/bot"
 
 	pb "tienlen/proto"
 
 	"google.golang.org/protobuf/encoding/protojson"
 )
 
+func init() {
+	// Load bot identities for testing.
+	if err := bot.LoadIdentities("../../../data/bot_identities.json"); err != nil {
+		panic("Failed to load bot identities for tests: " + err.Error())
+	}
+}
+
 func TestFindFirstHumanSeat(t *testing.T) {
+	bot1 := bot.GetBotIdentity(0).UserID
+	bot2 := bot.GetBotIdentity(1).UserID
+
 	tests := []struct {
 		name  string
 		seats []string
@@ -16,12 +27,12 @@ func TestFindFirstHumanSeat(t *testing.T) {
 	}{
 		{
 			name:  "FirstHumanAfterBot",
-			seats: []string{"bot:0", "user-1", "", ""},
+			seats: []string{bot1, "user-1", "", ""},
 			want:  1,
 		},
 		{
 			name:  "AllBots",
-			seats: []string{"bot:0", "bot:1", "", ""},
+			seats: []string{bot1, bot2, "", ""},
 			want:  -1,
 		},
 		{
@@ -31,7 +42,7 @@ func TestFindFirstHumanSeat(t *testing.T) {
 		},
 		{
 			name:  "FirstHumanIsSeatZero",
-			seats: []string{"user-1", "bot:1", "user-2", ""},
+			seats: []string{"user-1", bot1, "user-2", ""},
 			want:  0,
 		},
 	}
@@ -47,6 +58,11 @@ func TestFindFirstHumanSeat(t *testing.T) {
 }
 
 func TestShouldTerminateNoHumans(t *testing.T) {
+	bot1 := bot.GetBotIdentity(0).UserID
+	bot2 := bot.GetBotIdentity(1).UserID
+	bot3 := bot.GetBotIdentity(2).UserID
+	bot4 := bot.GetBotIdentity(3).UserID
+
 	tests := []struct {
 		name  string
 		seats []string
@@ -54,17 +70,17 @@ func TestShouldTerminateNoHumans(t *testing.T) {
 	}{
 		{
 			name:  "BotsOnly",
-			seats: []string{"bot:0", "bot:1", "bot:2", "bot:3"},
+			seats: []string{bot1, bot2, bot3, bot4},
 			want:  true,
 		},
 		{
 			name:  "BotsAndEmpty",
-			seats: []string{"bot:0", "", "bot:2", ""},
+			seats: []string{bot1, "", bot3, ""},
 			want:  true,
 		},
 		{
 			name:  "HumansPresent",
-			seats: []string{"bot:0", "user-1", "", ""},
+			seats: []string{bot1, "user-1", "", ""},
 			want:  false,
 		},
 		{
