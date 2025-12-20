@@ -40,6 +40,40 @@ namespace TienLen.Presentation.GameRoomScreen
         public IReadOnlyList<Card> SelectedCards => _selectedCards;
 
         /// <summary>
+        /// Snapshot of a selected card's UI state for transient animations.
+        /// </summary>
+        public sealed class SelectedCardSnapshot
+        {
+            /// <summary>
+            /// Domain card represented by the visual.
+            /// </summary>
+            public Card Card { get; }
+
+            /// <summary>
+            /// RectTransform associated with the selected card.
+            /// </summary>
+            public RectTransform Rect { get; }
+
+            /// <summary>
+            /// World position captured at snapshot time.
+            /// </summary>
+            public Vector3 WorldPosition { get; }
+
+            /// <summary>
+            /// Local scale captured at snapshot time.
+            /// </summary>
+            public Vector3 LocalScale { get; }
+
+            public SelectedCardSnapshot(Card card, RectTransform rect, Vector3 worldPosition, Vector3 localScale)
+            {
+                Card = card;
+                Rect = rect;
+                WorldPosition = worldPosition;
+                LocalScale = localScale;
+            }
+        }
+
+        /// <summary>
         /// Clears the current selection and animates any selected cards back to their base positions.
         /// </summary>
         public void ClearSelection()
@@ -66,6 +100,69 @@ namespace TienLen.Presentation.GameRoomScreen
             SelectionChanged?.Invoke(_selectedCards);
         }
 
+        /// <summary>
+        /// Captures the currently selected cards and their UI transforms in hand order.
+        /// </summary>
+        /// <param name="snapshots">Snapshot list of selected cards.</param>
+        /// <returns>True if at least one selected card was captured.</returns>
+        public bool TryGetSelectedCardSnapshots(out IReadOnlyList<SelectedCardSnapshot> snapshots)
+        {
+            if (_handCards.Count == 0)
+            {
+                snapshots = Array.Empty<SelectedCardSnapshot>();
+                return false;
+            }
+
+            var result = new List<SelectedCardSnapshot>();
+            foreach (var entry in _handCards)
+            {
+                if (entry == null || !entry.IsSelected) continue;
+                if (entry.Rect == null) continue;
+
+                var rect = entry.Rect;
+                result.Add(new SelectedCardSnapshot(entry.Card, rect, rect.position, rect.localScale));
+            }
+
+            snapshots = result;
+            return result.Count > 0;
+        }
+
+        /// <summary>
+        /// Temporarily hides selected card visuals without changing hand layout.
+        /// </summary>
+        public void HideSelectedCards()
+        {
+            if (_handCards.Count == 0) return;
+
+            foreach (var entry in _handCards)
+            {
+                if (entry == null || !entry.IsSelected) continue;
+                if (entry.Rect == null) continue;
+
+                var cardObject = entry.Rect.gameObject;
+                if (!cardObject.activeSelf) continue;
+
+                cardObject.SetActive(false);
+                _hiddenSelectedCards.Add(entry.Rect);
+            }
+        }
+
+        /// <summary>
+        /// Restores visibility for any cards hidden by <see cref="HideSelectedCards"/>.
+        /// </summary>
+        public void ShowHiddenSelectedCards()
+        {
+            if (_hiddenSelectedCards.Count == 0) return;
+
+            foreach (var rect in _hiddenSelectedCards)
+            {
+                if (rect == null) continue;
+                rect.gameObject.SetActive(true);
+            }
+
+            _hiddenSelectedCards.Clear();
+        }
+
         private sealed class HandCardEntry
         {
             public Card Card { get; }
@@ -85,6 +182,7 @@ namespace TienLen.Presentation.GameRoomScreen
         private readonly System.Collections.Generic.List<RectTransform> _spawnedCardRects = new();
         private readonly System.Collections.Generic.List<HandCardEntry> _handCards = new();
         private readonly System.Collections.Generic.List<Card> _selectedCards = new();
+        private readonly HashSet<RectTransform> _hiddenSelectedCards = new();
 
         private IReadOnlyList<Card> _cardsToReveal = Array.Empty<Card>();
         private int _nextRevealIndex;
@@ -228,6 +326,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _nextRevealIndex = 0;
 
             _selectedCards.Clear();
+            _hiddenSelectedCards.Clear();
             SelectionChanged?.Invoke(_selectedCards);
         }
 

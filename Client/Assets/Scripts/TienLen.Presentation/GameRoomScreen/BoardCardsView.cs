@@ -34,6 +34,21 @@ namespace TienLen.Presentation.GameRoomScreen
         private readonly List<RectTransform> _spawnedCards = new();
 
         /// <summary>
+        /// Prefab used for each board card.
+        /// </summary>
+        public GameObject CardPrefab => _cardPrefab;
+
+        /// <summary>
+        /// Anchor used as the center of the board layout.
+        /// </summary>
+        public RectTransform BoardAnchor => _boardAnchor;
+
+        /// <summary>
+        /// Optional parent used to render board cards.
+        /// </summary>
+        public Transform UiParent => _uiParent;
+
+        /// <summary>
         /// Sets runtime references when the view is created dynamically.
         /// </summary>
         /// <param name="cardPrefab">Prefab used for each board card.</param>
@@ -44,6 +59,32 @@ namespace TienLen.Presentation.GameRoomScreen
             _cardPrefab = cardPrefab;
             _boardAnchor = boardAnchor;
             _uiParent = uiParent;
+        }
+
+        /// <summary>
+        /// Computes the world position for a card at the specified index within the board layout.
+        /// </summary>
+        /// <param name="cardIndex">Zero-based index within the combo.</param>
+        /// <param name="totalCards">Total cards in the combo.</param>
+        public Vector3 GetTargetWorldPosition(int cardIndex, int totalCards)
+        {
+            if (_boardAnchor == null) return Vector3.zero;
+            if (totalCards <= 0) return _boardAnchor.position;
+
+            var offsetFromCenter = cardIndex - ((totalCards - 1) / 2f);
+            var axis = _boardAnchor.right;
+            return _boardAnchor.position + (axis * (offsetFromCenter * _cardSpacing));
+        }
+
+        /// <summary>
+        /// Computes the uniform scale applied to board cards for the given count.
+        /// </summary>
+        /// <param name="cardCount">Number of cards in the combo.</param>
+        public float GetScaleForCount(int cardCount)
+        {
+            if (cardCount <= _scaleDownThreshold) return 1f;
+            var reduction = (cardCount - _scaleDownThreshold) * _scaleStep;
+            return Mathf.Max(_minScale, 1f - reduction);
         }
 
         /// <summary>
@@ -58,7 +99,7 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_cardPrefab == null || _boardAnchor == null) return;
 
             var parent = _uiParent != null ? _uiParent : _boardAnchor.transform;
-            var scale = ComputeScale(cards.Count);
+            var scale = GetScaleForCount(cards.Count);
 
             for (int i = 0; i < cards.Count; i++)
             {
@@ -116,22 +157,6 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             _spawnedCards.Clear();
-        }
-
-        private Vector3 GetTargetWorldPosition(int cardIndex, int totalCards)
-        {
-            if (totalCards <= 0) return _boardAnchor.position;
-
-            var offsetFromCenter = cardIndex - ((totalCards - 1) / 2f);
-            var axis = _boardAnchor != null ? _boardAnchor.right : Vector3.right;
-            return _boardAnchor.position + (axis * (offsetFromCenter * _cardSpacing));
-        }
-
-        private float ComputeScale(int cardCount)
-        {
-            if (cardCount <= _scaleDownThreshold) return 1f;
-            var reduction = (cardCount - _scaleDownThreshold) * _scaleStep;
-            return Mathf.Max(_minScale, 1f - reduction);
         }
 
         private static void ApplyCardVisual(GameObject cardObject, Card card)

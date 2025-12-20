@@ -38,6 +38,11 @@ namespace TienLen.Application
         /// </summary>
         public event Action<int, bool> GameBoardUpdated;
 
+        /// <summary>
+        /// Raised when the server reports a gameplay error (e.g., invalid play).
+        /// </summary>
+        public event Action<int, string> GameErrorReceived;
+
         public TienLenMatchHandler(IMatchNetworkClient networkClient, IAuthenticationService authService, IGameSessionContext gameSessionContext)
         {
             _networkClient = networkClient;
@@ -168,6 +173,7 @@ namespace TienLen.Application
             _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
             _networkClient.OnTurnPassed += HandleTurnPassed;
             _networkClient.OnGameEnded += HandleGameEnded;
+            _networkClient.OnGameError += HandleGameError;
         }
 
         private void UnsubscribeFromNetworkEvents()
@@ -177,6 +183,7 @@ namespace TienLen.Application
             _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
             _networkClient.OnTurnPassed -= HandleTurnPassed;
             _networkClient.OnGameEnded -= HandleGameEnded;
+            _networkClient.OnGameError -= HandleGameError;
         }
 
         private void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound)
@@ -204,6 +211,12 @@ namespace TienLen.Application
             CurrentMatch.Phase = "Lobby";
             // TODO: Process finish order seats
             GameRoomStateUpdated?.Invoke();
+        }
+
+        private void HandleGameError(int code, string message)
+        {
+            Debug.LogWarning($"MatchHandler: Game error received. code={code}, message={message}");
+            GameErrorReceived?.Invoke(code, message);
         }
 
         private void HandleCardsPlayed(int seat, List<Card> cards, int nextTurnSeat, bool newRound)

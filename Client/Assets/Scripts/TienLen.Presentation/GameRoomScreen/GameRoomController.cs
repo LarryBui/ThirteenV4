@@ -40,10 +40,14 @@ namespace TienLen.Presentation.GameRoomScreen
 
         [Header("Board")]
         [SerializeField] private BoardCardsView _boardCardsView;
+        [Tooltip("Animates local played cards flying to the board.")]
+        [SerializeField] private PlayedCardsAnimator _playedCardsAnimator;
 
         private TienLenMatchHandler _matchHandler;
         private LocalHandView _localHandView;
         private bool _isLeaving;
+        // Monotonic counter for tracking optimistic play animations.
+        private int _pendingPlayToken;
 
         [Inject]
         public void Construct(TienLenMatchHandler matchHandler)
@@ -67,6 +71,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.GameRoomStateUpdated += HandleGameRoomStateUpdated;
             _matchHandler.GameStarted += HandleGameStarted;
             _matchHandler.GameBoardUpdated += HandleGameBoardUpdated;
+            _matchHandler.GameErrorReceived += HandleGameError;
 
             // Render current state once in case the initial snapshot arrived before this scene loaded.
             RefreshGameRoomUI();
@@ -87,6 +92,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 _matchHandler.GameRoomStateUpdated -= HandleGameRoomStateUpdated;
                 _matchHandler.GameStarted -= HandleGameStarted;
                 _matchHandler.GameBoardUpdated -= HandleGameBoardUpdated;
+                _matchHandler.GameErrorReceived -= HandleGameError;
             }
 
             if (_cardDealer != null)
@@ -128,6 +134,14 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 _boardCardsView?.PlayNewRoundFade();
             }
+        }
+
+        private void HandleGameError(int code, string message)
+        {
+            if (_isLeaving) return;
+            _playedCardsAnimator?.CancelActiveAnimations();
+            _localHandView?.ShowHiddenSelectedCards();
+            Debug.LogWarning($"GameRoomController: Game error received. code={code}, message={message}");
         }
 
         private void HandleGameRoomStateUpdated()
@@ -312,6 +326,8 @@ namespace TienLen.Presentation.GameRoomScreen
 
             if (selectedCount > 0 && _matchHandler != null)
             {
+                TryAnimateSelectedCards();
+
                 // Create a copy list for the async call
                 var cardsToSend = new List<Card>(selectedCards);
                 _matchHandler.PlayCardsAsync(cardsToSend).Forget();
@@ -481,6 +497,31 @@ namespace TienLen.Presentation.GameRoomScreen
             localHandView.BeginReveal(localHandCards);
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
+        }
+
+        private void TryAnimateSelectedCards()
+        {
+            var animator = _playedCardsAnimator ?? GetComponentInChildren<PlayedCardsAnimator>(includeInactive: true);
+            if (animator == null) return;
+            if (_localHandView == null) return;
+
+            if (!_localHandView.TryGetSelectedCardSnapshots(out var snapshots)) return;
+
+            var cards = new List<Card>(snapshots.Count);
+            var rects = new List<RectTransform>(snapshots.Count);
+            foreach (var snapshot in snapshots)
+            {
+                if (snapshot == null || snapshot.Rect == null) continue;
+                cards.Add(snapshot.Card);
+                rects.Add(snapshot.Rect);
+            }
+
+            if (cards.Count == 0 || rects.Count == 0) return;
+            if (cards.Count != rects.Count) return;
+
+            _pendingPlayToken++;
+            _localHandView.HideSelectedCards();
+            animator.AnimatePlay(cards, rects).Forget();
         }
 
         private bool TryGetLocalHand(Match match, out IReadOnlyList<Card> cards)

@@ -1474,6 +1474,7 @@ GameObject:
   - component: {fileID: 1130013620}
   - component: {fileID: 1130013619}
   - component: {fileID: 1130013621}
+  - component: {fileID: 1130013622}
   m_Layer: 0
   m_Name: GameRoomController
   m_TagString: Untagged
@@ -1504,6 +1505,7 @@ MonoBehaviour:
   opponentProfile_2: {fileID: 778642234}
   opponentProfile_3: {fileID: 1640944418}
   _boardCardsView: {fileID: 1700000002}
+  _playedCardsAnimator: {fileID: 1130013622}
 --- !u!4 &1130013620
 Transform:
   m_ObjectHideFlags: 0
@@ -1540,6 +1542,31 @@ MonoBehaviour:
   - {fileID: 1212860438}
   _poolSize: 16
   _cardFlightDuration: 0.5
+--- !u!114 &1130013622
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1130013617}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c4a7c772b06d4d7a9a3f5b6a2c8f3d1e, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _boardCardsView: {fileID: 1700000002}
+  _cardPrefab: {fileID: 0}
+  _boardAnchor: {fileID: 0}
+  _uiParent: {fileID: 0}
+  _cardSpacing: 40
+  _scaleDownThreshold: 6
+  _scaleStep: 0.05
+  _minScale: 0.6
+  _flightSeconds: 0.3
+  _staggerSeconds: 0.03
+  _arcHeight: 24
+  _disableRaycasts: 1
+  _poolSize: 12
 --- !u!1 &1212860437
 GameObject:
   m_ObjectHideFlags: 0
