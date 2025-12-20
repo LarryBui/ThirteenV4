@@ -15,6 +15,8 @@ import (
 // Payload: (Optional) Unused for now.
 // Returns: String containing the Match ID.
 func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, payload string) (string, error) {
+	userId, _ := ctx.Value(runtime.RUNTIME_CTX_USER_ID).(string)
+
 	// 1. Search for matches with at least 1 open seat.
 	// Query syntax: "+label.open:>=1"
 	// +label.open means we are filtering on the "open" key in the JSON label.
@@ -27,14 +29,14 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 	
 	matches, err := nk.MatchList(ctx, limit, authoritative, "", &minSize, &maxSize, labelQuery)
 	if err != nil {
-		logger.Error("RpcFindMatch: Failed to list matches: %v", err)
+		logger.Error("RpcFindMatch [User:%s]: Failed to list matches: %v", userId, err)
 		return "", err
 	}
 
 	// 2. If a match is found, return its ID.
 	if len(matches) > 0 {
 		matchId := matches[0].MatchId
-		logger.Info("RpcFindMatch: Found existing match %s", matchId)
+		logger.Info("RpcFindMatch [User:%s]: Found existing match %s", userId, matchId)
 		return matchId, nil
 	}
 
@@ -42,10 +44,10 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 	moduleName := "tienlen_match" // Must match the name registered in InitModule
 	matchId, err := nk.MatchCreate(ctx, moduleName, nil)
 	if err != nil {
-		logger.Error("RpcFindMatch: Failed to create match: %v", err)
+		logger.Error("RpcFindMatch [User:%s]: Failed to create match: %v", userId, err)
 		return "", err
 	}
 
-	logger.Info("RpcFindMatch: Created new match %s", matchId)
+	logger.Info("RpcFindMatch [User:%s]: Created new match %s", userId, matchId)
 	return matchId, nil
 }
