@@ -7,6 +7,7 @@ namespace TienLen.Presentation.GameRoomScreen
 {
     public class CardDealer : MonoBehaviour
     {
+        private const int PoolGrowBatchSize = 4;
         /// <summary>
         /// Raised when a dealt card reaches a player anchor (0=South, 1=West, 2=North, 3=East).
         /// Use this to synchronize persistent UI (e.g., revealing the local player's hand) with the
@@ -27,6 +28,7 @@ namespace TienLen.Presentation.GameRoomScreen
         [Header("Settings")]
         [SerializeField] private int _poolSize = 16;
         [SerializeField] private float _cardFlightDuration = 0.5f; // Time for one card to fly from deck to player
+        [SerializeField] private float _dealSecondsPerCard = 0.04f; // Delay between each dealt card.
 
         private Queue<GameObject> _cardPool = new Queue<GameObject>();
 
@@ -47,12 +49,20 @@ namespace TienLen.Presentation.GameRoomScreen
             // Prefer the deck anchor as the parent when available so the spawned visuals render correctly.
             var poolParent = _deckAnchor != null ? _deckAnchor.transform : transform;
 
-            for (int i = 0; i < _poolSize; i++)
+            if (!ReplenishPool(_poolSize, poolParent))
             {
-                GameObject card = Instantiate(_cardPrefab, poolParent);
-                card.SetActive(false);
-                _cardPool.Enqueue(card);
+                return;
             }
+        }
+
+        /// <summary>
+        /// Animates the dealing of cards from the deck to each player's anchor
+        /// using the configured per-card delay.
+        /// </summary>
+        /// <param name="totalCardsToDeal">Total number of cards to animate (e.g., 52 for a full deck).</param>
+        public UniTask AnimateDeal(int totalCardsToDeal)
+        {
+            return AnimateDealWithDelay(totalCardsToDeal, _dealSecondsPerCard);
         }
 
         /// <summary>
@@ -60,13 +70,14 @@ namespace TienLen.Presentation.GameRoomScreen
         /// </summary>
         /// <param name="totalCardsToDeal">Total number of cards to animate (e.g., 52 for a full deck).</param>
         /// <param name="totalAnimationDuration">Total time the entire dealing animation should take.</param>
-        public async UniTask AnimateDeal(int totalCardsToDeal, float totalAnimationDuration)
+        public UniTask AnimateDeal(int totalCardsToDeal, float totalAnimationDuration)
         {
-            if (_cardPool.Count == 0)
-            {
-                Debug.LogError("CardDealer: Card pool is empty. Cannot animate deal.");
-                return;
-            }
+            float delayPerCard = totalCardsToDeal > 0 ? totalAnimationDuration / totalCardsToDeal : 0f;
+            return AnimateDealWithDelay(totalCardsToDeal, delayPerCard);
+        }
+
+        private async UniTask AnimateDealWithDelay(int totalCardsToDeal, float delayPerCard)
+        {
             if (_playerAnchors == null || _playerAnchors.Length != 4)
             {
                 Debug.LogError("CardDealer: Player anchors not correctly assigned or not 4 players.");
@@ -77,10 +88,23 @@ namespace TienLen.Presentation.GameRoomScreen
                 Debug.LogError("CardDealer: Deck anchor is not assigned.");
                 return;
             }
+            if (totalCardsToDeal <= 0)
+            {
+                Debug.LogWarning("CardDealer: Total cards to deal must be greater than zero.");
+                return;
+            }
 
-            // Calculate the delay between each card being dealt.
-            float delayPerCard = totalAnimationDuration / totalCardsToDeal;
-            
+            delayPerCard = Mathf.Max(0f, delayPerCard);
+
+            if (_cardPool.Count == 0)
+            {
+                if (!ReplenishPool(PoolGrowBatchSize, _deckAnchor.transform))
+                {
+                    Debug.LogError("CardDealer: Card pool is empty. Cannot animate deal.");
+                    return;
+                }
+            }
+
             // Cards are dealt in a round-robin fashion, so currentCard will determine which player receives it.
             int currentCardIndex = 0;
 
@@ -89,8 +113,11 @@ namespace TienLen.Presentation.GameRoomScreen
                 // Ensure we have a card available in the pool
                 if (_cardPool.Count == 0)
                 {
-                    Debug.LogWarning("CardDealer: Card pool exhausted during animation. Some cards may not be dealt visually.");
-                    break;
+                    if (!ReplenishPool(PoolGrowBatchSize, _deckAnchor.transform))
+                    {
+                        Debug.LogWarning("CardDealer: Card pool exhausted during animation. Some cards may not be dealt visually.");
+                        break;
+                    }
                 }
 
                 GameObject flyingCard = _cardPool.Dequeue();
@@ -112,6 +139,35 @@ namespace TienLen.Presentation.GameRoomScreen
                 // Wait for the calculated delay before dealing the next card.
                 await UniTask.Delay(TimeSpan.FromSeconds(delayPerCard));
             }
+        }
+
+        /// <summary>
+        /// Instantiates a new card, disables it, and returns it for pooling.
+        /// </summary>
+        /// <param name="poolParent">Transform used to parent the pooled card.</param>
+        private GameObject CreatePooledCard(Transform poolParent)
+        {
+            if (_cardPrefab == null)
+            {
+                Debug.LogError("CardDealer: Card Prefab is not assigned.");
+                return null;
+            }
+
+            var card = Instantiate(_cardPrefab, poolParent);
+            card.SetActive(false);
+            return card;
+        }
+
+        private bool ReplenishPool(int count, Transform poolParent)
+        {
+            for (int i = 0; i < count; i++)
+            {
+                var card = CreatePooledCard(poolParent);
+                if (card == null) return false;
+                _cardPool.Enqueue(card);
+            }
+
+            return true;
         }
 
         private async UniTask AnimateCardMovement(RectTransform cardRect, Vector3 targetPosition, int playerIndex)

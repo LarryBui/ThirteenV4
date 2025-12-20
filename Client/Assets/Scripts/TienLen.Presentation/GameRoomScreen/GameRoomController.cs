@@ -102,8 +102,8 @@ namespace TienLen.Presentation.GameRoomScreen
             }
             PrepareLocalHandReveal();
 
-            // 52 cards, 2.0 seconds duration
-            _cardDealer.AnimateDeal(52, 2.0f).Forget();
+            // 52 cards, per-card delay configured on the CardDealer.
+            _cardDealer.AnimateDeal(52).Forget();
 
             UpdateStartGameButtonState();
             UpdatePlayButtonState();

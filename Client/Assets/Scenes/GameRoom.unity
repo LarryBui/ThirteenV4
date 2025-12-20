@@ -1537,8 +1537,8 @@ MonoBehaviour:
   - {fileID: 166385697}
   - {fileID: 355377109}
   - {fileID: 1212860438}
-  _poolSize: 52
-  _cardFlightDuration: 0.4
+  _poolSize: 16
+  _cardFlightDuration: 0.5
 --- !u!1 &1212860437
 GameObject:
   m_ObjectHideFlags: 0
