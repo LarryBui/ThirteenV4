@@ -40,7 +40,7 @@ func TestFindFirstHumanSeat(t *testing.T) {
 	}
 }
 
-func TestShouldTerminateAllBots(t *testing.T) {
+func TestShouldTerminateNoHumans(t *testing.T) {
 	tests := []struct {
 		name  string
 		seats []string
@@ -64,15 +64,15 @@ func TestShouldTerminateAllBots(t *testing.T) {
 		{
 			name:  "AllEmpty",
 			seats: []string{"", "", "", ""},
-			want:  false,
+			want:  true,
 		},
 	}
 
 	for _, test := range tests {
 		test := test
 		t.Run(test.name, func(t *testing.T) {
-			if got := shouldTerminateAllBots(test.seats); got != test.want {
-				t.Fatalf("shouldTerminateAllBots() = %t, want %t", got, test.want)
+			if got := shouldTerminateNoHumans(test.seats); got != test.want {
+				t.Fatalf("shouldTerminateNoHumans() = %t, want %t", got, test.want)
 			}
 		})
 	}

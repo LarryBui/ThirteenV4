@@ -93,17 +93,9 @@ func findFirstHumanSeat(seats []string) int {
 	return -1
 }
 
-// shouldTerminateAllBots returns true when there are no humans and at least one bot seat.
-func shouldTerminateAllBots(seats []string) bool {
-	if findFirstHumanSeat(seats) != -1 {
-		return false
-	}
-	for _, userId := range seats {
-		if isBotUserId(userId) {
-			return true
-		}
-	}
-	return false
+// shouldTerminateNoHumans returns true when there are no humans in the match.
+func shouldTerminateNoHumans(seats []string) bool {
+	return findFirstHumanSeat(seats) == -1
 }
 
 // NewMatch is the factory function registered with Nakama.
@@ -286,8 +278,8 @@ func (mh *matchHandler) MatchLeave(ctx context.Context, logger runtime.Logger, d
 		}
 	}
 
-	if shouldTerminateAllBots(matchState.Seats[:]) {
-		logger.Info("MatchLeave: Terminating match with bots only.")
+	if shouldTerminateNoHumans(matchState.Seats[:]) {
+		logger.Info("MatchLeave: Terminating match with no humans.")
 		return nil
 	}
 
@@ -528,7 +520,16 @@ func (mh *matchHandler) handlePlayCards(state *MatchState, dispatcher runtime.Ma
 	// Call app service
 	events, err := state.App.PlayCards(state.Game, senderSeat, domainCards)
 	if err != nil {
-		logger.Warn("handlePlayCards: User %s (seat %d) failed to play cards: %v", senderID, senderSeat, err)
+		var hand []domain.Card
+		if state.Game != nil {
+			for _, p := range state.Game.Players {
+				if p.Seat-1 == senderSeat {
+					hand = p.Hand
+					break
+				}
+			}
+		}
+		logger.Warn("handlePlayCards: User %s (seat %d) failed to play cards: %v. Requested: %+v, Hand: %+v", senderID, senderSeat, err, domainCards, hand)
 		return
 	}
 
@@ -576,6 +577,10 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		opCode = int64(pb.OpCode_OP_CODE_GAME_STARTED)
 		p := ev.Payload.(app.GameStartedPayload)
 		logger.Debug("Event: game_started (firstTurnSeat=%d, handCount=%d, recipients=%d)", p.FirstTurnSeat, len(p.Hand), len(ev.Recipients))
+		// Log the hand being sent to the specific user
+		if len(ev.Recipients) > 0 {
+			logger.Info("StartGame: Dealing to %s: %+v", ev.Recipients[0], p.Hand)
+		}
 		payload = &pb.GameStartedEvent{
 			Phase:         pb.GamePhase_PHASE_PLAYING,
 			FirstTurnSeat: int32(p.FirstTurnSeat),
