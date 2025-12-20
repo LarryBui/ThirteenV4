@@ -1,7 +1,9 @@
 using System;
 using TienLen.Application;
+using TienLen.Application.Logging;
 using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
+using TienLen.Infrastructure.Logging;
 using TienLen.Infrastructure.Match;
 using TienLen.Infrastructure.Services;
 using TienLen.Presentation.BootstrapScreen; // Needed for BootstrapUIController
@@ -39,6 +41,10 @@ namespace TienLen.Global
             // Register Session Context
             builder.Register<GameSessionContext>(Lifetime.Singleton)
                 .As<IGameSessionContext>();
+
+            // Register Logging
+            builder.Register<ZLoggerService>(Lifetime.Singleton)
+                .As<ILoggingService>();
 
             // Register Auth Service as interface and self
             builder.Register<NakamaAuthenticationService>(Lifetime.Singleton)

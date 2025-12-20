@@ -1,6 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
 using TienLen.Application; // Updated
+using TienLen.Application.Logging;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -17,12 +18,14 @@ namespace TienLen.Presentation.BootstrapScreen
 
         private IAuthenticationService _authService;
         private LifetimeScope _parentLifetimeScope; // Inject the current scope
+        private ILoggingService _loggingService;
 
         [Inject]
-        public void Construct(IAuthenticationService authService, LifetimeScope parentLifetimeScope)
+        public void Construct(IAuthenticationService authService, LifetimeScope parentLifetimeScope, ILoggingService loggingService)
         {
             _authService = authService;
             _parentLifetimeScope = parentLifetimeScope; // Store the parent scope
+            _loggingService = loggingService;
         }
 
         private void Start()

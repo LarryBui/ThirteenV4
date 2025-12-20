@@ -7,6 +7,13 @@
       "dependencies": {},
       "hash": "73a63b7f672b88f7e9992f6917eb458a8cbb6fa9"
     },
+    "com.cysharp.zlogger": {
+      "version": "https://github.com/Cysharp/ZLogger.git?path=src/ZLogger.Unity/Assets/ZLogger.Unity",
+      "depth": 0,
+      "source": "git",
+      "dependencies": {},
+      "hash": "d1c4a1c5c713832cc85a1c72dca62262d72fee82"
+    },
     "com.heroiclabs.nakama-unity": {
       "version": "https://github.com/heroiclabs/nakama-unity.git?path=/Packages/Nakama",
       "depth": 0,

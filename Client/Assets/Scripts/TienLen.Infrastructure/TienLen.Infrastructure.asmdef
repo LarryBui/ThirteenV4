@@ -8,13 +8,19 @@
         "VContainer",
         "Unity.TextMeshPro",
         "UniTask",
-        "TienLen.Proto"
+        "TienLen.Proto",
+        "ZLogger.Unity"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
     "allowUnsafeCode": false,
     "overrideReferences": false,
-    "precompiledReferences": [],
+    "precompiledReferences": [
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "Microsoft.Extensions.Logging.dll",
+        "System.Text.Json.dll",
+        "ZLogger.dll"
+    ],
     "autoReferenced": true,
     "defineConstraints": [],
     "versionDefines": [],
