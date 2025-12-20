@@ -11,7 +11,7 @@ namespace TienLen.Domain.Aggregates
     {
         /// <summary>Match identifier.</summary>
         public string Id { get; }
-        /// <summary>Lifecycle phase (e.g., lobby, playing, ended).</summary>
+        /// <summary>Lifecycle phase (lobby or playing).</summary>
         public string Phase { get; set; }
         /// <summary>UserId -> Player lookup.</summary>
         public Dictionary<string, Player> Players { get; }
@@ -75,7 +75,7 @@ namespace TienLen.Domain.Aggregates
         }
 
         /// <summary>
-        /// Starts the game, resetting state and setting up for a new round.
+        /// Starts the game, resetting state and setting up for a new round (sets Phase to "Playing").
         /// </summary>
         /// <param name="firstTurnSeat">The seat index (0-based) starting the game.</param>
         public void StartGame(int firstTurnSeat)

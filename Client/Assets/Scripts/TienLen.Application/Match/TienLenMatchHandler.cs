@@ -201,7 +201,7 @@ namespace TienLen.Application
         private void HandleGameEnded(List<int> finishOrderSeats)
         {
             if (CurrentMatch == null) return;
-            CurrentMatch.Phase = "Finished";
+            CurrentMatch.Phase = "Lobby";
             // TODO: Process finish order seats
             GameRoomStateUpdated?.Invoke();
         }

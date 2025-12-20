@@ -267,11 +267,16 @@ namespace TienLen.Presentation.GameRoomScreen
 
         /// <summary>
         /// UI callback for the "Start Game" button.
-        /// Sends a start-game request and logs contextual information for debugging.
+        /// Sends a start-game request and hides the button immediately to prevent duplicate clicks.
         /// </summary>
         public void OnStartGameClicked()
         {
             if (_isLeaving) return;
+            if (_startGameButton != null)
+            {
+                _startGameButton.interactable = false;
+                _startGameButton.gameObject.SetActive(false);
+            }
             if (_matchHandler != null && _matchHandler.CurrentMatch != null)
             {
 
@@ -280,6 +285,7 @@ namespace TienLen.Presentation.GameRoomScreen
             else
             {
                 Debug.LogError("GameRoomController: Cannot start game, Match Handler or Match is null.");
+                UpdateStartGameButtonState();
             }
         }
 
@@ -418,9 +424,11 @@ namespace TienLen.Presentation.GameRoomScreen
             var localSeatIndex = match?.LocalSeatIndex ?? -1;
             var ownerSeat = match?.OwnerSeat ?? -1;
             var isOwner = localSeatIndex >= 0 && ownerSeat == localSeatIndex;
+            var isLobby = match != null && string.Equals(match.Phase, "Lobby", StringComparison.OrdinalIgnoreCase);
+            var canStart = isOwner && isLobby;
 
-            _startGameButton.gameObject.SetActive(isOwner);
-            _startGameButton.interactable = isOwner;
+            _startGameButton.gameObject.SetActive(canStart);
+            _startGameButton.interactable = canStart;
         }
 
         private bool IsLocalPlayersTurn(Match match)
