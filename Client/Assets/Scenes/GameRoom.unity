@@ -1506,6 +1506,7 @@ MonoBehaviour:
   opponentProfile_3: {fileID: 1640944418}
   _boardCardsView: {fileID: 1700000002}
   _playedCardsAnimator: {fileID: 1130013622}
+  _gameMessagePresenter: {fileID: 1943406719}
 --- !u!4 &1130013620
 Transform:
   m_ObjectHideFlags: 0
@@ -2247,6 +2248,7 @@ GameObject:
   - component: {fileID: 1943406717}
   - component: {fileID: 1943406716}
   - component: {fileID: 1943406715}
+  - component: {fileID: 1943406719}
   m_Layer: 5
   m_Name: GameCanvas
   m_TagString: Untagged
@@ -2294,6 +2296,21 @@ MonoBehaviour:
   m_DefaultSpriteDPI: 96
   m_DynamicPixelsPerUnit: 1
   m_PresetInfoIsWorld: 0
+--- !u!114 &1943406719
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1943406714}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 7b2e3f2f1c274b7ea7ec3a18bf2ac7b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _messageText: {fileID: 852066455}
+  _autoHideSeconds: 2.5
+  _fadeSeconds: 2
 --- !u!223 &1943406717
 Canvas:
   m_ObjectHideFlags: 0

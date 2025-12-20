@@ -42,6 +42,8 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private BoardCardsView _boardCardsView;
         [Tooltip("Animates local played cards flying to the board.")]
         [SerializeField] private PlayedCardsAnimator _playedCardsAnimator;
+        [Tooltip("Displays transient game messages such as errors.")]
+        [SerializeField] private GameMessagePresenter _gameMessagePresenter;
 
         private TienLenMatchHandler _matchHandler;
         private LocalHandView _localHandView;
@@ -134,6 +136,8 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 _boardCardsView?.PlayNewRoundFade();
             }
+
+            _gameMessagePresenter?.Clear();
         }
 
         private void HandleGameError(int code, string message)
@@ -141,6 +145,7 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_isLeaving) return;
             _playedCardsAnimator?.CancelActiveAnimations();
             _localHandView?.ShowHiddenSelectedCards();
+            _gameMessagePresenter?.ShowError(message);
             Debug.LogWarning($"GameRoomController: Game error received. code={code}, message={message}");
         }
 
