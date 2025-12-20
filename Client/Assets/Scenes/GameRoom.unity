@@ -1503,6 +1503,7 @@ MonoBehaviour:
   opponentProfile_1: {fileID: 1059197322}
   opponentProfile_2: {fileID: 778642234}
   opponentProfile_3: {fileID: 1640944418}
+  _boardCardsView: {fileID: 1700000002}
 --- !u!4 &1130013620
 Transform:
   m_ObjectHideFlags: 0
@@ -1780,6 +1781,7 @@ RectTransform:
   m_Children:
   - {fileID: 1497264654}
   - {fileID: 786243563}
+  - {fileID: 1700000001}
   m_Father: {fileID: 1943406718}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
@@ -2321,3 +2323,61 @@ SceneRoots:
   m_Roots:
   - {fileID: 1943406718}
   - {fileID: 179092441}
+
+--- !u!1 &1700000000
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1700000001}
+  - component: {fileID: 1700000002}
+  m_Layer: 5
+  m_Name: BoardCards
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1700000001
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700000000}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1474673542}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 100, y: 100}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1700000002
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1700000000}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 9a2c72a9f54142179c3fdedd27917ea2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _cardPrefab: {fileID: 4931620541885055150, guid: dddf76dc0c583de48b7249f117ee441c, type: 3}
+  _boardAnchor: {fileID: 1700000001}
+  _uiParent: {fileID: 1700000001}
+  _cardSpacing: 40
+  _scaleDownThreshold: 6
+  _scaleStep: 0.05
+  _minScale: 0.6
+  _disableRaycasts: 1
+

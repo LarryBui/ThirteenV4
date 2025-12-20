@@ -38,6 +38,9 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private PlayerProfileUI opponentProfile_2;
         [SerializeField] private PlayerProfileUI opponentProfile_3;
 
+        [Header("Board")]
+        [SerializeField] private BoardCardsView _boardCardsView;
+
         private TienLenMatchHandler _matchHandler;
         private LocalHandView _localHandView;
         private bool _isLeaving;
@@ -66,6 +69,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Render current state once in case the initial snapshot arrived before this scene loaded.
             RefreshGameRoomUI();
+            UpdateBoardView(_matchHandler?.CurrentMatch);
 
             if (_cardDealer != null)
             {
@@ -105,6 +109,7 @@ namespace TienLen.Presentation.GameRoomScreen
             // 52 cards, per-card delay configured on the CardDealer.
             _cardDealer.AnimateDeal(52).Forget();
 
+            UpdateBoardView(match);
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
         }
@@ -125,6 +130,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 _localHandView.SetHand(localHandCards);
             }
 
+            UpdateBoardView(_matchHandler?.CurrentMatch);
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
         }
@@ -158,6 +164,18 @@ namespace TienLen.Presentation.GameRoomScreen
             ClearProfileSlot(opponentProfile_1);
             ClearProfileSlot(opponentProfile_2);
             ClearProfileSlot(opponentProfile_3);
+        }
+
+        private void UpdateBoardView(Match match)
+        {
+            if (_boardCardsView == null) return;
+            if (match == null)
+            {
+                _boardCardsView.Clear();
+                return;
+            }
+
+            _boardCardsView.SetBoard(match.CurrentBoard);
         }
 
         private static void ClearProfileSlot(PlayerProfileUI slot)
