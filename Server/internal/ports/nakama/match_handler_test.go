@@ -1,6 +1,12 @@
 package nakama
 
-import "testing"
+import (
+	"testing"
+
+	pb "tienlen/proto"
+
+	"google.golang.org/protobuf/encoding/protojson"
+)
 
 func TestFindFirstHumanSeat(t *testing.T) {
 	tests := []struct {
@@ -73,6 +79,43 @@ func TestShouldTerminateNoHumans(t *testing.T) {
 		t.Run(test.name, func(t *testing.T) {
 			if got := shouldTerminateNoHumans(test.seats); got != test.want {
 				t.Fatalf("shouldTerminateNoHumans() = %t, want %t", got, test.want)
+			}
+		})
+	}
+}
+
+func TestMatchLabel_Marshal(t *testing.T) {
+	tests := []struct {
+		name     string
+		label    *pb.MatchLabel
+		expected string
+	}{
+		{
+			name: "LobbyState",
+			label: &pb.MatchLabel{
+				Open:  3,
+				State: "lobby",
+			},
+			expected: `{"open":3, "state":"lobby"}`,
+		},
+		{
+			name: "PlayingState",
+			label: &pb.MatchLabel{
+				Open:  0,
+				State: "playing",
+			},
+			expected: `{"open":0, "state":"playing"}`,
+		},
+	}
+
+	for _, test := range tests {
+		t.Run(test.name, func(t *testing.T) {
+			bytes, err := (&protojson.MarshalOptions{EmitUnpopulated: true}).Marshal(test.label)
+			if err != nil {
+				t.Fatalf("Failed to marshal label: %v", err)
+			}
+			if string(bytes) != test.expected {
+				t.Errorf("Got %s, want %s", string(bytes), test.expected)
 			}
 		})
 	}

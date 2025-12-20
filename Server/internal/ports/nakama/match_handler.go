@@ -3,7 +3,6 @@ package nakama
 import (
 	"context"
 	"database/sql"
-	"encoding/json"
 	"math/rand"
 	"strconv"
 	"strings"
@@ -15,6 +14,7 @@ import (
 	pb "tienlen/proto"
 
 	"github.com/heroiclabs/nakama-common/runtime"
+	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
 
@@ -149,11 +149,12 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		state.BotAutoFillDelay = 5
 	}
 
-	// Initial match label: 4 open seats
-	label := map[string]int{
-		MatchLabelKey_OpenSeats: state.GetOpenSeatsCount(),
+	// Initial match label: 4 open seats, lobby state
+	label := &pb.MatchLabel{
+		Open:  int32(state.GetOpenSeatsCount()),
+		State: "lobby",
 	}
-	labelBytes, err := json.Marshal(label)
+	labelBytes, err := (&protojson.MarshalOptions{EmitUnpopulated: true}).Marshal(label)
 	if err != nil {
 		logger.Error("MatchInit: Failed to marshal label: %v", err)
 		return nil, 0, ""
@@ -479,6 +480,9 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 	// Store the authoritative game state
 	state.Game = game
 
+	// Update match label to reflect playing state
+	mh.updateLabel(state, dispatcher, logger)
+
 	// Broadcast resulting events
 	for _, ev := range events {
 		mh.broadcastEvent(state, dispatcher, logger, ev)
@@ -617,6 +621,9 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		if len(p.FinishOrderSeats) > 0 {
 			state.LastWinnerSeat = p.FinishOrderSeats[0]
 		}
+		// Game ended, clear game state and update label back to lobby
+		state.Game = nil
+		mh.updateLabel(state, dispatcher, logger)
 	default:
 		logger.Warn("Unknown event kind: %v", ev.Kind)
 		return
@@ -664,10 +671,16 @@ func toProtoCard(card domain.Card) *pb.Card {
 }
 
 func (mh *matchHandler) updateLabel(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
-	label := map[string]int{
-		MatchLabelKey_OpenSeats: state.GetOpenSeatsCount(),
+	matchState := "lobby"
+	if state.Game != nil {
+		matchState = "playing"
 	}
-	labelBytes, err := json.Marshal(label)
+
+	label := &pb.MatchLabel{
+		Open:  int32(state.GetOpenSeatsCount()),
+		State: matchState,
+	}
+	labelBytes, err := (&protojson.MarshalOptions{EmitUnpopulated: true}).Marshal(label)
 	if err != nil {
 		logger.Error("UpdateLabel: Failed to marshal: %v", err)
 		return

@@ -54,6 +54,11 @@ enum OpCode {
 
 // --- Basic Structures ---
 
+message MatchLabel {
+  int32 open = 1 [json_name = "open"];
+  string state = 2 [json_name = "state"];
+}
+
 message Card {
   Suit suit = 1;
   Rank rank = 2;
