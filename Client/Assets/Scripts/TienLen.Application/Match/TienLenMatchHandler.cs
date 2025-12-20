@@ -33,6 +33,11 @@ namespace TienLen.Application
         /// </summary>
         public event Action GameStarted;
 
+        /// <summary>
+        /// Raised when the board state updates (cards played or round reset).
+        /// </summary>
+        public event Action<int, bool> GameBoardUpdated;
+
         public TienLenMatchHandler(IMatchNetworkClient networkClient, IAuthenticationService authService, IGameSessionContext gameSessionContext)
         {
             _networkClient = networkClient;
@@ -185,6 +190,7 @@ namespace TienLen.Application
                 // Assuming we update Domain Match to use SeatIndex as well.
                 CurrentMatch.HandleTurnPassed(seat, nextTurnSeat, newRound);
                 GameRoomStateUpdated?.Invoke();
+                GameBoardUpdated?.Invoke(seat, newRound);
             }
             catch (Exception ex)
             {
@@ -220,6 +226,7 @@ namespace TienLen.Application
 
                 CurrentMatch.PlayTurn(seat, cards, nextTurnSeat, newRound);
                 GameRoomStateUpdated?.Invoke();
+                GameBoardUpdated?.Invoke(seat, newRound);
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 var afterTurnSeat = CurrentMatch.CurrentTurnSeat;
@@ -253,6 +260,7 @@ namespace TienLen.Application
 
             GameRoomStateUpdated?.Invoke();
             GameStarted?.Invoke();
+            GameBoardUpdated?.Invoke(firstTurnSeat, true);
         }
 
         private void HandlePlayerJoinedOP(MatchStateSnapshotDto snapshot)

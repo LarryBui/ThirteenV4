@@ -1,5 +1,7 @@
 using System.Collections.Generic;
+using Cysharp.Threading.Tasks;
 using TienLen.Domain.ValueObjects;
+using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -14,6 +16,8 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private GameObject _cardPrefab;
         [SerializeField] private RectTransform _boardAnchor;
         [SerializeField] private Transform _uiParent;
+        [SerializeField] private TextMeshProUGUI _label;
+        [SerializeField] private CanvasGroup _canvasGroup;
 
         [Header("Layout")]
         [SerializeField] private float _cardSpacing = 40f;
@@ -24,6 +28,8 @@ namespace TienLen.Presentation.GameRoomScreen
         [Header("Behavior")]
         [Tooltip("Disable raycasts on spawned cards to avoid blocking input.")]
         [SerializeField] private bool _disableRaycasts = true;
+        [SerializeField] private float _fadeOutSeconds = 0.3f;
+        [SerializeField] private float _fadeInSeconds = 0.3f;
 
         private readonly List<RectTransform> _spawnedCards = new();
 
@@ -79,6 +85,26 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
+        /// Updates the board label text.
+        /// </summary>
+        /// <param name="text">Label text to display.</param>
+        public void SetLabel(string text)
+        {
+            if (_label == null) return;
+            _label.text = text ?? string.Empty;
+            _label.gameObject.SetActive(!string.IsNullOrWhiteSpace(_label.text));
+        }
+
+        /// <summary>
+        /// Plays a subtle fade-out/fade-in animation on the board.
+        /// </summary>
+        public void PlayNewRoundFade()
+        {
+            if (_canvasGroup == null) return;
+            FadeRoutine().Forget();
+        }
+
+        /// <summary>
         /// Removes all spawned board cards.
         /// </summary>
         public void Clear()
@@ -124,6 +150,45 @@ namespace TienLen.Presentation.GameRoomScreen
             foreach (var graphic in graphics)
             {
                 graphic.raycastTarget = false;
+            }
+        }
+
+        private async UniTask FadeRoutine()
+        {
+            _canvasGroup.alpha = 1f;
+            if (_fadeOutSeconds > 0f)
+            {
+                await FadeTo(0f, _fadeOutSeconds);
+            }
+            if (_fadeInSeconds > 0f)
+            {
+                await FadeTo(1f, _fadeInSeconds);
+            }
+            _canvasGroup.alpha = 1f;
+        }
+
+        private async UniTask FadeTo(float targetAlpha, float durationSeconds)
+        {
+            if (_canvasGroup == null) return;
+            if (durationSeconds <= 0f)
+            {
+                _canvasGroup.alpha = targetAlpha;
+                return;
+            }
+
+            var startAlpha = _canvasGroup.alpha;
+            var startTime = Time.time;
+
+            while (_canvasGroup != null && Time.time < startTime + durationSeconds)
+            {
+                var t = (Time.time - startTime) / durationSeconds;
+                _canvasGroup.alpha = Mathf.Lerp(startAlpha, targetAlpha, t);
+                await UniTask.Yield();
+            }
+
+            if (_canvasGroup != null)
+            {
+                _canvasGroup.alpha = targetAlpha;
             }
         }
     }

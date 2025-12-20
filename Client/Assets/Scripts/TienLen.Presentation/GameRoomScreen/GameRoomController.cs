@@ -66,6 +66,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
             _matchHandler.GameRoomStateUpdated += HandleGameRoomStateUpdated;
             _matchHandler.GameStarted += HandleGameStarted;
+            _matchHandler.GameBoardUpdated += HandleGameBoardUpdated;
 
             // Render current state once in case the initial snapshot arrived before this scene loaded.
             RefreshGameRoomUI();
@@ -85,6 +86,7 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 _matchHandler.GameRoomStateUpdated -= HandleGameRoomStateUpdated;
                 _matchHandler.GameStarted -= HandleGameStarted;
+                _matchHandler.GameBoardUpdated -= HandleGameBoardUpdated;
             }
 
             if (_cardDealer != null)
@@ -112,6 +114,20 @@ namespace TienLen.Presentation.GameRoomScreen
             UpdateBoardView(match);
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
+        }
+
+        private void HandleGameBoardUpdated(int seat, bool newRound)
+        {
+            if (_isLeaving) return;
+            var match = _matchHandler?.CurrentMatch;
+            if (match == null) return;
+
+            UpdateBoardView(match);
+            UpdateBoardLabel(match, seat, newRound);
+            if (newRound)
+            {
+                _boardCardsView?.PlayNewRoundFade();
+            }
         }
 
         private void HandleGameRoomStateUpdated()
@@ -176,6 +192,39 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             _boardCardsView.SetBoard(match.CurrentBoard);
+        }
+
+        private void UpdateBoardLabel(Match match, int seat, bool newRound)
+        {
+            if (_boardCardsView == null) return;
+            if (newRound)
+            {
+                _boardCardsView.SetLabel("New round");
+                return;
+            }
+
+            var displayName = TryGetSeatDisplayName(match, seat);
+            _boardCardsView.SetLabel(displayName);
+        }
+
+        private static string TryGetSeatDisplayName(Match match, int seat)
+        {
+            if (match == null || match.Seats == null) return "Player";
+            if (seat < 0 || seat >= match.Seats.Length) return "Player";
+
+            var userId = match.Seats[seat];
+            if (string.IsNullOrWhiteSpace(userId)) return "Player";
+
+            if (match.Players != null && match.Players.TryGetValue(userId, out var player))
+            {
+                if (!string.IsNullOrWhiteSpace(player.DisplayName))
+                {
+                    return player.DisplayName;
+                }
+            }
+
+            var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
+            return $"Player {suffix}";
         }
 
         private static void ClearProfileSlot(PlayerProfileUI slot)
