@@ -14,10 +14,11 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private TMP_Text _messageText;
 
         [Header("Timing")]
-        [SerializeField] private float _autoHideSeconds = 2.5f;
+        [SerializeField] private float _minVisibleSeconds = 2f;
         [SerializeField] private float _fadeSeconds = 2f;
 
         private int _messageToken;
+        private float _lastShownAt;
 
         /// <summary>
         /// Shows an error message to the player.
@@ -38,13 +39,13 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
-        /// Clears the current message and hides the label.
+        /// Clears the current message after respecting the minimum visible duration.
         /// </summary>
-        public void Clear()
+        public void RequestClear()
         {
             _messageToken++;
-            SetMessageVisible(false);
-            SetMessageAlpha(0f);
+            var token = _messageToken;
+            ClearAfterMinimumAsync(token).Forget();
         }
 
         private void ShowMessage(string message)
@@ -64,15 +65,16 @@ namespace TienLen.Presentation.GameRoomScreen
 
             SetMessageVisible(true);
             SetMessageAlpha(1f);
-
-            AutoHideAsync(token).Forget();
+            _lastShownAt = Time.time;
         }
 
-        private async UniTaskVoid AutoHideAsync(int token)
+        private async UniTaskVoid ClearAfterMinimumAsync(int token)
         {
-            if (_autoHideSeconds > 0f)
+            var elapsed = Time.time - _lastShownAt;
+            var waitSeconds = Mathf.Max(0f, _minVisibleSeconds - elapsed);
+            if (waitSeconds > 0f)
             {
-                await UniTask.Delay(TimeSpan.FromSeconds(_autoHideSeconds));
+                await UniTask.Delay(TimeSpan.FromSeconds(waitSeconds));
             }
 
             if (_messageToken != token) return;
@@ -87,7 +89,7 @@ namespace TienLen.Presentation.GameRoomScreen
             var duration = Mathf.Max(0f, _fadeSeconds);
             if (duration <= 0f)
             {
-                Clear();
+                ClearImmediate();
                 return;
             }
 
@@ -103,7 +105,14 @@ namespace TienLen.Presentation.GameRoomScreen
 
             if (_messageToken != token) return;
 
-            Clear();
+            ClearImmediate();
+        }
+
+        private void ClearImmediate()
+        {
+            _messageToken++;
+            SetMessageVisible(false);
+            SetMessageAlpha(0f);
         }
 
         private void SetMessageAlpha(float alpha)

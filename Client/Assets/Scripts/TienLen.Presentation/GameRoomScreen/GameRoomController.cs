@@ -137,7 +137,10 @@ namespace TienLen.Presentation.GameRoomScreen
                 _boardCardsView?.PlayNewRoundFade();
             }
 
-            _gameMessagePresenter?.Clear();
+            if (match.LocalSeatIndex >= 0 && match.LastPlaySeat == match.LocalSeatIndex)
+            {
+                _gameMessagePresenter?.RequestClear();
+            }
         }
 
         private void HandleGameError(int code, string message)

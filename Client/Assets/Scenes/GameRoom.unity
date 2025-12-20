@@ -2309,7 +2309,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _messageText: {fileID: 852066455}
-  _autoHideSeconds: 2.5
+  _minVisibleSeconds: 2
   _fadeSeconds: 2
 --- !u!223 &1943406717
 Canvas:
