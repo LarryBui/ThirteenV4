@@ -114,6 +114,17 @@ namespace TienLen.Presentation.GameRoomScreen
             Debug.Log($"GameRoomController: Game room state updated. seatid={_matchHandler?.CurrentMatch?.LocalSeatIndex}");
             if (_isLeaving) return;
             RefreshGameRoomUI();
+
+            // Sync the local hand view with the domain state
+            if (_localHandView != null && TryGetLocalHand(_matchHandler?.CurrentMatch, out var localHandCards))
+            {
+                // Note: If an animation is playing (e.g. Deal), this might conflict. 
+                // However, PrepareLocalHandReveal calls BeginReveal which clears the hand anyway,
+                // so the conflict is minimal (flash). 
+                // Ideally, we check game phase or animation state.
+                _localHandView.SetHand(localHandCards);
+            }
+
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
         }

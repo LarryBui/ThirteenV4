@@ -94,6 +94,48 @@ namespace TienLen.Presentation.GameRoomScreen
         private GameObject _cardPrefab;
 
         /// <summary>
+        /// Immediately resets the hand to display the provided cards without animation.
+        /// Useful for refreshing the state after a play or when reconnecting.
+        /// </summary>
+        public void SetHand(IReadOnlyList<Card> cards)
+        {
+            Clear();
+            if (cards == null || cards.Count == 0) return;
+
+            // Populate internal lists but do not animate
+            for (int i = 0; i < cards.Count; i++)
+            {
+                var card = cards[i];
+                var cardObject = Instantiate(_cardPrefab, _uiParent);
+                cardObject.SetActive(true);
+
+                var cardRect = cardObject.GetComponent<RectTransform>();
+                if (cardRect == null)
+                {
+                    Destroy(cardObject);
+                    continue;
+                }
+
+                var targetPos = GetTargetWorldPosition(i, cards.Count);
+                cardRect.position = targetPos;
+                cardRect.SetAsLastSibling(); // Ensure draw order
+
+                var entry = new HandCardEntry(card, cardRect, targetPos);
+                ApplyCardLabel(cardObject, card, enableRaycasts: _enableSelection);
+
+                if (_enableSelection)
+                {
+                    var selectionInput = cardObject.GetComponent<HandCardSelectionInput>();
+                    if (selectionInput == null) selectionInput = cardObject.AddComponent<HandCardSelectionInput>();
+                    selectionInput.Bind(() => ToggleSelection(entry));
+                }
+
+                _spawnedCardRects.Add(cardRect);
+                _handCards.Add(entry);
+            }
+        }
+
+        /// <summary>
         /// Configures the UI objects used for rendering.
         /// </summary>
         /// <param name="cardPrefab">Prefab to instantiate per card (UI prefab with <see cref="RectTransform"/> recommended).</param>
