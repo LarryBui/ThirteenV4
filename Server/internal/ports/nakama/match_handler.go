@@ -636,6 +636,12 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 				recipients = append(recipients, p)
 			}
 		}
+
+		// If we had intended recipients but none are connected (e.g. they are bots),
+		// we MUST NOT broadcast to everyone else.
+		if len(recipients) == 0 {
+			return
+		}
 	}
 
 	dispatcher.BroadcastMessage(opCode, bytes, recipients, nil, true)
