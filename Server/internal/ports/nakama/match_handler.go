@@ -568,6 +568,7 @@ func (mh *matchHandler) handlePlayCards(state *MatchState, dispatcher runtime.Ma
 			}
 		}
 		logger.Warn("handlePlayCards: User %s (seat %d) failed to play cards: %v. Requested: %+v, Hand: %+v", senderID, senderSeat, err, domainCards, hand)
+		mh.sendError(state, dispatcher, logger, senderID, 400, err.Error())
 		return
 	}
 
@@ -596,6 +597,7 @@ func (mh *matchHandler) handlePassTurn(state *MatchState, dispatcher runtime.Mat
 	events, err := state.App.PassTurn(state.Game, senderSeat)
 	if err != nil {
 		logger.Warn("handlePassTurn: User %s (seat %d) failed to pass turn: %v", senderID, senderSeat, err)
+		mh.sendError(state, dispatcher, logger, senderID, 400, err.Error())
 		return
 	}
 
@@ -686,6 +688,27 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 	}
 
 	dispatcher.BroadcastMessage(opCode, bytes, recipients, nil, true)
+}
+
+// sendError sends a GameErrorEvent to a specific user.
+func (mh *matchHandler) sendError(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, userID string, code int, message string) {
+	payload := &pb.GameErrorEvent{
+		Code:    int32(code),
+		Message: message,
+	}
+	bytes, err := proto.Marshal(payload)
+	if err != nil {
+		logger.Error("Failed to marshal GameErrorEvent: %v", err)
+		return
+	}
+
+	presence, ok := state.Presences[userID]
+	if !ok {
+		logger.Warn("Cannot send error to %s: Presence not found", userID)
+		return
+	}
+
+	dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_GAME_ERROR), bytes, []runtime.Presence{presence}, nil, true)
 }
 
 func toProtoCards(domainCards []domain.Card) []*pb.Card {
