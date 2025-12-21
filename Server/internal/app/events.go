@@ -65,6 +65,14 @@ type TurnPassedPayload struct {
 
 type GameEndedPayload struct {
 
+
+
 	FinishOrderSeats []int
+
+
+
+	BalanceChanges   map[string]int64 // UserID -> Gold (+/-)
+
+
 
 }

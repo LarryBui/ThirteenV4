@@ -12,7 +12,7 @@ func TestStartGameDealsHands(t *testing.T) {
 	svc := NewService(rng)
 	
 	// Pass player IDs directly to StartGame
-	game, evs, err := svc.StartGame([]string{"u1", "u2"}, -1)
+	game, evs, err := svc.StartGame([]string{"u1", "u2"}, -1, 0)
 	if err != nil {
 		t.Fatalf("start game error: %v", err)
 	}
@@ -39,7 +39,7 @@ func TestPlayCardsAndEnd(t *testing.T) {
 	rng := rand.New(rand.NewSource(99))
 	svc := NewService(rng)
 	
-	game, _, err := svc.StartGame([]string{"u1", "u2"}, -1)
+	game, _, err := svc.StartGame([]string{"u1", "u2"}, -1, 0)
 	if err != nil {
 		t.Fatalf("start game error: %v", err)
 	}
@@ -77,7 +77,7 @@ func TestPlayCardsAndEnd(t *testing.T) {
 func TestPassAndRoundReset(t *testing.T) {
 	svc := NewService(nil)
 	players := []string{"u1", "u2", "u3"}
-	game, _, _ := svc.StartGame(players, -1)
+	game, _, _ := svc.StartGame(players, -1, 0)
 
 	// Force hands to ensure they don't finish immediately
 	for _, p := range game.Players {
@@ -129,7 +129,7 @@ func TestPassAndRoundReset(t *testing.T) {
 func TestPlayErrors(t *testing.T) {
 	svc := NewService(nil)
 	players := []string{"u1", "u2"}
-	game, _, _ := svc.StartGame(players, -1)
+	game, _, _ := svc.StartGame(players, -1, 0)
 
 	game.Players["u1"].Hand = []domain.Card{{Suit: 0, Rank: 0}} // 3 Spades
 	game.CurrentTurn = 0 // u1
@@ -160,7 +160,7 @@ func TestPlayErrors(t *testing.T) {
 func TestRoundResetsWhenLastPlayerFinishes(t *testing.T) {
 	svc := NewService(nil)
 	players := []string{"u1", "u2", "u3"}
-	game, _, _ := svc.StartGame(players, -1)
+	game, _, _ := svc.StartGame(players, -1, 0)
 
 	// Force u1 to have only one card
 	game.Players["u1"].Hand = []domain.Card{{Suit: 3, Rank: 12}} // 2 Hearts

@@ -1,0 +1,10 @@
+{
+  "tax_rate": 0.05,
+  "default_tier": "casual",
+  "tiers": [
+    { "id": "casual", "base_bet": 100 },
+    { "id": "standard", "base_bet": 1000 },
+    { "id": "pro", "base_bet": 10000 },
+    { "id": "vip", "base_bet": 50000 }
+  ]
+}

@@ -6,6 +6,7 @@ import (
 	"sort"
 	"time"
 
+	"tienlen/internal/config"
 	"tienlen/internal/domain"
 )
 
@@ -38,7 +39,7 @@ var (
 
 // StartGame initializes a new Game domain object with the provided players.
 // It expects a list of userIDs representing the players in seat order (empty strings for empty seats).
-func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int) (*domain.Game, []Event, error) {
+func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int, baseBet int64) (*domain.Game, []Event, error) {
 	activePlayers := make(map[string]*domain.Player)
 	var seats []string // Active players' UIDs in seat order
 
@@ -65,6 +66,7 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int) (*domain.Gam
 		Phase:                domain.PhasePlaying,
 		Players:              activePlayers,
 		LastPlayerToPlaySeat: -1, // Initialize to -1 as no one has played yet
+		BaseBet:              baseBet,
 	}
 
 	// Deal cards
@@ -266,21 +268,123 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 
 
-	// Check if game ended
+		// Check if game ended
 
-	if domain.CountPlayersWithCards(game) <= 1 {
 
-		game.Phase = domain.PhaseEnded
 
-		events = append(events, Event{
+		if domain.CountPlayersWithCards(game) <= 1 {
 
-			Kind:    EventGameEnded,
 
-			Payload: GameEndedPayload{FinishOrderSeats: game.FinishOrderSeats},
 
-		})
+					game.Phase = domain.PhaseEnded
 
-	} else {
+
+
+					settlement := game.CalculateSettlement()
+
+
+
+					
+
+
+
+					// Apply Tax to positive winnings
+
+
+
+					cfg := config.GetBetConfig()
+
+
+
+					taxRate := 0.05 // Default
+
+
+
+					if cfg != nil {
+
+
+
+						taxRate = cfg.TaxRate
+
+
+
+					}
+
+
+
+			
+
+
+
+					finalChanges := make(map[string]int64)
+
+
+
+					for uid, amount := range settlement.BalanceChanges {
+
+
+
+						if amount > 0 {
+
+
+
+							afterTax := float64(amount) * (1.0 - taxRate)
+
+
+
+							finalChanges[uid] = int64(afterTax)
+
+
+
+						} else {
+
+
+
+							finalChanges[uid] = amount
+
+
+
+						}
+
+
+
+					}
+
+
+
+			
+
+
+
+					events = append(events, Event{
+
+
+
+						Kind: EventGameEnded,
+
+
+
+						Payload: GameEndedPayload{
+
+
+
+							FinishOrderSeats: game.FinishOrderSeats,
+
+
+
+							BalanceChanges:   finalChanges,
+
+
+
+						},
+
+
+
+					})
+
+
+
+				} else {
 
 		// Advance turn
 

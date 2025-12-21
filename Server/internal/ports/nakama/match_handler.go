@@ -9,7 +9,9 @@ import (
 
 	"tienlen/internal/app"
 	"tienlen/internal/bot"
+	"tienlen/internal/config"
 	"tienlen/internal/domain"
+	"tienlen/internal/ports"
 	pb "tienlen/proto"
 
 	"github.com/heroiclabs/nakama-common/runtime"
@@ -38,6 +40,7 @@ type MatchState struct {
 	LastSinglePlayerTick int64                       `json:"last_single_player_tick"` // Tick when a single player started waiting
 	BotBrains            map[string]bot.Brain        `json:"-"`                       // AI Logic for each bot
 	BotUsernames         map[string]string           `json:"-"`                       // Fake usernames for bots
+	Economy              ports.EconomyPort           `json:"-"`                       // Interface to Nakama wallet
 }
 
 func (ms *MatchState) GetOpenSeatsCount() int {
@@ -115,6 +118,11 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		logger.Warn("MatchInit: Could not load bot identities: %v", err)
 	}
 
+	// Load betting configuration
+	if err := config.LoadBetConfig("data/bet_config.json"); err != nil {
+		logger.Warn("MatchInit: Could not load bet config: %v", err)
+	}
+
 	state := &MatchState{
 		Tick:           time.Now().Unix(),
 		Presences:      make(map[string]runtime.Presence),
@@ -123,6 +131,7 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		LastWinnerSeat: -1,
 		BotBrains:      make(map[string]bot.Brain),
 		BotUsernames:   make(map[string]string),
+		Economy:        NewNakamaEconomyAdapter(nk),
 	}
 
 	// Read environment variables for bot configuration
@@ -311,11 +320,11 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 	for _, msg := range messages {
 		switch msg.GetOpCode() {
 		case int64(pb.OpCode_OP_CODE_START_GAME):
-			mh.handleStartGame(matchState, dispatcher, logger, msg)
+			mh.handleStartGame(ctx, matchState, dispatcher, logger, msg)
 		case int64(pb.OpCode_OP_CODE_PLAY_CARDS):
-			mh.handlePlayCards(matchState, dispatcher, logger, msg)
+			mh.handlePlayCards(ctx, matchState, dispatcher, logger, msg)
 		case int64(pb.OpCode_OP_CODE_PASS_TURN):
-			mh.handlePassTurn(matchState, dispatcher, logger, msg)
+			mh.handlePassTurn(ctx, matchState, dispatcher, logger, msg)
 		default:
 			logger.Warn("MatchLoop: Unknown opcode received: %d", msg.GetOpCode())
 		}
@@ -323,13 +332,13 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 
 	// AI Logic
 	if matchState.BotsEnabled {
-		mh.processBots(matchState, dispatcher, logger)
+		mh.processBots(ctx, matchState, dispatcher, logger)
 	}
 
 	return matchState
 }
 
-func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
+func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
 	// 1. Auto-fill lobby with bots if there's only one human player after delay
 	if state.Game == nil {
 		humanCount := state.GetHumanPlayerCount()
@@ -411,14 +420,14 @@ func (mh *matchHandler) processBots(state *MatchState, dispatcher runtime.MatchD
 					events, err := state.App.PassTurn(state.Game, currentTurn)
 					if err == nil {
 						for _, ev := range events {
-							mh.broadcastEvent(state, dispatcher, logger, ev)
+							mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 						}
 					}
 				} else {
 					events, err := state.App.PlayCards(state.Game, currentTurn, move.Cards)
 					if err == nil {
 						for _, ev := range events {
-							mh.broadcastEvent(state, dispatcher, logger, ev)
+							mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 						}
 					}
 				}
@@ -474,7 +483,7 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 	dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_PLAYER_JOINED), bytes, nil, nil, true)
 }
 
-func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
+func (mh *matchHandler) handleStartGame(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
 	senderID := msg.GetUserId()
 	senderSeat := -1
 	for i, seatUserId := range state.Seats {
@@ -504,8 +513,12 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 		return
 	}
 
+	// Resolve BaseBet (Default to "casual" or configured default if params missing)
+	// TODO: Get tier from match metadata/params
+	baseBet := config.GetBaseBet("") // Uses default tier
+
 	// Initialize the domain Game via the Service
-	game, events, err := state.App.StartGame(state.Seats[:], state.LastWinnerSeat)
+	game, events, err := state.App.StartGame(state.Seats[:], state.LastWinnerSeat, baseBet)
 	if err != nil {
 		logger.Error("StartGame: Failed to start game: %v", err)
 		return
@@ -519,13 +532,13 @@ func (mh *matchHandler) handleStartGame(state *MatchState, dispatcher runtime.Ma
 
 	// Broadcast resulting events
 	for _, ev := range events {
-		mh.broadcastEvent(state, dispatcher, logger, ev)
+		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
 
 	logger.Info("StartGame: Game started with %d players.", activeCount)
 }
 
-func (mh *matchHandler) handlePlayCards(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
+func (mh *matchHandler) handlePlayCards(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
 	senderID := msg.GetUserId()
 	senderSeat := -1
 	for i, seatUserId := range state.Seats {
@@ -574,11 +587,11 @@ func (mh *matchHandler) handlePlayCards(state *MatchState, dispatcher runtime.Ma
 
 	// Broadcast events
 	for _, ev := range events {
-		mh.broadcastEvent(state, dispatcher, logger, ev)
+		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
 }
 
-func (mh *matchHandler) handlePassTurn(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
+func (mh *matchHandler) handlePassTurn(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
 	senderID := msg.GetUserId()
 	senderSeat := -1
 	for i, seatUserId := range state.Seats {
@@ -603,12 +616,12 @@ func (mh *matchHandler) handlePassTurn(state *MatchState, dispatcher runtime.Mat
 
 	// Broadcast events
 	for _, ev := range events {
-		mh.broadcastEvent(state, dispatcher, logger, ev)
+		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
 }
 
 // broadcastEvent handles the conversion and dispatching of app events to Nakama.
-func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, ev app.Event) {
+func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, ev app.Event) {
 	var opCode int64
 	var payload proto.Message
 
@@ -652,7 +665,31 @@ func (mh *matchHandler) broadcastEvent(state *MatchState, dispatcher runtime.Mat
 		}
 		payload = &pb.GameEndedEvent{
 			FinishOrderSeats: protoSeats,
+			BalanceChanges:   p.BalanceChanges,
 		}
+
+		// Apply Balance Changes to Nakama Wallets
+		if state.Economy != nil {
+			updates := make([]ports.WalletUpdate, 0, len(p.BalanceChanges))
+			for userID, amount := range p.BalanceChanges {
+				// Skip bots
+				if isBotUserId(userID) {
+					continue
+				}
+				updates = append(updates, ports.WalletUpdate{
+					UserID: userID,
+					Amount: amount,
+					Metadata: map[string]interface{}{
+						"match_id": ctx.Value(runtime.RUNTIME_CTX_MATCH_ID),
+						"reason":   "game_settlement",
+					},
+				})
+			}
+			if err := state.Economy.UpdateBalances(ctx, updates); err != nil {
+				logger.Error("Failed to update balances: %v", err)
+			}
+		}
+
 		// Save the winner for the next game
 		if len(p.FinishOrderSeats) > 0 {
 			state.LastWinnerSeat = p.FinishOrderSeats[0]

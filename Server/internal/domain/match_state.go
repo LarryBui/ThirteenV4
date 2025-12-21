@@ -36,6 +36,78 @@ type Game struct {
 	CurrentTurn           int   // Seat index (0-based)
 	LastPlayedCombination CardCombination
 	LastPlayerToPlaySeat  int // Seat index (0-based)
+	BaseBet               int64
+}
+
+// Settlement represents the net gold change for each player.
+type Settlement struct {
+	BalanceChanges map[string]int64 // UserID -> Gold (+/-)
+}
+
+// CalculateSettlement computes the payouts based on finishing rank.
+// Payout Matrix (Multiplier * BaseBet):
+// 4 Players: 1st(+2), 2nd(+1), 3rd(-1), 4th(-2)
+// 3 Players: 1st(+3), 2nd(-1), 3rd(-2)
+// 2 Players: 1st(+1), 2nd(-1)
+func (g *Game) CalculateSettlement() Settlement {
+	changes := make(map[string]int64)
+	playerCount := len(g.Players)
+	
+	// Create a map of seat index to user ID for easy lookup
+	seatToUser := make(map[int]string)
+	for uid, p := range g.Players {
+		seatToUser[p.Seat-1] = uid
+	}
+
+	// Determine multipliers based on player count
+	var multipliers []int64
+	switch playerCount {
+	case 4:
+		multipliers = []int64{2, 1, -1, -2}
+	case 3:
+		multipliers = []int64{3, -1, -2}
+	case 2:
+		multipliers = []int64{1, -1}
+	default:
+		// Fallback for 1 player (testing) or >4 (error)
+		multipliers = make([]int64, playerCount)
+	}
+
+	// Apply payouts based on rank order
+	// FinishOrderSeats contains seat indices of players in order of finishing (1st, 2nd...)
+	// Note: Players who haven't finished yet are implicitly last.
+	// We need to construct a full ordered list including those still playing (if forced end).
+	
+	fullRankOrder := make([]int, 0, playerCount)
+	fullRankOrder = append(fullRankOrder, g.FinishOrderSeats...)
+	
+	// Add remaining players who haven't finished (shouldn't happen in normal flow as game ends when 1 left)
+	// But for safety, add them.
+	present := make(map[int]bool)
+	for _, seat := range g.FinishOrderSeats {
+		present[seat] = true
+	}
+	for i := 0; i < 4; i++ {
+		if _, ok := seatToUser[i]; ok { // If seat is occupied
+			if !present[i] {
+				// We append implicitly based on seat order if they are tied for "last"
+				fullRankOrder = append(fullRankOrder, i)
+			}
+		}
+	}
+
+	// Calculate changes
+	for rank, seat := range fullRankOrder {
+		if rank >= len(multipliers) {
+			break
+		}
+		
+		uid := seatToUser[seat]
+		amount := multipliers[rank] * g.BaseBet
+		changes[uid] = amount
+	}
+
+	return Settlement{BalanceChanges: changes}
 }
 
 // CountPlayersWithCards returns the number of active players with cards remaining.

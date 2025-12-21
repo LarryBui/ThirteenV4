@@ -125,6 +125,7 @@ message TurnPassedEvent {
 
 message GameEndedEvent {
   repeated int32 finish_order_seats = 1; // 0-based seat indices in rank order
+  map<string, int64> balance_changes = 2; // UserID -> Gold (+/-)
 }
 
 message GameErrorEvent {

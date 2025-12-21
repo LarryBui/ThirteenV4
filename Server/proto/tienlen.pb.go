@@ -972,7 +972,8 @@ func (x *TurnPassedEvent) GetNewRound() bool {
 
 type GameEndedEvent struct {
 	state            protoimpl.MessageState `protogen:"open.v1"`
-	FinishOrderSeats []int32                `protobuf:"varint,1,rep,packed,name=finish_order_seats,json=finishOrderSeats,proto3" json:"finish_order_seats,omitempty"` // 0-based seat indices in rank order
+	FinishOrderSeats []int32                `protobuf:"varint,1,rep,packed,name=finish_order_seats,json=finishOrderSeats,proto3" json:"finish_order_seats,omitempty"`                                                            // 0-based seat indices in rank order
+	BalanceChanges   map[string]int64       `protobuf:"bytes,2,rep,name=balance_changes,json=balanceChanges,proto3" json:"balance_changes,omitempty" protobuf_key:"bytes,1,opt,name=key" protobuf_val:"varint,2,opt,name=value"` // UserID -> Gold (+/-)
 	unknownFields    protoimpl.UnknownFields
 	sizeCache        protoimpl.SizeCache
 }
@@ -1010,6 +1011,13 @@ func (*GameEndedEvent) Descriptor() ([]byte, []int) {
 func (x *GameEndedEvent) GetFinishOrderSeats() []int32 {
 	if x != nil {
 		return x.FinishOrderSeats
+	}
+	return nil
+}
+
+func (x *GameEndedEvent) GetBalanceChanges() map[string]int64 {
+	if x != nil {
+		return x.BalanceChanges
 	}
 	return nil
 }
@@ -1114,9 +1122,13 @@ const file_tienlen_proto_rawDesc = "" +
 	"\x0fTurnPassedEvent\x12\x12\n" +
 	"\x04seat\x18\x01 \x01(\x05R\x04seat\x12$\n" +
 	"\x0enext_turn_seat\x18\x02 \x01(\x05R\fnextTurnSeat\x12\x1b\n" +
-	"\tnew_round\x18\x03 \x01(\bR\bnewRound\">\n" +
+	"\tnew_round\x18\x03 \x01(\bR\bnewRound\"\xda\x01\n" +
 	"\x0eGameEndedEvent\x12,\n" +
-	"\x12finish_order_seats\x18\x01 \x03(\x05R\x10finishOrderSeats\">\n" +
+	"\x12finish_order_seats\x18\x01 \x03(\x05R\x10finishOrderSeats\x12W\n" +
+	"\x0fbalance_changes\x18\x02 \x03(\v2..tienlen.v1.GameEndedEvent.BalanceChangesEntryR\x0ebalanceChanges\x1aA\n" +
+	"\x13BalanceChangesEntry\x12\x10\n" +
+	"\x03key\x18\x01 \x01(\tR\x03key\x12\x14\n" +
+	"\x05value\x18\x02 \x01(\x03R\x05value:\x028\x01\">\n" +
 	"\x0eGameErrorEvent\x12\x12\n" +
 	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
 	"\amessage\x18\x02 \x01(\tR\amessage*K\n" +
@@ -1176,7 +1188,7 @@ func file_tienlen_proto_rawDescGZIP() []byte {
 }
 
 var file_tienlen_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_tienlen_proto_msgTypes = make([]protoimpl.MessageInfo, 15)
+var file_tienlen_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_tienlen_proto_goTypes = []any{
 	(Suit)(0),                     // 0: tienlen.v1.Suit
 	(Rank)(0),                     // 1: tienlen.v1.Rank
@@ -1197,21 +1209,23 @@ var file_tienlen_proto_goTypes = []any{
 	(*TurnPassedEvent)(nil),       // 16: tienlen.v1.TurnPassedEvent
 	(*GameEndedEvent)(nil),        // 17: tienlen.v1.GameEndedEvent
 	(*GameErrorEvent)(nil),        // 18: tienlen.v1.GameErrorEvent
+	nil,                           // 19: tienlen.v1.GameEndedEvent.BalanceChangesEntry
 }
 var file_tienlen_proto_depIdxs = []int32{
-	0, // 0: tienlen.v1.Card.suit:type_name -> tienlen.v1.Suit
-	1, // 1: tienlen.v1.Card.rank:type_name -> tienlen.v1.Rank
-	5, // 2: tienlen.v1.PlayCardsRequest.cards:type_name -> tienlen.v1.Card
-	6, // 3: tienlen.v1.PlayerJoinedEvent.player:type_name -> tienlen.v1.PlayerState
-	6, // 4: tienlen.v1.MatchStateSnapshot.players:type_name -> tienlen.v1.PlayerState
-	2, // 5: tienlen.v1.GameStartedEvent.phase:type_name -> tienlen.v1.GamePhase
-	5, // 6: tienlen.v1.GameStartedEvent.hand:type_name -> tienlen.v1.Card
-	5, // 7: tienlen.v1.CardPlayedEvent.cards:type_name -> tienlen.v1.Card
-	8, // [8:8] is the sub-list for method output_type
-	8, // [8:8] is the sub-list for method input_type
-	8, // [8:8] is the sub-list for extension type_name
-	8, // [8:8] is the sub-list for extension extendee
-	0, // [0:8] is the sub-list for field type_name
+	0,  // 0: tienlen.v1.Card.suit:type_name -> tienlen.v1.Suit
+	1,  // 1: tienlen.v1.Card.rank:type_name -> tienlen.v1.Rank
+	5,  // 2: tienlen.v1.PlayCardsRequest.cards:type_name -> tienlen.v1.Card
+	6,  // 3: tienlen.v1.PlayerJoinedEvent.player:type_name -> tienlen.v1.PlayerState
+	6,  // 4: tienlen.v1.MatchStateSnapshot.players:type_name -> tienlen.v1.PlayerState
+	2,  // 5: tienlen.v1.GameStartedEvent.phase:type_name -> tienlen.v1.GamePhase
+	5,  // 6: tienlen.v1.GameStartedEvent.hand:type_name -> tienlen.v1.Card
+	5,  // 7: tienlen.v1.CardPlayedEvent.cards:type_name -> tienlen.v1.Card
+	19, // 8: tienlen.v1.GameEndedEvent.balance_changes:type_name -> tienlen.v1.GameEndedEvent.BalanceChangesEntry
+	9,  // [9:9] is the sub-list for method output_type
+	9,  // [9:9] is the sub-list for method input_type
+	9,  // [9:9] is the sub-list for extension type_name
+	9,  // [9:9] is the sub-list for extension extendee
+	0,  // [0:9] is the sub-list for field type_name
 }
 
 func init() { file_tienlen_proto_init() }
@@ -1225,7 +1239,7 @@ func file_tienlen_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tienlen_proto_rawDesc), len(file_tienlen_proto_rawDesc)),
 			NumEnums:      4,
-			NumMessages:   15,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
