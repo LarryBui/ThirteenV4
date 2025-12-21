@@ -41,7 +41,7 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 	}
 
 	// 3. If no match is found, create a new one.
-	moduleName := "tienlen_match" // Must match the name registered in InitModule
+	moduleName := MatchNameTienLen // Must match the name registered in InitModule
 	matchId, err := nk.MatchCreate(ctx, moduleName, nil)
 	if err != nil {
 		logger.Error("RpcFindMatch [User:%s]: Failed to create match: %v", userId, err)

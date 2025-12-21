@@ -38,8 +38,7 @@ type MatchState struct {
 	BotAutoFillDelay     int                         `json:"bot_auto_fill_delay"`    // Seconds to wait before auto-filling with bots
 	BotWaitUntil         int64                       `json:"bot_wait_until"`         // Tick when the bot should act
 	LastSinglePlayerTick int64                       `json:"last_single_player_tick"` // Tick when a single player started waiting
-	BotBrains            map[string]bot.Brain        `json:"-"`                       // AI Logic for each bot
-	BotUsernames         map[string]string           `json:"-"`                       // Fake usernames for bots
+	Bots                 map[string]*bot.Agent       `json:"-"`                       // Active bot agents
 	Economy              ports.EconomyPort           `json:"-"`                       // Interface to Nakama wallet
 }
 
@@ -129,8 +128,7 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		App:            app.NewService(nil), // Initialize the app service
 		OwnerSeat:      -1,
 		LastWinnerSeat: -1,
-		BotBrains:      make(map[string]bot.Brain),
-		BotUsernames:   make(map[string]string),
+		Bots:           make(map[string]*bot.Agent),
 		Economy:        NewNakamaEconomyAdapter(nk),
 	}
 
@@ -231,8 +229,7 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 			for i, seatUserId := range matchState.Seats {
 				if isBotUserId(seatUserId) {
 					logger.Info("MatchJoin: Replacing bot %s with human %s in seat %d", seatUserId, p.GetUserId(), i)
-					delete(matchState.BotBrains, seatUserId) // Cleanup AI
-					delete(matchState.BotUsernames, seatUserId)
+					delete(matchState.Bots, seatUserId) // Cleanup AI
 					matchState.Seats[i] = p.GetUserId()
 					assigned = true
 					break
@@ -355,14 +352,13 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 						identity := bot.GetBotIdentity(i)
 						botID := identity.UserID
 						state.Seats[i] = botID
-						state.BotUsernames[botID] = identity.Username
 
-						// Assign AI Brain (Default to Smart for now)
-						brain, err := bot.NewBrain(bot.BotLevelSmart)
+						// Create Bot Agent via Factory
+						agent, err := bot.NewAgent(botID)
 						if err != nil {
-							logger.Error("Failed to create bot brain: %v", err)
+							logger.Error("Failed to create bot agent for %s: %v", botID, err)
 						} else {
-							state.BotBrains[botID] = brain
+							state.Bots[botID] = agent
 						}
 
 						logger.Info("processBots: Added bot %s (%s) to seat %d", identity.Username, botID, i)
@@ -398,19 +394,19 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 			if state.Tick >= state.BotWaitUntil {
 				state.BotWaitUntil = 0 // Reset for next turn
 				
-				brain, exists := state.BotBrains[currentUserID]
+				agent, exists := state.Bots[currentUserID]
 				if !exists {
-					// Fallback if brain missing (shouldn't happen for new bots)
+					// Fallback if agent missing (shouldn't happen for new bots)
 					var err error
-					brain, err = bot.NewBrain(bot.BotLevelSmart)
+					agent, err = bot.NewAgent(currentUserID)
 					if err != nil {
-						logger.Error("processBots: Failed to create fallback brain: %v", err)
+						logger.Error("processBots: Failed to create fallback agent: %v", err)
 						return
 					}
-					state.BotBrains[currentUserID] = brain
+					state.Bots[currentUserID] = agent
 				}
 
-				move, err := brain.CalculateMove(state.Game, currentTurn)
+				move, err := agent.Play(state.Game)
 				if err != nil {
 					logger.Error("processBots: Bot %s failed to calculate move: %v", currentUserID, err)
 					return
@@ -449,7 +445,7 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 		displayName := userId
 		if p, exists := state.Presences[userId]; exists {
 			displayName = p.GetUsername()
-		} else if name, exists := state.BotUsernames[userId]; exists {
+		} else if name := bot.GetBotUsername(userId); name != "" {
 			displayName = name
 		}
 
