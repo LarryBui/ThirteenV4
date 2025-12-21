@@ -11,7 +11,8 @@
     "allowUnsafeCode": false,
     "overrideReferences": false,
     "precompiledReferences": [
-        "Microsoft.Extensions.Logging.Abstractions.dll"
+        "Microsoft.Extensions.Logging.Abstractions.dll",
+        "System.Text.Json.dll"
     ],
     "autoReferenced": true,
     "defineConstraints": [],
