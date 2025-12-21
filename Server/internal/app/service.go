@@ -99,14 +99,14 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int, baseBet int6
 		lowestSeat := 0
 
 		for _, pl := range game.Players {
-			for _, card := range pl.Hand {
-				// Rank 0-12 (3 to 2), Suit 0-3 (Spade to Heart)
-				// Value = Rank * 4 + Suit
-				val := card.Rank*4 + card.Suit
-				if val < lowestCardVal {
-					lowestCardVal = val
-					lowestSeat = pl.Seat - 1 // Convert 1-based domain seat to 0-based
-				}
+			if len(pl.Hand) == 0 {
+				continue
+			}
+			smallest := domain.GetSmallestCard(pl.Hand)
+			val := domain.CardPower(smallest)
+			if val < lowestCardVal {
+				lowestCardVal = val
+				lowestSeat = pl.Seat - 1 // Convert 1-based domain seat to 0-based
 			}
 		}
 		firstTurnSeat = lowestSeat
@@ -531,19 +531,9 @@ func (s *Service) TimeoutTurn(game *domain.Game, actorSeat int) ([]Event, error)
 			return nil, ErrUnknownPlayer
 		}
 
-		// Find smallest card (Rank * 4 + Suit)
-		smallestIdx := 0
-		minVal := int32(9999)
-		for i, c := range player.Hand {
-			val := c.Rank*4 + c.Suit
-			if val < minVal {
-				minVal = val
-				smallestIdx = i
-			}
-		}
-
 		// Force play the smallest single card
-		return s.PlayCards(game, actorSeat, []domain.Card{player.Hand[smallestIdx]})
+		cardToPlay := domain.GetSmallestCard(player.Hand)
+		return s.PlayCards(game, actorSeat, []domain.Card{cardToPlay})
 	}
 
 	// 2. Mid-round: Force Pass

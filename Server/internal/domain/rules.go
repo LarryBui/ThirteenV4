@@ -135,11 +135,11 @@ func IdentifyCombination(cards []Card) CardCombination {
 	n := len(cards)
 
 	if n == 1 {
-		return CardCombination{Type: Single, Cards: cards, Value: cardPower(cards[0]), Count: 1}
+		return CardCombination{Type: Single, Cards: cards, Value: CardPower(cards[0]), Count: 1}
 	}
 
 	if allSameRank(cards) {
-		val := cardPower(cards[n-1])
+		val := CardPower(cards[n-1])
 		switch n {
 		case 2:
 			return CardCombination{Type: Pair, Cards: cards, Value: val, Count: 2}
@@ -151,11 +151,11 @@ func IdentifyCombination(cards []Card) CardCombination {
 	}
 
 	if isStraight(cards) {
-		return CardCombination{Type: Straight, Cards: cards, Value: cardPower(cards[n-1]), Count: n}
+		return CardCombination{Type: Straight, Cards: cards, Value: CardPower(cards[n-1]), Count: n}
 	}
 
 	if isConsecutivePairs(cards) {
-		return CardCombination{Type: Bomb, Cards: cards, Value: cardPower(cards[n-1]), Count: n}
+		return CardCombination{Type: Bomb, Cards: cards, Value: CardPower(cards[n-1]), Count: n}
 	}
 
 	return CardCombination{Type: Invalid}
@@ -180,7 +180,7 @@ func isFiveConsecutivePairs(cards []Card) bool {
 func getMaxPower(cards []Card) int32 {
 	maxP := int32(-1)
 	for _, c := range cards {
-		p := cardPower(c)
+		p := CardPower(c)
 		if p > maxP {
 			maxP = p
 		}
