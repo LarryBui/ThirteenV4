@@ -2,8 +2,10 @@ using System;
 using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
 using Nakama;
 using TienLen.Application; // Updated for IMatchNetworkClient and PlayerAvatar
+using TienLen.Application.Logging;
 using TienLen.Domain.ValueObjects;
 using TienLen.Infrastructure.Services;
 using UnityEngine;
@@ -14,6 +16,8 @@ using Newtonsoft.Json;
 
 namespace TienLen.Infrastructure.Match
 {
+    using MsLogger = Microsoft.Extensions.Logging.ILogger;
+
     /// <summary>
     /// Nakama implementation of IMatchNetworkClient.
     /// </summary>
@@ -26,6 +30,7 @@ namespace TienLen.Infrastructure.Match
         };
 
         private readonly NakamaAuthenticationService _authService;
+        private readonly MsLogger _logger;
         private string _matchId;
         private ISocket _subscribedSocket;
 
@@ -46,9 +51,15 @@ namespace TienLen.Infrastructure.Match
         public event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
         public event Action<string> OnPlayerFinished;
 
-        public NakamaMatchClient(NakamaAuthenticationService authService)
+        /// <summary>
+        /// Initializes the match client with required services.
+        /// </summary>
+        /// <param name="authService">Authentication service used for socket access.</param>
+        /// <param name="loggingService">Logging service for structured match diagnostics.</param>
+        public NakamaMatchClient(NakamaAuthenticationService authService, ILoggingService loggingService)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _logger = loggingService?.CreateLogger<NakamaMatchClient>();
         }
 
         private ISocket Socket => _authService.Socket;
@@ -219,6 +230,12 @@ namespace TienLen.Infrastructure.Match
 
                         // Updated to use OwnerSeat (int) instead of OwnerId (string)
                         var snapshot = new MatchStateSnapshotDto(seats, payload.OwnerSeat, payload.Tick, players);
+                        _logger?.LogInformation(
+                            "Match join snapshot received. matchId={matchId} seatCount={seatCount} playerCount={playerCount} ownerSeat={ownerSeat}",
+                            _matchId,
+                            payload.Seats.Count,
+                            players.Count,
+                            payload.OwnerSeat);
                         OnPlayerJoinedOP?.Invoke(snapshot);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse MatchStateSnapshot: {e}"); }
@@ -256,10 +273,6 @@ namespace TienLen.Infrastructure.Match
                         var cards = new List<Card>();
                         foreach (var c in payload.Cards) cards.Add(ToDomain(c));
                         // payload.Seat is int32, NextTurnSeat is int32
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-                        Debug.Log(
-                            $"[QA] CardPlayedEvent: currentTurnSeat(before)={payload.Seat}, currentTurnSeat(after)={payload.NextTurnSeat}, newRound={payload.NewRound}, cardCount={cards.Count}");
-#endif
                         OnCardsPlayed?.Invoke(payload.Seat, cards, payload.NextTurnSeat, payload.NewRound);
                     }
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse CardPlayedEvent: {e}"); }
@@ -373,6 +386,11 @@ namespace TienLen.Infrastructure.Match
                 {
                     UpsertPresence(presence, isInMatch: true);
                     if (presence == null || string.IsNullOrWhiteSpace(presence.UserId)) continue;
+                    _logger?.LogInformation(
+                        "Match presence joined. matchId={matchId} userId={userId} username={username}",
+                        _matchId,
+                        presence.UserId,
+                        presence.Username);
                     changes.Add(new PresenceChange(presence.UserId, presence.Username, joined: true));
                 }
             }

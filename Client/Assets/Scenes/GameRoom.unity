@@ -1268,7 +1268,7 @@ MonoBehaviour:
   - {fileID: 621749205}
   - {fileID: 621749209}
   - {fileID: 621749213}
-  _rollSeconds: 0.25
+  _rollSeconds: 0.5
   _rollOffset: 24
 --- !u!1 &621749203
 GameObject:

@@ -1,12 +1,111 @@
-Proposed scene/DI restructuring for clearer flow and separation:
+To setup **ZLogger** in Unity using **Clean Architecture**, you need to treat logging as a dependency that is injected, rather than a static tool you call everywhere (like `Debug.Log`).
 
-Scene roles: Keep Home lean for auth/UX and GameRoom for match play. Extract a tiny Bootstrap additive scene as the true entry point to own: config load, logging, service container initialization, cross-scene singletons (network client, player/session state, config, audio bus, analytics). Load Home additively after bootstrap.
-Scene loading pattern: Use additive loads for Home → GameRoom, unloading the previous scene’s presentation while keeping the bootstrap scene resident so shared services persist. Centralize scene transitions in a SceneNavigator service (no UI code calling SceneManager directly).
-Auth + matchmaking flow: In Home, UI triggers an AuthController that depends only on an IAuthService (handles token/session refresh) and IMatchmakingService (handles join/create). When Play is clicked: disable UI, call matchmaking, on success instruct SceneNavigator to load GameRoom additively; on failure re-enable UI with error. Carry the match context via a MatchSession model stored in the bootstrap scope.
-GameRoom responsibilities: View-only components talk to a thin GameRoomController that takes IMatchService/IMatchState interfaces. Start Game triggers a command on IMatchService (idempotent). Keep rendering/input separate from network logic; add a MatchStatePresenter that subscribes to match state updates to drive UI.
-DI boundaries: Define interfaces in a shared assembly (e.g., TienLen.Application), concrete implementations in infrastructure assemblies (e.g., Nakama clients). Register in bootstrap: IAuthService, IMatchmakingService, IMatchService, IMatchState, ILogger, IConfig, IScheduler/ITimer, IAudioBus, IAnalytics. Provide factories for scene-scoped controllers (HomeController, GameRoomController) so they resolve dependencies cleanly per scene.
-State management: Maintain a PlayerSession (auth tokens, user id) and MatchSession (match id, slots, rules, reconnection data) as services with clear lifetimes: bootstrap-resident, reset on logout/leave match. Ensure reconnection flow can rehydrate GameRoom without a full app restart.
-Networking: Keep Nakama client lifetime in bootstrap. Expose only domain-facing interfaces to scenes. Use message handlers to push updates into IMatchState; presenters subscribe to that, not directly to sockets.
-Loading/error UX: Standardize loading overlays and error surfaces per scene; avoid duplicated spinners/toasts. SceneNavigator can show a global loading screen during transitions.
-Testing hooks: With DI, controllers and services become unit-testable (auth flow, matchmaking join, start-game command idempotency). No code changes yet; once ready, we can add tests to lock behavior.
-If you want, I can draft a concrete scene/DI layout (bootstrap scene content, service registrations, and per-scene controller wiring) before touching code.
+Here is the step-by-step setup using **VContainer** (a popular, modern DI library for Unity that works perfectly with your architecture).
+
+### 1. Installation
+
+You need to install **ZLogger** and its dependency **UniTask**.
+Open Unity, go to **Window > Package Manager**, click the **+** icon, and select **"Add package from git URL..."**. Add these two URLs:
+
+1. **UniTask** (Required dependency):
+`https://github.com/Cysharp/UniTask.git?path=src/UniTask/Assets/Plugins/UniTask`
+2. **ZLogger** (The logger itself):
+`https://github.com/Cysharp/ZLogger.git?path=src/ZLogger.Unity/Assets/ZLogger.Unity`
+
+### 2. The Infrastructure Layer (Composition Root)
+
+In Clean Architecture, "how to create a logger" is an infrastructure detail. We configure this once in your Dependency Injection (DI) entry point.
+
+Create a `GameLifetimeScope.cs` (if you are using VContainer) or a `GameInstaller.cs` (Zenject).
+
+**Example using VContainer:**
+
+```csharp
+using VContainer;
+using VContainer.Unity;
+using Microsoft.Extensions.Logging;
+using ZLogger;
+using UnityEngine;
+
+public class GameLifetimeScope : LifetimeScope
+{
+    protected override void Configure(IContainerBuilder builder)
+    {
+        // 1. Create the Global Logger Factory
+        var loggerFactory = LoggerFactory.Create(logging =>
+        {
+            // Set minimum log level (e.g., Debug for Dev, Error for Release)
+            logging.SetMinimumLevel(LogLevel.Debug);
+
+            // Add Unity "Console" output (Structured!)
+            logging.AddZLoggerUnityDebug();
+            
+            // Optional: Add File logging (great for backend/build debugging)
+            // logging.AddZLoggerFile("logs/game.log");
+        });
+
+        // 2. Register the Factory itself (in case you need to create loggers manually later)
+        builder.RegisterInstance(loggerFactory);
+
+        // 3. Register generic ILogger<T>
+        // This allows any class to ask for ILogger<MyClass> in its constructor
+        builder.Register(typeof(ILogger<>), typeof(Logger<>), Lifetime.Singleton);
+
+        // 4. Register your actual Game Services
+        builder.Register<NakamaMatchClient>(Lifetime.Singleton);
+    }
+}
+
+```
+
+### 3. The Client Implementation (NakamaMatchClient)
+
+Now your client code is clean. It doesn't know about "ZLogger" or "Unity Debug". It just asks for a standard .NET `ILogger`.
+
+```csharp
+using Microsoft.Extensions.Logging;
+using ZLogger; // Needed only if you want the ZLog* extension methods for performance
+
+public class NakamaMatchClient
+{
+    private readonly ILogger<NakamaMatchClient> _logger;
+
+    // Constructor Injection
+    public NakamaMatchClient(ILogger<NakamaMatchClient> logger)
+    {
+        _logger = logger;
+    }
+
+    public void Connect(string userId)
+    {
+        // Standard Logging
+        _logger.LogInformation("Attempting to connect...");
+
+        // ZLogger Optimized Structured Logging (Zero Allocation)
+        // Use this for high-frequency logs (like game loops)
+        _logger.ZLogInformation($"User {userId} is connecting to Nakama session.");
+        
+        try 
+        {
+            // Connection logic...
+            _logger.ZLogDebug("Socket open!");
+        }
+        catch (System.Exception ex)
+        {
+            // Logging Exceptions with structured data
+            _logger.ZLogError(ex, $"Failed to connect user {userId}.");
+        }
+    }
+}
+
+```
+
+### 4. Why this is "Clean"?
+
+1. **Decoupling:** `NakamaMatchClient` depends on `Microsoft.Extensions.Logging.Abstractions`, not specifically on `ZLogger` or `UnityEngine`. If you port this backend logic to a C# console app later, you don't need to change a single line of code in the class.
+2. **Performance:** ZLogger uses C# structs and specialized "Interpolated String Handlers" to avoid garbage collection (GC) allocation when logging, which is critical for mobile games (Tien Len).
+3. **Structured Data:** When you view these logs in a tool (or if you send them to Nakama/Sentry), `{userId}` remains a queryable field, not just a flat string.
+
+### Next Step
+
+Would you like the **full C# code for the `NakamaMatchClient**` now, integrating the socket connection logic with this logging setup?

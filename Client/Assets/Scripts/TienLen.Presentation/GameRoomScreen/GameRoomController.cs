@@ -419,17 +419,6 @@ namespace TienLen.Presentation.GameRoomScreen
             var selectedCards = _localHandView?.SelectedCards;
             var selectedCount = selectedCards?.Count ?? 0;
 
-#if UNITY_EDITOR || DEVELOPMENT_BUILD
-            var match = _matchHandler?.CurrentMatch;
-            if (match != null)
-            {
-                var localSeatIndex = match.LocalSeatIndex;
-                var isLocalPlayersTurn = localSeatIndex >= 0 && match.CurrentTurnSeat == localSeatIndex;
-                Debug.Log(
-                    $"[QA] OnPlayClicked: currentTurnSeat={match.CurrentTurnSeat}, localSeat={localSeatIndex}, isMyTurn={isLocalPlayersTurn}, selectedCount={selectedCount}");
-            }
-#endif
-
             if (selectedCount > 0 && _matchHandler != null)
             {
                 TryAnimateSelectedCards();

@@ -14,7 +14,7 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private TMP_Text[] _lines = new TMP_Text[3];
 
         [Header("Animation")]
-        [SerializeField] private float _rollSeconds = 0.25f;
+        [SerializeField] private float _rollSeconds = 0.5f;
         [SerializeField] private float _rollOffset = 24f;
 
         private readonly List<string> _entries = new();
@@ -27,7 +27,7 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
-        /// Adds a new entry to the log and rolls the text upward.
+        /// Adds a new entry to the log and rolls the text downward.
         /// </summary>
         /// <param name="entry">Text to display.</param>
         public void AddEntry(string entry)
@@ -44,7 +44,7 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             ApplyEntries();
-            AnimateRollUp().Forget();
+            AnimateRollDown().Forget();
         }
 
         /// <summary>
@@ -97,7 +97,7 @@ namespace TienLen.Presentation.GameRoomScreen
             return 24f;
         }
 
-        private async UniTask AnimateRollUp()
+        private async UniTask AnimateRollDown()
         {
             if (_lines == null || _linePositions == null) return;
 
@@ -111,7 +111,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 var line = _lines[i];
                 if (line == null) continue;
 
-                var startPosition = _linePositions[i] - (Vector2.up * offset);
+                var startPosition = _linePositions[i] + (Vector2.up * offset);
                 line.rectTransform.anchoredPosition = startPosition;
                 startPositions[i] = startPosition;
             }
