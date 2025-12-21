@@ -7,16 +7,18 @@ namespace TienLen.Application.Session
         public string UserId { get; private set; }
         public string DisplayName { get; private set; }
         public int AvatarIndex { get; private set; }
+        public long Balance { get; private set; }
         public bool IsLoggedIn => !string.IsNullOrEmpty(UserId);
 
-        public IdentityState(string id, string name, int avatar) 
+        public IdentityState(string id, string name, int avatar, long balance) 
         { 
             UserId = id; 
             DisplayName = name; 
-            AvatarIndex = avatar; 
+            AvatarIndex = avatar;
+            Balance = balance;
         }
 
-        public static IdentityState Empty => new IdentityState(null, null, 0);
+        public static IdentityState Empty => new IdentityState(null, null, 0, 0);
     }
 
     public class MatchState

@@ -10,7 +10,7 @@ namespace TienLen.Application.Session
         MatchState CurrentMatch { get; }
 
         // Methods to mutate state
-        void SetIdentity(string userId, string displayName, int avatarIndex);
+        void SetIdentity(string userId, string displayName, int avatarIndex, long balance);
         void SetMatch(string matchId, int seatIndex);
         void ClearMatch();
         void ClearSession(); // Logout

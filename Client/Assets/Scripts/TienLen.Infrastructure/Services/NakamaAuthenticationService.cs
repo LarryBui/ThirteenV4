@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Nakama;
+using Newtonsoft.Json;
 using TienLen.Application;
 using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
@@ -71,8 +73,17 @@ namespace TienLen.Infrastructure.Services
                     // AuthenticateDeviceAsync returns a Task, await it directly.
                     _session = await _client.AuthenticateDeviceAsync(_config.DeviceId, create: true);
                     
+                    // Fetch full account details to get the wallet
+                    var account = await _client.GetAccountAsync(_session);
+                    var wallet = JsonConvert.DeserializeObject<Dictionary<string, long>>(account.Wallet);
+                    long balance = 0;
+                    if (wallet != null && wallet.ContainsKey("gold"))
+                    {
+                        balance = wallet["gold"];
+                    }
+
                     // Update Game Session Context
-                    _gameSessionContext.SetIdentity(_session.UserId, _session.Username, GetAvatarIndex(_session.UserId));
+                    _gameSessionContext.SetIdentity(_session.UserId, _session.Username, GetAvatarIndex(_session.UserId), balance);
                 }
 
                 await EnsureSocketAsync();

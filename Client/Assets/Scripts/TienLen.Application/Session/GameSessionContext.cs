@@ -5,9 +5,9 @@ namespace TienLen.Application.Session
         public IdentityState Identity { get; private set; } = IdentityState.Empty;
         public MatchState CurrentMatch { get; private set; } = MatchState.Empty;
 
-        public void SetIdentity(string userId, string displayName, int avatarIndex)
+        public void SetIdentity(string userId, string displayName, int avatarIndex, long balance)
         {
-            Identity = new IdentityState(userId, displayName, avatarIndex);
+            Identity = new IdentityState(userId, displayName, avatarIndex, balance);
         }
 
         public void SetMatch(string matchId, int seatIndex)
