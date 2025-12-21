@@ -44,25 +44,28 @@ namespace Tienlen.V1 {
             "ZEV2ZW50EgwKBHNlYXQYASABKAUSHwoFY2FyZHMYAiADKAsyEC50aWVubGVu",
             "LnYxLkNhcmQSFgoObmV4dF90dXJuX3NlYXQYAyABKAUSEQoJbmV3X3JvdW5k",
             "GAQgASgIIkoKD1R1cm5QYXNzZWRFdmVudBIMCgRzZWF0GAEgASgFEhYKDm5l",
-            "eHRfdHVybl9zZWF0GAIgASgFEhEKCW5ld19yb3VuZBgDIAEoCCIsCg5HYW1l",
-            "RW5kZWRFdmVudBIaChJmaW5pc2hfb3JkZXJfc2VhdHMYASADKAUiLwoOR2Ft",
-            "ZUVycm9yRXZlbnQSDAoEY29kZRgBIAEoBRIPCgdtZXNzYWdlGAIgASgJKksK",
-            "BFN1aXQSDwoLU1VJVF9TUEFERVMQABIOCgpTVUlUX0NMVUJTEAESEQoNU1VJ",
-            "VF9ESUFNT05EUxACEg8KC1NVSVRfSEVBUlRTEAMqyQEKBFJhbmsSDgoKUkFO",
-            "S19USFJFRRAAEg0KCVJBTktfRk9VUhABEg0KCVJBTktfRklWRRACEgwKCFJB",
-            "TktfU0lYEAMSDgoKUkFOS19TRVZFThAEEg4KClJBTktfRUlHSFQQBRINCglS",
-            "QU5LX05JTkUQBhIMCghSQU5LX1RFThAHEg0KCVJBTktfSkFDSxAIEg4KClJB",
-            "TktfUVVFRU4QCRINCglSQU5LX0tJTkcQChIMCghSQU5LX0FDRRALEgwKCFJB",
-            "TktfVFdPEAwqRQoJR2FtZVBoYXNlEhEKDVBIQVNFX1dBSVRJTkcQABIRCg1Q",
-            "SEFTRV9QTEFZSU5HEAESEgoOUEhBU0VfRklOSVNIRUQQAiq2AgoGT3BDb2Rl",
-            "EhcKE09QX0NPREVfVU5TUEVDSUZJRUQQABIWChJPUF9DT0RFX1NUQVJUX0dB",
-            "TUUQARIWChJPUF9DT0RFX1BMQVlfQ0FSRFMQAhIVChFPUF9DT0RFX1BBU1Nf",
-            "VFVSThADEhwKGE9QX0NPREVfUkVRVUVTVF9ORVdfR0FNRRAEEhkKFU9QX0NP",
-            "REVfUExBWUVSX0pPSU5FRBAyEhcKE09QX0NPREVfUExBWUVSX0xFRlQQMxIY",
-            "ChRPUF9DT0RFX0dBTUVfU1RBUlRFRBBkEhcKE09QX0NPREVfQ0FSRF9QTEFZ",
-            "RUQQZhIXChNPUF9DT0RFX1RVUk5fUEFTU0VEEGcSFgoST1BfQ09ERV9HQU1F",
-            "X0VOREVEEGgSFgoST1BfQ09ERV9HQU1FX0VSUk9SEGlCEloQdGllbmxlbi9w",
-            "cm90bztwYmIGcHJvdG8z"));
+            "eHRfdHVybl9zZWF0GAIgASgFEhEKCW5ld19yb3VuZBgDIAEoCCKsAQoOR2Ft",
+            "ZUVuZGVkRXZlbnQSGgoSZmluaXNoX29yZGVyX3NlYXRzGAEgAygFEkcKD2Jh",
+            "bGFuY2VfY2hhbmdlcxgCIAMoCzIuLnRpZW5sZW4udjEuR2FtZUVuZGVkRXZl",
+            "bnQuQmFsYW5jZUNoYW5nZXNFbnRyeRo1ChNCYWxhbmNlQ2hhbmdlc0VudHJ5",
+            "EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAzoCOAEiLwoOR2FtZUVycm9y",
+            "RXZlbnQSDAoEY29kZRgBIAEoBRIPCgdtZXNzYWdlGAIgASgJKksKBFN1aXQS",
+            "DwoLU1VJVF9TUEFERVMQABIOCgpTVUlUX0NMVUJTEAESEQoNU1VJVF9ESUFN",
+            "T05EUxACEg8KC1NVSVRfSEVBUlRTEAMqyQEKBFJhbmsSDgoKUkFOS19USFJF",
+            "RRAAEg0KCVJBTktfRk9VUhABEg0KCVJBTktfRklWRRACEgwKCFJBTktfU0lY",
+            "EAMSDgoKUkFOS19TRVZFThAEEg4KClJBTktfRUlHSFQQBRINCglSQU5LX05J",
+            "TkUQBhIMCghSQU5LX1RFThAHEg0KCVJBTktfSkFDSxAIEg4KClJBTktfUVVF",
+            "RU4QCRINCglSQU5LX0tJTkcQChIMCghSQU5LX0FDRRALEgwKCFJBTktfVFdP",
+            "EAwqRQoJR2FtZVBoYXNlEhEKDVBIQVNFX1dBSVRJTkcQABIRCg1QSEFTRV9Q",
+            "TEFZSU5HEAESEgoOUEhBU0VfRklOSVNIRUQQAiq2AgoGT3BDb2RlEhcKE09Q",
+            "X0NPREVfVU5TUEVDSUZJRUQQABIWChJPUF9DT0RFX1NUQVJUX0dBTUUQARIW",
+            "ChJPUF9DT0RFX1BMQVlfQ0FSRFMQAhIVChFPUF9DT0RFX1BBU1NfVFVSThAD",
+            "EhwKGE9QX0NPREVfUkVRVUVTVF9ORVdfR0FNRRAEEhkKFU9QX0NPREVfUExB",
+            "WUVSX0pPSU5FRBAyEhcKE09QX0NPREVfUExBWUVSX0xFRlQQMxIYChRPUF9D",
+            "T0RFX0dBTUVfU1RBUlRFRBBkEhcKE09QX0NPREVfQ0FSRF9QTEFZRUQQZhIX",
+            "ChNPUF9DT0RFX1RVUk5fUEFTU0VEEGcSFgoST1BfQ09ERV9HQU1FX0VOREVE",
+            "EGgSFgoST1BfQ09ERV9HQU1FX0VSUk9SEGlCEloQdGllbmxlbi9wcm90bztw",
+            "YmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -79,7 +82,7 @@ namespace Tienlen.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnSeat", "Phase", "Hand" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardPlayedEvent), global::Tienlen.V1.CardPlayedEvent.Parser, new[]{ "Seat", "Cards", "NextTurnSeat", "NewRound" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.TurnPassedEvent), global::Tienlen.V1.TurnPassedEvent.Parser, new[]{ "Seat", "NextTurnSeat", "NewRound" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameEndedEvent), global::Tienlen.V1.GameEndedEvent.Parser, new[]{ "FinishOrderSeats" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameEndedEvent), global::Tienlen.V1.GameEndedEvent.Parser, new[]{ "FinishOrderSeats", "BalanceChanges" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameErrorEvent), global::Tienlen.V1.GameErrorEvent.Parser, new[]{ "Code", "Message" }, null, null, null, null)
           }));
     }
@@ -3289,6 +3292,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public GameEndedEvent(GameEndedEvent other) : this() {
       finishOrderSeats_ = other.finishOrderSeats_.Clone();
+      balanceChanges_ = other.balanceChanges_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3312,6 +3316,20 @@ namespace Tienlen.V1 {
       get { return finishOrderSeats_; }
     }
 
+    /// <summary>Field number for the "balance_changes" field.</summary>
+    public const int BalanceChangesFieldNumber = 2;
+    private static readonly pbc::MapField<string, long>.Codec _map_balanceChanges_codec
+        = new pbc::MapField<string, long>.Codec(pb::FieldCodec.ForString(10, ""), pb::FieldCodec.ForInt64(16, 0L), 18);
+    private readonly pbc::MapField<string, long> balanceChanges_ = new pbc::MapField<string, long>();
+    /// <summary>
+    /// UserID -> Gold (+/-)
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::MapField<string, long> BalanceChanges {
+      get { return balanceChanges_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -3328,6 +3346,7 @@ namespace Tienlen.V1 {
         return true;
       }
       if(!finishOrderSeats_.Equals(other.finishOrderSeats_)) return false;
+      if (!BalanceChanges.Equals(other.BalanceChanges)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3336,6 +3355,7 @@ namespace Tienlen.V1 {
     public override int GetHashCode() {
       int hash = 1;
       hash ^= finishOrderSeats_.GetHashCode();
+      hash ^= BalanceChanges.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3355,6 +3375,7 @@ namespace Tienlen.V1 {
       output.WriteRawMessage(this);
     #else
       finishOrderSeats_.WriteTo(output, _repeated_finishOrderSeats_codec);
+      balanceChanges_.WriteTo(output, _map_balanceChanges_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3366,6 +3387,7 @@ namespace Tienlen.V1 {
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
       finishOrderSeats_.WriteTo(ref output, _repeated_finishOrderSeats_codec);
+      balanceChanges_.WriteTo(ref output, _map_balanceChanges_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -3377,6 +3399,7 @@ namespace Tienlen.V1 {
     public int CalculateSize() {
       int size = 0;
       size += finishOrderSeats_.CalculateSize(_repeated_finishOrderSeats_codec);
+      size += balanceChanges_.CalculateSize(_map_balanceChanges_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -3390,6 +3413,7 @@ namespace Tienlen.V1 {
         return;
       }
       finishOrderSeats_.Add(other.finishOrderSeats_);
+      balanceChanges_.MergeFrom(other.balanceChanges_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -3414,6 +3438,10 @@ namespace Tienlen.V1 {
             finishOrderSeats_.AddEntriesFrom(input, _repeated_finishOrderSeats_codec);
             break;
           }
+          case 18: {
+            balanceChanges_.AddEntriesFrom(input, _map_balanceChanges_codec);
+            break;
+          }
         }
       }
     #endif
@@ -3436,6 +3464,10 @@ namespace Tienlen.V1 {
           case 10:
           case 8: {
             finishOrderSeats_.AddEntriesFrom(ref input, _repeated_finishOrderSeats_codec);
+            break;
+          }
+          case 18: {
+            balanceChanges_.AddEntriesFrom(ref input, _map_balanceChanges_codec);
             break;
           }
         }

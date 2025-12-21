@@ -436,41 +436,8 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             label.raycastTarget = false;
-            label.text = $"{ToRankString(card.Rank)}{ToSuitSymbol(card.Suit)}";
+            label.text = CardTextFormatter.FormatShort(card);
             label.color = ToSuitColor(card.Suit);
-        }
-
-        private static string ToRankString(Rank rank)
-        {
-            return rank switch
-            {
-                Rank.Three => "3",
-                Rank.Four => "4",
-                Rank.Five => "5",
-                Rank.Six => "6",
-                Rank.Seven => "7",
-                Rank.Eight => "8",
-                Rank.Nine => "9",
-                Rank.Ten => "10",
-                Rank.Jack => "J",
-                Rank.Queen => "Q",
-                Rank.King => "K",
-                Rank.Ace => "A",
-                Rank.Two => "2",
-                _ => rank.ToString()
-            };
-        }
-
-        private static string ToSuitSymbol(Suit suit)
-        {
-            return suit switch
-            {
-                Suit.Spades => "\u2660",
-                Suit.Clubs => "\u2663",
-                Suit.Diamonds => "\u2666",
-                Suit.Hearts => "\u2665",
-                _ => suit.ToString()
-            };
         }
 
         private static Color ToSuitColor(Suit suit)

@@ -27,7 +27,22 @@ namespace TienLen.Application
         /// Use this to refresh GameRoom UI (seats/owner/player display info).
         /// </summary>
         public event Action GameRoomStateUpdated;
-        
+
+        /// <summary>
+        /// Raised when a player joins the match.
+        /// </summary>
+        public event Action<int, string> PlayerJoined; // seat, userId
+
+        /// <summary>
+        /// Raised when a player leaves the match.
+        /// </summary>
+        public event Action<int, string> PlayerLeft; // seat, userId
+
+        /// <summary>
+        /// Raised when match presence changes (join/leave) with username info when available.
+        /// </summary>
+        public event Action<IReadOnlyList<PresenceChange>> MatchPresenceChanged;
+
         /// <summary>
         /// Raised when the game starts (gameplay begins).
         /// </summary>
@@ -37,6 +52,16 @@ namespace TienLen.Application
         /// Raised when the board state updates (cards played or round reset).
         /// </summary>
         public event Action<int, bool> GameBoardUpdated;
+
+        /// <summary>
+        /// Raised when cards are played (used for UI logging).
+        /// </summary>
+        public event Action<int, IReadOnlyList<Card>> CardsPlayed; // seat, cards
+
+        /// <summary>
+        /// Raised when a turn is passed (used for UI logging).
+        /// </summary>
+        public event Action<int> TurnPassed; // seat
 
         /// <summary>
         /// Raised when the server reports a gameplay error (e.g., invalid play).
@@ -171,9 +196,11 @@ namespace TienLen.Application
             _networkClient.OnCardsPlayed += HandleCardsPlayed;
             _networkClient.OnGameStarted += HandleGameStarted;
             _networkClient.OnPlayerJoinedOP += HandlePlayerJoinedOP;
+            _networkClient.OnPlayerLeft += HandlePlayerLeft;
             _networkClient.OnTurnPassed += HandleTurnPassed;
             _networkClient.OnGameEnded += HandleGameEnded;
             _networkClient.OnGameError += HandleGameError;
+            _networkClient.OnMatchPresenceChanged += HandleMatchPresenceChanged;
         }
 
         private void UnsubscribeFromNetworkEvents()
@@ -181,9 +208,11 @@ namespace TienLen.Application
             _networkClient.OnCardsPlayed -= HandleCardsPlayed;
             _networkClient.OnGameStarted -= HandleGameStarted;
             _networkClient.OnPlayerJoinedOP -= HandlePlayerJoinedOP;
+            _networkClient.OnPlayerLeft -= HandlePlayerLeft;
             _networkClient.OnTurnPassed -= HandleTurnPassed;
             _networkClient.OnGameEnded -= HandleGameEnded;
             _networkClient.OnGameError -= HandleGameError;
+            _networkClient.OnMatchPresenceChanged -= HandleMatchPresenceChanged;
         }
 
         private void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound)
@@ -198,6 +227,7 @@ namespace TienLen.Application
                 CurrentMatch.HandleTurnPassed(seat, nextTurnSeat, newRound);
                 GameRoomStateUpdated?.Invoke();
                 GameBoardUpdated?.Invoke(seat, newRound);
+                TurnPassed?.Invoke(seat);
             }
             catch (Exception ex)
             {
@@ -217,6 +247,13 @@ namespace TienLen.Application
         {
             Debug.LogWarning($"MatchHandler: Game error received. code={code}, message={message}");
             GameErrorReceived?.Invoke(code, message);
+        }
+
+        private void HandleMatchPresenceChanged(IReadOnlyList<PresenceChange> changes)
+        {
+            if (CurrentMatch == null) return;
+            if (changes == null || changes.Count == 0) return;
+            MatchPresenceChanged?.Invoke(changes);
         }
 
         private void HandleCardsPlayed(int seat, List<Card> cards, int nextTurnSeat, bool newRound)
@@ -240,6 +277,7 @@ namespace TienLen.Application
                 CurrentMatch.PlayTurn(seat, cards, nextTurnSeat, newRound);
                 GameRoomStateUpdated?.Invoke();
                 GameBoardUpdated?.Invoke(seat, newRound);
+                CardsPlayed?.Invoke(seat, cards ?? new List<Card>());
 
 #if UNITY_EDITOR || DEVELOPMENT_BUILD
                 var afterTurnSeat = CurrentMatch.CurrentTurnSeat;
@@ -280,6 +318,7 @@ namespace TienLen.Application
         {
             if (CurrentMatch == null) return;
 
+            var previousUsers = new HashSet<string>(CurrentMatch.Players.Keys);
             Array.Clear(CurrentMatch.Seats, 0, CurrentMatch.Seats.Length);
             var seatsToCopy = Math.Min(snapshot.Seats.Length, CurrentMatch.Seats.Length);
             Array.Copy(snapshot.Seats, CurrentMatch.Seats, seatsToCopy);
@@ -287,6 +326,48 @@ namespace TienLen.Application
 
             ApplyGameRoomSnapshotToPlayers(snapshot);
             UpdateLocalSeatIndex();
+            GameRoomStateUpdated?.Invoke();
+
+            if (snapshot.Players != null)
+            {
+                foreach (var playerState in snapshot.Players)
+                {
+                    if (string.IsNullOrWhiteSpace(playerState.UserId)) continue;
+                    if (!previousUsers.Contains(playerState.UserId))
+                    {
+                        PlayerJoined?.Invoke(playerState.Seat, playerState.UserId);
+                    }
+                }
+            }
+        }
+
+        private void HandlePlayerLeft(int seat, string userId)
+        {
+            if (CurrentMatch == null) return;
+
+            PlayerLeft?.Invoke(seat, userId);
+
+            if (seat >= 0 && seat < CurrentMatch.Seats.Length)
+            {
+                if (CurrentMatch.Seats[seat] == userId || string.IsNullOrWhiteSpace(CurrentMatch.Seats[seat]))
+                {
+                    CurrentMatch.Seats[seat] = string.Empty;
+                }
+                else
+                {
+                    var resolvedSeat = FindSeatIndex(CurrentMatch.Seats, userId);
+                    if (resolvedSeat >= 0)
+                    {
+                        CurrentMatch.Seats[resolvedSeat] = string.Empty;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                CurrentMatch.Players.Remove(userId);
+            }
+
             GameRoomStateUpdated?.Invoke();
         }
 

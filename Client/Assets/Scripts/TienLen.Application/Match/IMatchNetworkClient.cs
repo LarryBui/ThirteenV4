@@ -33,6 +33,16 @@ namespace TienLen.Application
         /// Fired when a match state snapshot is received from the server (OP_CODE_PLAYER_JOINED).
         /// </summary>
         event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
+
+        /// <summary>
+        /// Fired when a player leaves the match (OP_CODE_PLAYER_LEFT).
+        /// </summary>
+        event Action<int, string> OnPlayerLeft; // seat, userId
+
+        /// <summary>
+        /// Fired when match presence changes (join/leave) with username info when available.
+        /// </summary>
+        event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
         
         /// <summary>
         /// Fired when the game ends.
@@ -80,5 +90,33 @@ namespace TienLen.Application
         /// Initiates matchmaking and returns the found match ID upon success.
         /// </summary>
         UniTask<string> FindMatchAsync();
+    }
+
+    /// <summary>
+    /// Represents a single user presence change in a match.
+    /// </summary>
+    public sealed class PresenceChange
+    {
+        /// <summary>
+        /// User id for the presence.
+        /// </summary>
+        public string UserId { get; }
+
+        /// <summary>
+        /// Username for the presence, when supplied by the server.
+        /// </summary>
+        public string Username { get; }
+
+        /// <summary>
+        /// True when the presence joined; false when it left.
+        /// </summary>
+        public bool Joined { get; }
+
+        public PresenceChange(string userId, string username, bool joined)
+        {
+            UserId = userId;
+            Username = username;
+            Joined = joined;
+        }
     }
 }

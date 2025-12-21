@@ -44,6 +44,8 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private PlayedCardsAnimator _playedCardsAnimator;
         [Tooltip("Displays transient game messages such as errors.")]
         [SerializeField] private GameMessagePresenter _gameMessagePresenter;
+        [Tooltip("Displays recent room actions in the top-left corner.")]
+        [SerializeField] private GameRoomLogView _gameRoomLogView;
 
         private TienLenMatchHandler _matchHandler;
         private LocalHandView _localHandView;
@@ -74,6 +76,9 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.GameStarted += HandleGameStarted;
             _matchHandler.GameBoardUpdated += HandleGameBoardUpdated;
             _matchHandler.GameErrorReceived += HandleGameError;
+            _matchHandler.CardsPlayed += HandleCardsPlayed;
+            _matchHandler.TurnPassed += HandleTurnPassed;
+            _matchHandler.MatchPresenceChanged += HandleMatchPresenceChanged;
 
             // Render current state once in case the initial snapshot arrived before this scene loaded.
             RefreshGameRoomUI();
@@ -85,6 +90,7 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             BindLocalHandView(GetComponent<LocalHandView>());
+            BindRoomLogView(_gameRoomLogView ?? GetComponentInChildren<GameRoomLogView>(includeInactive: true));
         }
 
         private void OnDestroy()
@@ -95,6 +101,9 @@ namespace TienLen.Presentation.GameRoomScreen
                 _matchHandler.GameStarted -= HandleGameStarted;
                 _matchHandler.GameBoardUpdated -= HandleGameBoardUpdated;
                 _matchHandler.GameErrorReceived -= HandleGameError;
+                _matchHandler.CardsPlayed -= HandleCardsPlayed;
+                _matchHandler.TurnPassed -= HandleTurnPassed;
+                _matchHandler.MatchPresenceChanged -= HandleMatchPresenceChanged;
             }
 
             if (_cardDealer != null)
@@ -103,6 +112,7 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             BindLocalHandView(null);
+            BindRoomLogView(null);
         }
 
         private void HandleGameStarted()
@@ -150,6 +160,37 @@ namespace TienLen.Presentation.GameRoomScreen
             _localHandView?.ShowHiddenSelectedCards();
             _gameMessagePresenter?.ShowError(message);
             Debug.LogWarning($"GameRoomController: Game error received. code={code}, message={message}");
+        }
+
+        private void HandleCardsPlayed(int seat, IReadOnlyList<Card> cards)
+        {
+            var match = _matchHandler?.CurrentMatch;
+            var displayName = ResolveDisplayName(match, seat, userId: null);
+            var cardText = FormatCards(cards);
+            _gameRoomLogView?.AddEntry($"{displayName} played {cardText}.");
+        }
+
+        private void HandleTurnPassed(int seat)
+        {
+            var match = _matchHandler?.CurrentMatch;
+            var displayName = ResolveDisplayName(match, seat, userId: null);
+            _gameRoomLogView?.AddEntry($"{displayName} passed.");
+        }
+
+        private void HandleMatchPresenceChanged(IReadOnlyList<PresenceChange> changes)
+        {
+            var match = _matchHandler?.CurrentMatch;
+            if (match == null || changes == null) return;
+
+            foreach (var change in changes)
+            {
+                if (change == null || string.IsNullOrWhiteSpace(change.UserId)) continue;
+
+                var seat = FindSeatByUserId(match, change.UserId);
+                var displayName = ResolveDisplayName(match, seat, change.UserId);
+                var suffix = change.Joined ? "joined" : "left";
+                _gameRoomLogView?.AddEntry($"{displayName} {suffix}.");
+            }
         }
 
         private void HandleGameRoomStateUpdated()
@@ -247,6 +288,63 @@ namespace TienLen.Presentation.GameRoomScreen
 
             var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
             return $"Player {suffix}";
+        }
+
+        private static string ResolveDisplayName(Match match, int seat, string userId)
+        {
+            if (match != null && seat >= 0 && seat < match.Seats.Length)
+            {
+                var nameFromSeat = TryGetSeatDisplayName(match, seat);
+                if (!string.IsNullOrWhiteSpace(nameFromSeat) && !string.Equals(nameFromSeat, "Player", StringComparison.OrdinalIgnoreCase))
+                {
+                    return nameFromSeat;
+                }
+            }
+
+            if (match != null && !string.IsNullOrWhiteSpace(userId))
+            {
+                if (match.Players != null && match.Players.TryGetValue(userId, out var player))
+                {
+                    if (!string.IsNullOrWhiteSpace(player.DisplayName))
+                    {
+                        return player.DisplayName;
+                    }
+                }
+            }
+
+            if (!string.IsNullOrWhiteSpace(userId))
+            {
+                var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
+                return $"Player {suffix}";
+            }
+
+            return seat >= 0 ? $"Player {seat + 1}" : "Player";
+        }
+
+        private static string FormatCards(IReadOnlyList<Card> cards)
+        {
+            if (cards == null || cards.Count == 0) return "cards";
+
+            var parts = new string[cards.Count];
+            for (int i = 0; i < cards.Count; i++)
+            {
+                parts[i] = CardTextFormatter.FormatShort(cards[i]);
+            }
+
+            return string.Join(" ", parts);
+        }
+
+        private static int FindSeatByUserId(Match match, string userId)
+        {
+            if (match == null || match.Seats == null) return -1;
+            if (string.IsNullOrWhiteSpace(userId)) return -1;
+
+            for (int i = 0; i < match.Seats.Length; i++)
+            {
+                if (match.Seats[i] == userId) return i;
+            }
+
+            return -1;
         }
 
         private static void ClearProfileSlot(PlayerProfileUI slot)
@@ -414,6 +512,11 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 _localHandView.SelectionChanged += HandleLocalHandSelectionChanged;
             }
+        }
+
+        private void BindRoomLogView(GameRoomLogView view)
+        {
+            _gameRoomLogView = view;
         }
 
         private void HandleLocalHandSelectionChanged(IReadOnlyList<Card> selectedCards)

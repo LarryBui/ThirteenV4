@@ -27,8 +27,8 @@ namespace TienLen.Presentation.GameRoomScreen
         /// <param name="card">Domain card value.</param>
         public void SetCard(Card card)
         {
-            var rank = ToRankString(card.Rank);
-            var suit = ToSuitSymbol(card.Suit);
+            var rank = CardTextFormatter.ToRankString(card.Rank);
+            var suit = CardTextFormatter.ToSuitSymbol(card.Suit);
             var color = GetSuitColor(card.Suit);
 
             if (_rankText != null)
@@ -57,39 +57,5 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             return suit is Suit.Diamonds or Suit.Hearts ? _redSuitColor : _blackSuitColor;
         }
-
-        private static string ToRankString(Rank rank)
-        {
-            return rank switch
-            {
-                Rank.Three => "3",
-                Rank.Four => "4",
-                Rank.Five => "5",
-                Rank.Six => "6",
-                Rank.Seven => "7",
-                Rank.Eight => "8",
-                Rank.Nine => "9",
-                Rank.Ten => "10",
-                Rank.Jack => "J",
-                Rank.Queen => "Q",
-                Rank.King => "K",
-                Rank.Ace => "A",
-                Rank.Two => "2",
-                _ => rank.ToString()
-            };
-        }
-
-        private static string ToSuitSymbol(Suit suit)
-        {
-            return suit switch
-            {
-                Suit.Spades => "\u2660",
-                Suit.Clubs => "\u2663",
-                Suit.Diamonds => "\u2666",
-                Suit.Hearts => "\u2665",
-                _ => suit.ToString()
-            };
-        }
-
     }
 }

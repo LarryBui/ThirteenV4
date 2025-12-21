@@ -39,8 +39,11 @@ namespace TienLen.Infrastructure.Match
         public event Action<List<Card>, int> OnGameStarted; // hand, firstTurnSeat
         /// <inheritdoc />
         public event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
+        /// <inheritdoc />
+        public event Action<int, string> OnPlayerLeft;
         public event Action<List<int>> OnGameEnded;
         public event Action<int, string> OnGameError;
+        public event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
         public event Action<string> OnPlayerFinished;
 
         public NakamaMatchClient(NakamaAuthenticationService authService)
@@ -221,6 +224,15 @@ namespace TienLen.Infrastructure.Match
                     catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse MatchStateSnapshot: {e}"); }
                     break;
 
+                case (long)Proto.OpCode.PlayerLeft: // 51
+                    try
+                    {
+                        var payload = Proto.PlayerLeftEvent.Parser.ParseFrom(state.State);
+                        OnPlayerLeft?.Invoke(payload.Seat, payload.UserId);
+                    }
+                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse PlayerLeftEvent: {e}"); }
+                    break;
+
                 case (long)Proto.OpCode.GameStarted: // 100
                     try
                     {
@@ -322,9 +334,11 @@ namespace TienLen.Infrastructure.Match
             if (_subscribedSocket != null)
             {
                 _subscribedSocket.ReceivedMatchState -= HandleMatchState;
+                _subscribedSocket.ReceivedMatchPresence -= HandleMatchPresence;
             }
 
             socket.ReceivedMatchState += HandleMatchState;
+            socket.ReceivedMatchPresence += HandleMatchPresence;
             _subscribedSocket = socket;
         }
 
@@ -336,6 +350,46 @@ namespace TienLen.Infrastructure.Match
             lock (_presenceLock)
             {
                 _presenceByUserId.Clear();
+            }
+        }
+
+        private void HandleMatchPresence(IMatchPresenceEvent presenceEvent)
+        {
+            HandleMatchPresenceMainThread(presenceEvent).Forget();
+        }
+
+        private async UniTaskVoid HandleMatchPresenceMainThread(IMatchPresenceEvent presenceEvent)
+        {
+            await UniTask.SwitchToMainThread();
+
+            if (presenceEvent == null) return;
+            if (presenceEvent.MatchId != _matchId) return;
+
+            var changes = new List<PresenceChange>();
+
+            if (presenceEvent.Joins != null)
+            {
+                foreach (var presence in presenceEvent.Joins)
+                {
+                    UpsertPresence(presence, isInMatch: true);
+                    if (presence == null || string.IsNullOrWhiteSpace(presence.UserId)) continue;
+                    changes.Add(new PresenceChange(presence.UserId, presence.Username, joined: true));
+                }
+            }
+
+            if (presenceEvent.Leaves != null)
+            {
+                foreach (var presence in presenceEvent.Leaves)
+                {
+                    UpsertPresence(presence, isInMatch: false);
+                    if (presence == null || string.IsNullOrWhiteSpace(presence.UserId)) continue;
+                    changes.Add(new PresenceChange(presence.UserId, presence.Username, joined: false));
+                }
+            }
+
+            if (changes.Count > 0)
+            {
+                OnMatchPresenceChanged?.Invoke(changes);
             }
         }
 
