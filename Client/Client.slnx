@@ -47,6 +47,7 @@
   <Project Path="TienLen.Presentation.csproj" />
   <Project Path="Unity.Multiplayer.Center.Common.csproj" />
   <Project Path="Unity.InputSystem.ForUI.csproj" />
+  <Project Path="TienLen.Application.csproj" />
   <Project Path="Unity.AI.Navigation.csproj" />
   <Project Path="Unity.Collections.CodeGen.csproj" />
   <Project Path="Unity.Mathematics.Editor.csproj" />
@@ -59,7 +60,6 @@
   <Project Path="Unity.ShaderGraph.Utilities.csproj" />
   <Project Path="Unity.VisualScripting.Shared.Editor.csproj" />
   <Project Path="ZLogger.Unity.csproj" />
-  <Project Path="TienLen.Application.csproj" />
   <Project Path="NakamaRuntime.csproj" />
   <Project Path="Unity.RenderPipeline.Universal.ShaderLibrary.csproj" />
   <Project Path="UniTask.Editor.csproj" />

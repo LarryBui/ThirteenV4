@@ -17,6 +17,11 @@ namespace TienLen.Presentation.GameRoomScreen
         private ILogger<PlayerProfileUI> _logger = NullLogger<PlayerProfileUI>.Instance;
 
         /// <summary>
+        /// Seat index assigned to this profile (-1 when unassigned).
+        /// </summary>
+        public int SeatIndex { get; private set; } = -1;
+
+        /// <summary>
         /// Assigns a logger instance used for diagnostics.
         /// </summary>
         /// <param name="logger">Logger for this profile component.</param>
@@ -26,12 +31,14 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
-        /// Updates the profile display with the provided name and avatar index.
+        /// Updates the profile display with the provided name, avatar index, and seat index.
         /// </summary>
         /// <param name="displayName">Name to show on the profile card.</param>
         /// <param name="avatarIndex">Index used to select the avatar sprite.</param>
-        public void SetProfile(string displayName, int avatarIndex)
+        /// <param name="seatIndex">Seat index assigned to this profile.</param>
+        public void SetProfile(string displayName, int avatarIndex, int seatIndex)
         {
+            SeatIndex = seatIndex;
             if (avatarImage == null)
             {
                 _logger.LogError("PlayerProfileUI: Avatar Image is not assigned.");
@@ -60,12 +67,23 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
+        /// Returns the avatar image transform used as the visual anchor for animations.
+        /// </summary>
+        /// <returns>Avatar rect when available, otherwise the profile root rect.</returns>
+        public RectTransform GetAvatarAnchor()
+        {
+            if (avatarImage != null) return avatarImage.rectTransform;
+            return transform as RectTransform;
+        }
+
+        /// <summary>
         /// Clears the profile visuals back to empty defaults.
         /// </summary>
         public void ClearProfile()
         {
             displayNameText.text = "";
             avatarImage.sprite = null; // Or set a default placeholder
+            SeatIndex = -1;
         }
 
         /// <summary>

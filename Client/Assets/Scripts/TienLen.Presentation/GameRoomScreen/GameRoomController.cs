@@ -183,6 +183,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleCardsPlayed(int seat, IReadOnlyList<Card> cards)
         {
+            TryAnimateOpponentPlay(seat, cards);
             var match = _matchHandler?.CurrentMatch;
             var displayName = ResolveDisplayName(match, seat, userId: null);
             var cardText = FormatCards(cards);
@@ -342,6 +343,18 @@ namespace TienLen.Presentation.GameRoomScreen
             return seat >= 0 ? $"Player {seat + 1}" : "Player";
         }
 
+        private PlayerProfileUI FindProfileBySeat(int seat)
+        {
+            if (seat < 0) return null;
+
+            if (localPlayerProfile != null && localPlayerProfile.SeatIndex == seat) return localPlayerProfile;
+            if (opponentProfile_1 != null && opponentProfile_1.SeatIndex == seat) return opponentProfile_1;
+            if (opponentProfile_2 != null && opponentProfile_2.SeatIndex == seat) return opponentProfile_2;
+            if (opponentProfile_3 != null && opponentProfile_3.SeatIndex == seat) return opponentProfile_3;
+
+            return null;
+        }
+
         private static string FormatCards(IReadOnlyList<Card> cards)
         {
             if (cards == null || cards.Count == 0) return "cards";
@@ -396,13 +409,13 @@ namespace TienLen.Presentation.GameRoomScreen
 
             if (match.Players != null && match.Players.TryGetValue(userId, out var player))
             {
-                slot.SetProfile(player.DisplayName, player.AvatarIndex);
+                slot.SetProfile(player.DisplayName, player.AvatarIndex, seatIndex);
                 slot.SetActive(true);
                 return;
             }
 
             var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
-            slot.SetProfile($"Player {suffix}", avatarIndex: 0);
+            slot.SetProfile($"Player {suffix}", avatarIndex: 0, seatIndex: seatIndex);
             slot.SetActive(true);
         }
 
@@ -648,6 +661,39 @@ namespace TienLen.Presentation.GameRoomScreen
             _pendingPlayToken++;
             _localHandView.HideSelectedCards();
             animator.AnimatePlay(cards, rects).Forget();
+        }
+
+        private void TryAnimateOpponentPlay(int seat, IReadOnlyList<Card> cards)
+        {
+            if (cards == null || cards.Count == 0) return;
+
+            var match = _matchHandler?.CurrentMatch;
+            if (match == null) return;
+
+            var localSeatIndex = match.LocalSeatIndex;
+            if (localSeatIndex >= 0 && seat == localSeatIndex) return;
+
+            var profile = FindProfileBySeat(seat);
+            if (profile == null) return;
+
+            var sourceAnchor = profile.GetAvatarAnchor();
+            if (sourceAnchor == null) return;
+
+            var animator = _playedCardsAnimator ?? GetComponentInChildren<PlayedCardsAnimator>(includeInactive: true);
+            if (animator == null) return;
+
+            if (_loggerFactory != null)
+            {
+                animator.SetLogger(_loggerFactory.CreateLogger<PlayedCardsAnimator>());
+            }
+
+            var sourceRects = new List<RectTransform>(cards.Count);
+            for (int i = 0; i < cards.Count; i++)
+            {
+                sourceRects.Add(sourceAnchor);
+            }
+
+            animator.AnimatePlay(cards, sourceRects).Forget();
         }
 
         private void ConfigureChildLoggers()
