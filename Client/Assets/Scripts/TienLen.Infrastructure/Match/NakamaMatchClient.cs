@@ -35,10 +35,10 @@ namespace TienLen.Infrastructure.Match
         private readonly Dictionary<string, PresenceInfo> _presenceByUserId = new();
 
         // --- IMatchNetworkClient Events ---
-        public event Action<int, List<Card>, int, bool> OnCardsPlayed; // seat, cards, nextTurnSeat, newRound
+        public event Action<int, List<Card>, int, bool, long> OnCardsPlayed; // seat, cards, nextTurnSeat, newRound, turnDeadlineTick
         public event Action<string> OnPlayerSkippedTurn;
-        public event Action<int, int, bool> OnTurnPassed; // seat, nextTurnSeat, newRound
-        public event Action<List<Card>, int> OnGameStarted; // hand, firstTurnSeat
+        public event Action<int, int, bool, long> OnTurnPassed; // seat, nextTurnSeat, newRound, turnDeadlineTick
+        public event Action<List<Card>, int, long> OnGameStarted; // hand, firstTurnSeat, turnDeadlineTick
         /// <inheritdoc />
         public event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
         /// <inheritdoc />
@@ -264,7 +264,7 @@ namespace TienLen.Infrastructure.Match
                             foreach (var c in payload.Hand) hand.Add(ToDomain(c));
                         }
 
-                        OnGameStarted?.Invoke(hand, payload.FirstTurnSeat);
+                        OnGameStarted?.Invoke(hand, payload.FirstTurnSeat, payload.TurnDeadlineTick);
                     }
                     catch (Exception e)
                     {
@@ -279,7 +279,12 @@ namespace TienLen.Infrastructure.Match
                         var cards = new List<Card>();
                         foreach (var c in payload.Cards) cards.Add(ToDomain(c));
                         // payload.Seat is int32, NextTurnSeat is int32
-                        OnCardsPlayed?.Invoke(payload.Seat, cards, payload.NextTurnSeat, payload.NewRound);
+                        OnCardsPlayed?.Invoke(
+                            payload.Seat,
+                            cards,
+                            payload.NextTurnSeat,
+                            payload.NewRound,
+                            payload.TurnDeadlineTick);
                     }
                     catch (Exception e)
                     {
@@ -291,7 +296,11 @@ namespace TienLen.Infrastructure.Match
                     try
                     {
                         var payload = Proto.TurnPassedEvent.Parser.ParseFrom(state.State);
-                        OnTurnPassed?.Invoke(payload.Seat, payload.NextTurnSeat, payload.NewRound);
+                        OnTurnPassed?.Invoke(
+                            payload.Seat,
+                            payload.NextTurnSeat,
+                            payload.NewRound,
+                            payload.TurnDeadlineTick);
                     }
                     catch (Exception e)
                     {

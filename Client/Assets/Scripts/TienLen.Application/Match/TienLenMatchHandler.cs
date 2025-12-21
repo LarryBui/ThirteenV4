@@ -66,6 +66,11 @@ namespace TienLen.Application
         public event Action<int> TurnPassed; // seat
 
         /// <summary>
+        /// Raised when the active turn deadline tick changes.
+        /// </summary>
+        public event Action<int, long> TurnDeadlineUpdated; // activeSeat, turnDeadlineTick
+
+        /// <summary>
         /// Raised when the server reports a gameplay error (e.g., invalid play).
         /// </summary>
         public event Action<int, string> GameErrorReceived;
@@ -209,7 +214,7 @@ namespace TienLen.Application
             _networkClient.OnMatchPresenceChanged -= HandleMatchPresenceChanged;
         }
 
-        private void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound)
+        private void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound, long turnDeadlineTick)
         {
             if (CurrentMatch == null) return;
             try
@@ -219,8 +224,10 @@ namespace TienLen.Application
                 // or update Domain to use Seat.
                 // Assuming we update Domain Match to use SeatIndex as well.
                 CurrentMatch.HandleTurnPassed(seat, nextTurnSeat, newRound);
+                CurrentMatch.TurnDeadlineTick = turnDeadlineTick;
                 GameRoomStateUpdated?.Invoke();
                 GameBoardUpdated?.Invoke(seat, newRound);
+                TurnDeadlineUpdated?.Invoke(nextTurnSeat, turnDeadlineTick);
                 TurnPassed?.Invoke(seat);
             }
             catch (Exception ex)
@@ -250,15 +257,17 @@ namespace TienLen.Application
             MatchPresenceChanged?.Invoke(changes);
         }
 
-        private void HandleCardsPlayed(int seat, List<Card> cards, int nextTurnSeat, bool newRound)
+        private void HandleCardsPlayed(int seat, List<Card> cards, int nextTurnSeat, bool newRound, long turnDeadlineTick)
         {
             if (CurrentMatch == null) return;
             
             try
             {
                 CurrentMatch.PlayTurn(seat, cards, nextTurnSeat, newRound);
+                CurrentMatch.TurnDeadlineTick = turnDeadlineTick;
                 GameRoomStateUpdated?.Invoke();
                 GameBoardUpdated?.Invoke(seat, newRound);
+                TurnDeadlineUpdated?.Invoke(nextTurnSeat, turnDeadlineTick);
                 CardsPlayed?.Invoke(seat, cards ?? new List<Card>());
             }
             catch (Exception ex)
@@ -267,10 +276,11 @@ namespace TienLen.Application
             }
         }
 
-        private void HandleGameStarted(List<Card> hand, int firstTurnSeat)
+        private void HandleGameStarted(List<Card> hand, int firstTurnSeat, long turnDeadlineTick)
         {
             if (CurrentMatch == null) return;
             CurrentMatch.StartGame(firstTurnSeat);
+            CurrentMatch.TurnDeadlineTick = turnDeadlineTick;
             
             // Deal cards to self
             var localUserId = _authService.CurrentUserId;
@@ -283,6 +293,7 @@ namespace TienLen.Application
             GameRoomStateUpdated?.Invoke();
             GameStarted?.Invoke();
             GameBoardUpdated?.Invoke(firstTurnSeat, true);
+            TurnDeadlineUpdated?.Invoke(firstTurnSeat, turnDeadlineTick);
         }
 
         private void HandlePlayerJoinedOP(MatchStateSnapshotDto snapshot)

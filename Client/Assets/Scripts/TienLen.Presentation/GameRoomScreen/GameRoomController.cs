@@ -94,6 +94,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.GameErrorReceived += HandleGameError;
             _matchHandler.CardsPlayed += HandleCardsPlayed;
             _matchHandler.TurnPassed += HandleTurnPassed;
+            _matchHandler.TurnDeadlineUpdated += HandleTurnDeadlineUpdated;
             _matchHandler.MatchPresenceChanged += HandleMatchPresenceChanged;
 
             // Render current state once in case the initial snapshot arrived before this scene loaded.
@@ -119,6 +120,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 _matchHandler.GameErrorReceived -= HandleGameError;
                 _matchHandler.CardsPlayed -= HandleCardsPlayed;
                 _matchHandler.TurnPassed -= HandleTurnPassed;
+                _matchHandler.TurnDeadlineUpdated -= HandleTurnDeadlineUpdated;
                 _matchHandler.MatchPresenceChanged -= HandleMatchPresenceChanged;
             }
 
@@ -197,6 +199,19 @@ namespace TienLen.Presentation.GameRoomScreen
             _gameRoomLogView?.AddEntry($"{displayName} passed.");
         }
 
+        private void HandleTurnDeadlineUpdated(int activeSeat, long turnDeadlineTick)
+        {
+            if (_isLeaving) return;
+
+            ClearTurnDeadlineDisplays();
+            if (turnDeadlineTick <= 0) return;
+
+            var profile = FindProfileBySeat(activeSeat);
+            if (profile == null) return;
+
+            profile.ShowTurnDeadlineTick(turnDeadlineTick);
+        }
+
         private void HandleMatchPresenceChanged(IReadOnlyList<PresenceChange> changes)
         {
             var match = _matchHandler?.CurrentMatch;
@@ -265,6 +280,14 @@ namespace TienLen.Presentation.GameRoomScreen
             ClearProfileSlot(opponentProfile_1);
             ClearProfileSlot(opponentProfile_2);
             ClearProfileSlot(opponentProfile_3);
+        }
+
+        private void ClearTurnDeadlineDisplays()
+        {
+            localPlayerProfile?.HideTurnDeadlineTick();
+            opponentProfile_1?.HideTurnDeadlineTick();
+            opponentProfile_2?.HideTurnDeadlineTick();
+            opponentProfile_3?.HideTurnDeadlineTick();
         }
 
         private void UpdateBoardView(Match match)

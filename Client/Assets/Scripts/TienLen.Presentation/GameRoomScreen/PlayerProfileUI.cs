@@ -13,6 +13,7 @@ namespace TienLen.Presentation.GameRoomScreen
     {
         [SerializeField] private Image avatarImage;
         [SerializeField] private TMP_Text displayNameText;
+        [SerializeField] private TMP_Text turnDeadlineText;
         [SerializeField] private Sprite[] avatarSprites; // Assign your avatar sprites here in the Inspector
         private ILogger<PlayerProfileUI> _logger = NullLogger<PlayerProfileUI>.Instance;
 
@@ -39,6 +40,7 @@ namespace TienLen.Presentation.GameRoomScreen
         public void SetProfile(string displayName, int avatarIndex, int seatIndex)
         {
             SeatIndex = seatIndex;
+            HideTurnDeadlineTick();
             if (avatarImage == null)
             {
                 _logger.LogError("PlayerProfileUI: Avatar Image is not assigned.");
@@ -77,6 +79,29 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
+        /// Shows the provided turn deadline tick above the avatar.
+        /// </summary>
+        /// <param name="turnDeadlineTick">Match tick when the current turn expires.</param>
+        public void ShowTurnDeadlineTick(long turnDeadlineTick)
+        {
+            if (turnDeadlineText == null) return;
+
+            turnDeadlineText.text = turnDeadlineTick.ToString();
+            turnDeadlineText.gameObject.SetActive(true);
+        }
+
+        /// <summary>
+        /// Hides the turn deadline tick display.
+        /// </summary>
+        public void HideTurnDeadlineTick()
+        {
+            if (turnDeadlineText == null) return;
+
+            turnDeadlineText.text = string.Empty;
+            turnDeadlineText.gameObject.SetActive(false);
+        }
+
+        /// <summary>
         /// Clears the profile visuals back to empty defaults.
         /// </summary>
         public void ClearProfile()
@@ -84,6 +109,7 @@ namespace TienLen.Presentation.GameRoomScreen
             displayNameText.text = "";
             avatarImage.sprite = null; // Or set a default placeholder
             SeatIndex = -1;
+            HideTurnDeadlineTick();
         }
 
         /// <summary>
