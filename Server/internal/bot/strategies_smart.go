@@ -9,10 +9,10 @@ import (
 type SmartBot struct{}
 
 func (b *SmartBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
-	// 1. Find the player's hand
+	// 1. Identify Context
 	var player *domain.Player
 	for _, p := range game.Players {
-		if p.Seat-1 == seat {
+		if p.Seat == seat {
 			player = p
 			break
 		}

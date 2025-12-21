@@ -14,7 +14,7 @@ func TestGoodBot_CalculateMove_Lead(t *testing.T) {
 	}
 	
 	player := &domain.Player{
-		Seat: 1,
+		Seat: 0,
 		Hand: hand,
 	}
 	
@@ -50,7 +50,7 @@ func TestGoodBot_CalculateMove_Respond(t *testing.T) {
 	}
 	
 	player := &domain.Player{
-		Seat: 1,
+		Seat: 0,
 		Hand: hand,
 	}
 	

@@ -14,7 +14,7 @@ func (b *GodBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 	// 1. Identify Context
 	var player *domain.Player
 	for _, p := range game.Players {
-		if p.Seat-1 == seat {
+		if p.Seat == seat {
 			player = p
 			break
 		}
@@ -29,7 +29,7 @@ func (b *GodBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 	// 3. Determine if we are in Blocker Mode
 	nextPlayerLowCards := false
 	for _, p := range game.Players {
-		if !p.Finished && !p.HasPassed && p.Seat-1 != seat {
+		if !p.Finished && !p.HasPassed && p.Seat != seat {
 			if len(p.Hand) <= 3 {
 				nextPlayerLowCards = true
 				break

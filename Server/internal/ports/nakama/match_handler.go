@@ -490,7 +490,7 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 		cardsRemaining := 0
 		if state.Game != nil {
 			for _, p := range state.Game.Players {
-				if p.Seat-1 == i {
+				if p.Seat == i {
 					cardsRemaining = len(p.Hand)
 					break
 				}
@@ -611,7 +611,7 @@ func (mh *matchHandler) handlePlayCards(ctx context.Context, state *MatchState, 
 		var hand []domain.Card
 		if state.Game != nil {
 			for _, p := range state.Game.Players {
-				if p.Seat-1 == senderSeat {
+				if p.Seat == senderSeat {
 					hand = p.Hand
 					break
 				}

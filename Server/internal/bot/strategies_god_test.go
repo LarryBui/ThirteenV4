@@ -21,7 +21,7 @@ func TestGodBot_BlockerMode(t *testing.T) {
 		{Rank: 12, Suit: 0}, // 2S
 	}
 	
-	myself := &domain.Player{ Seat: 1, Hand: hand }
+	myself := &domain.Player{ Seat: 0, Hand: hand }
 	enemy := &domain.Player{ Seat: 2, Hand: []domain.Card{{Rank: 5, Suit:0}} } // Enemy has 1 card
 	
 	game := &domain.Game{

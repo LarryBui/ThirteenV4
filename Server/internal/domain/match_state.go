@@ -57,7 +57,7 @@ func (g *Game) CalculateSettlement() Settlement {
 	// Create a map of seat index to user ID for easy lookup
 	seatToUser := make(map[int]string)
 	for uid, p := range g.Players {
-		seatToUser[p.Seat-1] = uid
+		seatToUser[p.Seat] = uid
 	}
 
 	// Determine multipliers based on player count

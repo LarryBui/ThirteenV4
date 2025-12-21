@@ -21,7 +21,7 @@ func TestSmartBot_PreservesStraight(t *testing.T) {
 	}
 	
 	player := &domain.Player{
-		Seat: 1,
+		Seat: 0,
 		Hand: hand,
 	}
 	
@@ -59,7 +59,7 @@ func TestSmartBot_FinishesGame(t *testing.T) {
 	hand := []domain.Card{{Rank: 12, Suit: 0}}
 	
 	player := &domain.Player{
-		Seat: 1,
+		Seat: 0,
 		Hand: hand,
 	}
 	

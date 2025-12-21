@@ -20,7 +20,11 @@ func (a *Agent) Play(game *domain.Game) (Move, error) {
 		return Move{Pass: true}, nil
 	}
 	
-	return a.Strategy.CalculateMove(game, player.Seat - 1) // Domain seats are 1-based usually, check MatchState
+	move, err := a.Strategy.CalculateMove(game, player.Seat)
+	if err != nil {
+		return Move{Pass: true}, err
+	}
+	return move, nil
 }
 
 // PlayAtSeat is a safer version if the Agent doesn't know its seat index automatically.

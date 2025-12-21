@@ -50,7 +50,7 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int, baseBet int6
 		}
 		activePlayers[userID] = &domain.Player{
 			UserID: userID,
-			Seat:   i + 1, // 1-based seat index for domain
+			Seat:   i, // 0-based seat index for domain
 		}
 		seats = append(seats, userID)
 	}
@@ -106,7 +106,7 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int, baseBet int6
 			val := domain.CardPower(smallest)
 			if val < lowestCardVal {
 				lowestCardVal = val
-				lowestSeat = pl.Seat - 1 // Convert 1-based domain seat to 0-based
+				lowestSeat = pl.Seat // 0-based
 			}
 		}
 		firstTurnSeat = lowestSeat
@@ -143,19 +143,12 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 	}
 
 	// Find player by seat
-
 	var pl *domain.Player
-
 	for _, p := range game.Players {
-
-		if p.Seat-1 == actorSeat {
-
+		if p.Seat == actorSeat {
 			pl = p
-
 			break
-
 		}
-
 	}
 
 	if pl == nil {
@@ -341,7 +334,7 @@ func (s *Service) PassTurn(game *domain.Game, actorSeat int) ([]Event, error) {
 	// Find player by seat
 	var pl *domain.Player
 	for _, p := range game.Players {
-		if p.Seat-1 == actorSeat {
+		if p.Seat == actorSeat {
 			pl = p
 			break
 		}
@@ -369,7 +362,7 @@ func (s *Service) PassTurn(game *domain.Game, actorSeat int) ([]Event, error) {
 		if !p.Finished {
 			if !p.HasPassed {
 				activeNotPassedCount++
-				lastActivePlayerSeat = p.Seat - 1
+				lastActivePlayerSeat = p.Seat
 			}
 		}
 	}
@@ -427,106 +420,103 @@ func (s *Service) findNextActivePlayerInOrder(game *domain.Game, currentSeat int
 		return orderedPlayers[i].Seat < orderedPlayers[j].Seat
 	})
 
-	// Find current index
-	startIdx := -1
-	for i, pl := range orderedPlayers {
-		if pl.Seat-1 == currentSeat {
-			startIdx = i
-			break
-		}
-	}
-
-	if startIdx == -1 {
-		return 0
-	}
-
-	// Loop to find next not finished
-	for i := 1; i <= len(orderedPlayers); i++ {
-		idx := (startIdx + i) % len(orderedPlayers)
-		if !orderedPlayers[idx].Finished {
-			return orderedPlayers[idx].Seat - 1
-		}
-	}
-	return 0
-}
-
-// playerHasCards checks if a player's hand contains all cards in 'toCheck'.
-func playerHasCards(hand []domain.Card, toCheck []domain.Card) bool {
-	handCounts := make(map[domain.Card]int)
-	for _, card := range hand {
-		handCounts[card]++
-	}
-
-	for _, card := range toCheck {
-		if count, ok := handCounts[card]; !ok || count == 0 {
-			return false // Player does not have this card or not enough of it
-		}
-		handCounts[card]--
-	}
-	return true
-}
-
-// findNextPlayer determines whose turn it is next.
-func (s *Service) findNextPlayer(game *domain.Game, currentSeat int, allPlayers map[string]*domain.Player) int {
-	// Get players in seat order
-	var orderedPlayers []*domain.Player
-	for _, pl := range allPlayers {
-		orderedPlayers = append(orderedPlayers, pl)
-	}
-	sort.Slice(orderedPlayers, func(i, j int) bool {
-		return orderedPlayers[i].Seat < orderedPlayers[j].Seat
-	})
-
-	// Iterate through players to find the next active one
-	// Note: currentSeat is 0-based, orderedPlayers uses 1-based logic usually but here we just need relative order
-
-	// Convert 0-based seat to index in ordered array (which is sorted 0..3 effectively if seats are 1..4)
-	// Actually, safer to find index by Seat value
-	currentIndex := -1
-	for i, pl := range orderedPlayers {
-		if pl.Seat-1 == currentSeat {
-			currentIndex = i
-			break
-		}
-	}
-
-	if currentIndex == -1 {
-		return 0 // Should not happen
-	}
-
-	// Iterate through players to find the next active one
-	for i := 1; i <= len(orderedPlayers); i++ {
-		nextIndex := (currentIndex + i) % len(orderedPlayers)
-		nextPlayer := orderedPlayers[nextIndex]
-
-		if !nextPlayer.Finished && !nextPlayer.HasPassed {
-			return nextPlayer.Seat - 1
-		}
-	}
-
-	return currentSeat // Fallback
-}
-
-// TimeoutTurn handles the logic when a player's turn timer expires.
-func (s *Service) TimeoutTurn(game *domain.Game, actorSeat int) ([]Event, error) {
-	if game.Phase != domain.PhasePlaying {
-		return nil, ErrNotPlaying
-	}
-
-	// 1. Identify if it's a new round (Leader)
-	isNewRound := game.LastPlayedCombination.Type == domain.Invalid
-
-	if isNewRound {
-		// Must play a card (cannot pass on new round)
-		// Find player's hand
-		var player *domain.Player
-		for _, p := range game.Players {
-			if p.Seat-1 == actorSeat {
-				player = p
+		// Find current index
+		startIdx := -1
+		for i, pl := range orderedPlayers {
+			if pl.Seat == currentSeat {
+				startIdx = i
 				break
 			}
 		}
-
+	
+		if startIdx == -1 {
+			return 0
+		}
+	
+		// Loop to find next not finished
+		for i := 1; i <= len(orderedPlayers); i++ {
+			idx := (startIdx + i) % len(orderedPlayers)
+			if !orderedPlayers[idx].Finished {
+				return orderedPlayers[idx].Seat
+			}
+		}
+		return 0
+	}
+	
+	// playerHasCards checks if a player's hand contains all cards in 'toCheck'.
+	func playerHasCards(hand []domain.Card, toCheck []domain.Card) bool {
+		handCounts := make(map[domain.Card]int)
+		for _, card := range hand {
+			handCounts[card]++
+		}
+	
+		for _, card := range toCheck {
+			if count, ok := handCounts[card]; !ok || count == 0 {
+				return false // Player does not have this card or not enough of it
+			}
+			handCounts[card]--
+		}
+		return true
+	}
+	
+	// findNextPlayer determines whose turn it is next.
+	func (s *Service) findNextPlayer(game *domain.Game, currentSeat int, allPlayers map[string]*domain.Player) int {
+		// Get players in seat order
+		var orderedPlayers []*domain.Player
+		for _, pl := range allPlayers {
+			orderedPlayers = append(orderedPlayers, pl)
+		}
+		sort.Slice(orderedPlayers, func(i, j int) bool {
+			return orderedPlayers[i].Seat < orderedPlayers[j].Seat
+		})
+	
+		// Iterate through players to find the next active one
+		// Note: currentSeat is 0-based, orderedPlayers uses 0-based logic
+		
+		currentIndex := -1
+		for i, pl := range orderedPlayers {
+			if pl.Seat == currentSeat {
+				currentIndex = i
+				break
+			}
+		}
+	
+		if currentIndex == -1 {
+			return 0 // Should not happen
+		}
+	
+		// Iterate through players to find the next active one
+		for i := 1; i <= len(orderedPlayers); i++ {
+			nextIndex := (currentIndex + i) % len(orderedPlayers)
+			nextPlayer := orderedPlayers[nextIndex]
+	
+			if !nextPlayer.Finished && !nextPlayer.HasPassed {
+				return nextPlayer.Seat
+			}
+		}
+	
+		return currentSeat // Fallback
+	}
+	
+	// TimeoutTurn handles the logic when a player's turn timer expires.
+	func (s *Service) TimeoutTurn(game *domain.Game, actorSeat int) ([]Event, error) {
+		if game.Phase != domain.PhasePlaying {
+			return nil, ErrNotPlaying
+		}
+	
+		// 1. Identify if it's a new round (Leader)
+		isNewRound := game.LastPlayedCombination.Type == domain.Invalid
+	
+		if isNewRound {
+			// Must play a card (cannot pass on new round)
+			// Find player's hand
+			var player *domain.Player
+			for _, p := range game.Players {
+				if p.Seat == actorSeat {
+					player = p
+					break
+				}
+			}
 		if player == nil || len(player.Hand) == 0 {
 			return nil, ErrUnknownPlayer
 		}
