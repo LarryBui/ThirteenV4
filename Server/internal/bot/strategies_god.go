@@ -23,11 +23,13 @@ func (b *GodBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 		return Move{Pass: true}, nil
 	}
 
-	// 2. Determine if we are in Blocker Mode
+	// 2. Card Counting & Analysis
+	stats := internal.AnalyzeHand(player.Hand, game.Discards)
+
+	// 3. Determine if we are in Blocker Mode
 	nextPlayerLowCards := false
 	for _, p := range game.Players {
 		if !p.Finished && !p.HasPassed && p.Seat-1 != seat {
-			// Is this the next player? (Simplified: check if their hand is small)
 			if len(p.Hand) <= 3 {
 				nextPlayerLowCards = true
 				break
@@ -35,19 +37,19 @@ func (b *GodBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 		}
 	}
 
-	// 2. Generate Moves
+	// 4. Generate & Score Moves
 	validMoves := internal.GetValidMoves(player.Hand, game.LastPlayedCombination)
 	if len(validMoves) == 0 {
 		return Move{Pass: true}, nil
 	}
 
-	// 3. Score Moves (Reuse Smart Logic components)
 	currentScore := internal.EvaluateHand(player.Hand)
 	
 	type scoredMove struct {
 		move  internal.ValidMove
 		delta float64
 		power int32
+		isBoss bool
 	}
 
 	var candidates []scoredMove
@@ -56,50 +58,67 @@ func (b *GodBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 		newScore := internal.EvaluateHand(remaining)
 		
 		delta := newScore - currentScore
+		combo := domain.IdentifyCombination(m.Cards)
 		
+		// Boss Check
+		isBoss := false
+		if combo.Type == domain.Single {
+			for _, bc := range stats.BossSingles {
+				if bc == m.Cards[0] {
+					isBoss = true
+					break
+				}
+			}
+		}
+
 		// --- God Logic: Killer Instinct ---
-		// If move finishes game, infinite score.
 		if len(remaining) == 0 {
 			delta += 10000.0
 		}
 
+		// --- God Logic: Strategic Boss Usage ---
+		// If we have dominance, prefer playing non-boss cards to save power, 
+		// UNLESS we are blocking or finishing.
+		if isBoss {
+			if stats.Dominance > 0.6 && !nextPlayerLowCards && len(player.Hand) > 3 {
+				delta -= 10.0 // Save the boss card for later
+			} else {
+				delta += 20.0 // Seize control
+			}
+		}
+
 		// --- God Logic: Blocker Mode ---
-		// If opponents are low on cards, PENALIZE playing low cards.
-		// We want to force high cards to block them.
-		combo := domain.IdentifyCombination(m.Cards)
 		if nextPlayerLowCards {
-			// If we play a low card (Rank < 10 i.e. < King), penalty
-			// Unless it's a combo (pair/triple), which is harder to beat.
-			// Mostly applies to Singles.
-			if combo.Type == domain.Single && combo.Value < 40 { // Roughly Rank < 10
-				delta -= 50.0 // Big penalty for feeding low cards
+			if combo.Type == domain.Single && combo.Value < 40 {
+				delta -= 100.0 // Heavy penalty for feeding low cards
+			}
+			if isBoss {
+				delta += 50.0 // Prefer playing boss to block
 			}
 		}
 
 		candidates = append(candidates, scoredMove{
-			move:  m,
-			delta: delta,
-			power: combo.Value,
+			move:   m,
+			delta:  delta,
+			power:  combo.Value,
+			isBoss: isBoss,
 		})
 	}
 
-	// 4. Selection
+	// 5. Selection
 	sort.Slice(candidates, func(i, j int) bool {
 		if candidates[i].delta != candidates[j].delta {
 			return candidates[i].delta > candidates[j].delta
 		}
-		// Tie-breaker:
-		// If in Blocker Mode, prefer HIGHER power (keep pressure).
-		// Otherwise, prefer LOWER power (save cards).
-		if nextPlayerLowCards {
+		if nextPlayerLowCards || candidates[i].isBoss {
 			return candidates[i].power > candidates[j].power
 		}
 		return candidates[i].power < candidates[j].power
 	})
 
-	// Pass Logic (similar to Smart)
+	// Pass Logic: Don't pass if we have a "Boss" card that can win the round
 	if game.LastPlayedCombination.Type != domain.Invalid {
-		if candidates[0].delta < -15.0 {
+		if candidates[0].delta < -15.0 && !candidates[0].isBoss {
 			return Move{Pass: true}, nil
 		}
 	}

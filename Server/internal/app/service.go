@@ -92,7 +92,7 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int, baseBet int6
 			}
 		}
 	}
-	
+
 	if lastWinnerSeat < 0 || playerIDs[firstTurnSeat] == "" {
 		// Fallback to lowest card if no last winner or last winner left
 		var lowestCardVal int32 = 9999
@@ -142,8 +142,6 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 	}
 
-
-
 	// Find player by seat
 
 	var pl *domain.Player
@@ -159,8 +157,6 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 		}
 
 	}
-
-
 
 	if pl == nil {
 
@@ -186,8 +182,6 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 	}
 
-
-
 	// 1. Verify player has the cards
 
 	if !playerHasCards(pl.Hand, cards) {
@@ -195,8 +189,6 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 		return nil, ErrCardsNotInHand
 
 	}
-
-
 
 	// 2. Identify the combination of played cards
 
@@ -207,8 +199,6 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 		return nil, ErrInvalidPlay
 
 	}
-
-
 
 	// 3. Validate against previous play
 
@@ -224,8 +214,6 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 	}
 
-
-
 	// If valid, update game state
 
 	pl.Hand = domain.RemoveCards(pl.Hand, cards)
@@ -234,7 +222,9 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 	game.LastPlayerToPlaySeat = actorSeat
 
+	// Add to discards
 
+	game.Discards = append(game.Discards, cards...)
 
 	events := []Event{
 
@@ -244,19 +234,14 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 			Payload: CardPlayedPayload{
 
-				Seat:     actorSeat,
+				Seat: actorSeat,
 
-				Cards:    cards,
+				Cards: cards,
 
 				NewRound: newRound,
-
 			},
-
 		},
-
 	}
-
-
 
 	if len(pl.Hand) == 0 && !pl.Finished {
 
@@ -266,131 +251,61 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 	}
 
+	// Check if game ended
 
+	if domain.CountPlayersWithCards(game) <= 1 {
 
-		// Check if game ended
+		game.Phase = domain.PhaseEnded
 
+		settlement := game.CalculateSettlement()
 
+		// Apply Tax to positive winnings
 
-		if domain.CountPlayersWithCards(game) <= 1 {
+		cfg := config.GetGameConfig()
 
+		taxRate := 0.05 // Default
 
+		if cfg != nil {
 
-					game.Phase = domain.PhaseEnded
+			taxRate = cfg.TaxRate
 
+		}
 
+		finalChanges := make(map[string]int64)
 
-					settlement := game.CalculateSettlement()
+		for uid, amount := range settlement.BalanceChanges {
 
+			if amount > 0 {
 
+				afterTax := float64(amount) * (1.0 - taxRate)
 
-					
+				finalChanges[uid] = int64(afterTax)
 
+			} else {
 
+				finalChanges[uid] = amount
 
-					// Apply Tax to positive winnings
+			}
 
+		}
 
+		events = append(events, Event{
 
-					cfg := config.GetBetConfig()
+			Kind: EventGameEnded,
 
+			Payload: GameEndedPayload{
 
+				FinishOrderSeats: game.FinishOrderSeats,
 
-					taxRate := 0.05 // Default
+				BalanceChanges: finalChanges,
+			},
+		})
 
-
-
-					if cfg != nil {
-
-
-
-						taxRate = cfg.TaxRate
-
-
-
-					}
-
-
-
-			
-
-
-
-					finalChanges := make(map[string]int64)
-
-
-
-					for uid, amount := range settlement.BalanceChanges {
-
-
-
-						if amount > 0 {
-
-
-
-							afterTax := float64(amount) * (1.0 - taxRate)
-
-
-
-							finalChanges[uid] = int64(afterTax)
-
-
-
-						} else {
-
-
-
-							finalChanges[uid] = amount
-
-
-
-						}
-
-
-
-					}
-
-
-
-			
-
-
-
-					events = append(events, Event{
-
-
-
-						Kind: EventGameEnded,
-
-
-
-						Payload: GameEndedPayload{
-
-
-
-							FinishOrderSeats: game.FinishOrderSeats,
-
-
-
-							BalanceChanges:   finalChanges,
-
-
-
-						},
-
-
-
-					})
-
-
-
-				} else {
+	} else {
 
 		// Advance turn
 
 		game.CurrentTurn = s.findNextPlayer(game, actorSeat, game.Players)
-
-
 
 		// Note: If findNextPlayer returns actorSeat, it means everyone else is finished/passed.
 
@@ -400,29 +315,22 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 		// The logic for clearing the board happens in PassTurn.
 
-
-
 		events[0].Payload = CardPlayedPayload{ // Update payload to include next turn
 
-			Seat:         actorSeat,
+			Seat: actorSeat,
 
-			Cards:        cards,
+			Cards: cards,
 
 			NextTurnSeat: game.CurrentTurn,
 
-			NewRound:     newRound,
-
+			NewRound: newRound,
 		}
 
 	}
 
-
-
 	return events, nil
 
 }
-
-
 
 // PassTurn marks a player's pass action.
 func (s *Service) PassTurn(game *domain.Game, actorSeat int) ([]Event, error) {
@@ -571,7 +479,7 @@ func (s *Service) findNextPlayer(game *domain.Game, currentSeat int, allPlayers 
 
 	// Iterate through players to find the next active one
 	// Note: currentSeat is 0-based, orderedPlayers uses 1-based logic usually but here we just need relative order
-	
+
 	// Convert 0-based seat to index in ordered array (which is sorted 0..3 effectively if seats are 1..4)
 	// Actually, safer to find index by Seat value
 	currentIndex := -1
@@ -597,4 +505,47 @@ func (s *Service) findNextPlayer(game *domain.Game, currentSeat int, allPlayers 
 	}
 
 	return currentSeat // Fallback
+}
+
+// TimeoutTurn handles the logic when a player's turn timer expires.
+func (s *Service) TimeoutTurn(game *domain.Game, actorSeat int) ([]Event, error) {
+	if game.Phase != domain.PhasePlaying {
+		return nil, ErrNotPlaying
+	}
+
+	// 1. Identify if it's a new round (Leader)
+	isNewRound := game.LastPlayedCombination.Type == domain.Invalid
+
+	if isNewRound {
+		// Must play a card (cannot pass on new round)
+		// Find player's hand
+		var player *domain.Player
+		for _, p := range game.Players {
+			if p.Seat-1 == actorSeat {
+				player = p
+				break
+			}
+		}
+
+		if player == nil || len(player.Hand) == 0 {
+			return nil, ErrUnknownPlayer
+		}
+
+		// Find smallest card (Rank * 4 + Suit)
+		smallestIdx := 0
+		minVal := int32(9999)
+		for i, c := range player.Hand {
+			val := c.Rank*4 + c.Suit
+			if val < minVal {
+				minVal = val
+				smallestIdx = i
+			}
+		}
+
+		// Force play the smallest single card
+		return s.PlayCards(game, actorSeat, []domain.Card{player.Hand[smallestIdx]})
+	}
+
+	// 2. Mid-round: Force Pass
+	return s.PassTurn(game, actorSeat)
 }

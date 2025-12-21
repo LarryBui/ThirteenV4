@@ -37,6 +37,7 @@ type Game struct {
 	LastPlayedCombination CardCombination
 	LastPlayerToPlaySeat  int // Seat index (0-based)
 	BaseBet               int64
+	Discards              []Card // All cards played in this game so far
 }
 
 // Settlement represents the net gold change for each player.

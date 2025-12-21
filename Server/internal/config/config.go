@@ -12,30 +12,31 @@ type BetTier struct {
 	BaseBet int64  `json:"base_bet"`
 }
 
-type BetConfig struct {
-	TaxRate     float64   `json:"tax_rate"`
-	DefaultTier string    `json:"default_tier"`
-	Tiers       []BetTier `json:"tiers"`
+type GameConfig struct {
+	TaxRate            float64   `json:"tax_rate"`
+	DefaultTier        string    `json:"default_tier"`
+	Tiers              []BetTier `json:"tiers"`
+	TurnDurationSeconds int       `json:"turn_duration_seconds"`
 }
 
 var (
-	cfg      *BetConfig
+	cfg      *GameConfig
 	loadOnce sync.Once
 	loadErr  error
 )
 
-// LoadBetConfig loads the betting configuration from the given path.
-func LoadBetConfig(path string) error {
+// LoadGameConfig loads the game configuration from the given path.
+func LoadGameConfig(path string) error {
 	loadOnce.Do(func() {
 		data, err := os.ReadFile(path)
 		if err != nil {
-			loadErr = fmt.Errorf("failed to read bet config: %w", err)
+			loadErr = fmt.Errorf("failed to read game config: %w", err)
 			return
 		}
 
-		var c BetConfig
+		var c GameConfig
 		if err := json.Unmarshal(data, &c); err != nil {
-			loadErr = fmt.Errorf("failed to unmarshal bet config: %w", err)
+			loadErr = fmt.Errorf("failed to unmarshal game config: %w", err)
 			return
 		}
 		cfg = &c
@@ -43,8 +44,8 @@ func LoadBetConfig(path string) error {
 	return loadErr
 }
 
-// GetBetConfig returns the global betting configuration.
-func GetBetConfig() *BetConfig {
+// GetGameConfig returns the global game configuration.
+func GetGameConfig() *GameConfig {
 	return cfg
 }
 

@@ -38,6 +38,7 @@ type MatchState struct {
 	BotAutoFillDelay     int                         `json:"bot_auto_fill_delay"`    // Seconds to wait before auto-filling with bots
 	BotWaitUntil         int64                       `json:"bot_wait_until"`         // Tick when the bot should act
 	LastSinglePlayerTick int64                       `json:"last_single_player_tick"` // Tick when a single player started waiting
+	TurnDeadlineTick     int64                       `json:"turn_deadline_tick"`     // Tick when the current turn expires
 	Bots                 map[string]*bot.Agent       `json:"-"`                       // Active bot agents
 	Economy              ports.EconomyPort           `json:"-"`                       // Interface to Nakama wallet
 }
@@ -117,9 +118,9 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		logger.Warn("MatchInit: Could not load bot identities: %v", err)
 	}
 
-	// Load betting configuration
-	if err := config.LoadBetConfig("data/bet_config.json"); err != nil {
-		logger.Warn("MatchInit: Could not load bet config: %v", err)
+	// Load game configuration
+	if err := config.LoadGameConfig("data/game_config.json"); err != nil {
+		logger.Warn("MatchInit: Could not load game config: %v", err)
 	}
 
 	state := &MatchState{
@@ -327,12 +328,46 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 		}
 	}
 
+	// Turn Timer Check
+	if matchState.Game != nil && matchState.Game.Phase == domain.PhasePlaying {
+		if matchState.TurnDeadlineTick > 0 && matchState.Tick >= matchState.TurnDeadlineTick {
+			currentTurn := matchState.Game.CurrentTurn
+			logger.Info("MatchLoop: Turn timer expired for seat %d. Processing timeout.", currentTurn)
+			
+			// Call App Service to handle the timeout logic (Play Smallest vs Pass)
+			events, err := matchState.App.TimeoutTurn(matchState.Game, currentTurn)
+			if err != nil {
+				logger.Error("MatchLoop: Failed to process timeout for seat %d: %v", currentTurn, err)
+			} else {
+				for _, ev := range events {
+					mh.broadcastEvent(ctx, matchState, dispatcher, logger, ev)
+				}
+				mh.updateTurnDeadline(matchState, logger)
+			}
+		}
+	}
+
 	// AI Logic
 	if matchState.BotsEnabled {
 		mh.processBots(ctx, matchState, dispatcher, logger)
 	}
 
 	return matchState
+}
+
+func (mh *matchHandler) updateTurnDeadline(state *MatchState, logger runtime.Logger) {
+	if state.Game == nil || state.Game.Phase != domain.PhasePlaying {
+		state.TurnDeadlineTick = 0
+		return
+	}
+
+	duration := 15 // Default
+	if cfg := config.GetGameConfig(); cfg != nil {
+		duration = cfg.TurnDurationSeconds
+	}
+
+	state.TurnDeadlineTick = state.Tick + int64(duration)
+	logger.Debug("Turn timer reset: Seat %d has until tick %d", state.Game.CurrentTurn, state.TurnDeadlineTick)
 }
 
 func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
@@ -534,6 +569,9 @@ func (mh *matchHandler) handleStartGame(ctx context.Context, state *MatchState, 
 		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
 
+	// Start the turn timer
+	mh.updateTurnDeadline(state, logger)
+
 	logger.Info("StartGame: Game started with %d players.", activeCount)
 }
 
@@ -588,6 +626,8 @@ func (mh *matchHandler) handlePlayCards(ctx context.Context, state *MatchState, 
 	for _, ev := range events {
 		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
+
+	mh.updateTurnDeadline(state, logger)
 }
 
 func (mh *matchHandler) handlePassTurn(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
@@ -617,6 +657,8 @@ func (mh *matchHandler) handlePassTurn(ctx context.Context, state *MatchState, d
 	for _, ev := range events {
 		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
+
+	mh.updateTurnDeadline(state, logger)
 }
 
 // broadcastEvent handles the conversion and dispatching of app events to Nakama.
