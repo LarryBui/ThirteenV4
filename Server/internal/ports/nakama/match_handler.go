@@ -336,10 +336,12 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 }
 
 func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
-	// 1. Auto-fill lobby with bots if there's only one human player after delay
+	// 1. Auto-fill lobby with a single bot if there's exactly one human player alone after delay
 	if state.Game == nil {
 		humanCount := state.GetHumanPlayerCount()
-		if humanCount == 1 {
+		occupiedCount := state.GetOccupiedSeatCount()
+		
+		if humanCount == 1 && occupiedCount == 1 {
 			if state.LastSinglePlayerTick == 0 {
 				state.LastSinglePlayerTick = state.Tick
 				logger.Debug("processBots: Single player detected, starting auto-fill timer.")
@@ -363,17 +365,18 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 
 						logger.Info("processBots: Added bot %s (%s) to seat %d", identity.Username, botID, i)
 						added = true
+						break // Only add one bot
 					}
 				}
 				if added {
 					mh.updateLabel(state, dispatcher, logger)
 					mh.broadcastMatchState(state, dispatcher, logger)
 				}
-				// Reset timer so it doesn't keep "adding" every tick (though seats are full now)
+				// Reset timer so it doesn't keep "adding"
 				state.LastSinglePlayerTick = 0
 			}
 		} else {
-			// Reset timer if 0 or >1 humans
+			// Reset timer if 0 or >1 total players
 			state.LastSinglePlayerTick = 0
 		}
 	}
