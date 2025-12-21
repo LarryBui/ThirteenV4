@@ -3,12 +3,11 @@ using System.Collections;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Nakama;
 using TienLen.Application; // Updated for IMatchNetworkClient and PlayerAvatar
-using TienLen.Application.Logging;
 using TienLen.Domain.ValueObjects;
 using TienLen.Infrastructure.Services;
-using UnityEngine;
 using Google.Protobuf;
 using Proto = Tienlen.V1;
 using Newtonsoft.Json;
@@ -16,8 +15,6 @@ using Newtonsoft.Json;
 
 namespace TienLen.Infrastructure.Match
 {
-    using MsLogger = Microsoft.Extensions.Logging.ILogger;
-
     /// <summary>
     /// Nakama implementation of IMatchNetworkClient.
     /// </summary>
@@ -30,7 +27,7 @@ namespace TienLen.Infrastructure.Match
         };
 
         private readonly NakamaAuthenticationService _authService;
-        private readonly MsLogger _logger;
+        private readonly ILogger<NakamaMatchClient> _logger;
         private string _matchId;
         private ISocket _subscribedSocket;
 
@@ -55,11 +52,11 @@ namespace TienLen.Infrastructure.Match
         /// Initializes the match client with required services.
         /// </summary>
         /// <param name="authService">Authentication service used for socket access.</param>
-        /// <param name="loggingService">Logging service for structured match diagnostics.</param>
-        public NakamaMatchClient(NakamaAuthenticationService authService, ILoggingService loggingService)
+        /// <param name="logger">Logger used for structured match diagnostics.</param>
+        public NakamaMatchClient(NakamaAuthenticationService authService, ILogger<NakamaMatchClient> logger)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
-            _logger = loggingService?.CreateLogger<NakamaMatchClient>();
+            _logger = logger ?? NullLogger<NakamaMatchClient>.Instance;
         }
 
         private ISocket Socket => _authService.Socket;
@@ -238,7 +235,10 @@ namespace TienLen.Infrastructure.Match
                             payload.OwnerSeat);
                         OnPlayerJoinedOP?.Invoke(snapshot);
                     }
-                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse MatchStateSnapshot: {e}"); }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse MatchStateSnapshot. matchId={matchId}", _matchId);
+                    }
                     break;
 
                 case (long)Proto.OpCode.PlayerLeft: // 51
@@ -247,7 +247,10 @@ namespace TienLen.Infrastructure.Match
                         var payload = Proto.PlayerLeftEvent.Parser.ParseFrom(state.State);
                         OnPlayerLeft?.Invoke(payload.Seat, payload.UserId);
                     }
-                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse PlayerLeftEvent: {e}"); }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse PlayerLeftEvent. matchId={matchId}", _matchId);
+                    }
                     break;
 
                 case (long)Proto.OpCode.GameStarted: // 100
@@ -263,7 +266,10 @@ namespace TienLen.Infrastructure.Match
 
                         OnGameStarted?.Invoke(hand, payload.FirstTurnSeat);
                     }
-                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameStartedEvent: {e}"); }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse GameStartedEvent. matchId={matchId}", _matchId);
+                    }
                     break;
 
                 case (long)Proto.OpCode.CardPlayed: // 102
@@ -275,7 +281,10 @@ namespace TienLen.Infrastructure.Match
                         // payload.Seat is int32, NextTurnSeat is int32
                         OnCardsPlayed?.Invoke(payload.Seat, cards, payload.NextTurnSeat, payload.NewRound);
                     }
-                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse CardPlayedEvent: {e}"); }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse CardPlayedEvent. matchId={matchId}", _matchId);
+                    }
                     break;
 
                 case (long)Proto.OpCode.TurnPassed: // 103
@@ -284,7 +293,10 @@ namespace TienLen.Infrastructure.Match
                         var payload = Proto.TurnPassedEvent.Parser.ParseFrom(state.State);
                         OnTurnPassed?.Invoke(payload.Seat, payload.NextTurnSeat, payload.NewRound);
                     }
-                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse TurnPassedEvent: {e}"); }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse TurnPassedEvent. matchId={matchId}", _matchId);
+                    }
                     break;
 
                 case (long)Proto.OpCode.GameEnded: // 104
@@ -294,7 +306,10 @@ namespace TienLen.Infrastructure.Match
                         var finishOrder = new List<int>(payload.FinishOrderSeats);
                         OnGameEnded?.Invoke(finishOrder);
                     }
-                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameEndedEvent: {e}"); }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse GameEndedEvent. matchId={matchId}", _matchId);
+                    }
                     break;
 
                 case (long)Proto.OpCode.GameError: // 105
@@ -303,7 +318,10 @@ namespace TienLen.Infrastructure.Match
                         var payload = Proto.GameErrorEvent.Parser.ParseFrom(state.State);
                         OnGameError?.Invoke(payload.Code, payload.Message);
                     }
-                    catch (Exception e) { Debug.LogWarning($"MatchClient: Failed to parse GameErrorEvent: {e}"); }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse GameErrorEvent. matchId={matchId}", _matchId);
+                    }
                     break;
             }
         }

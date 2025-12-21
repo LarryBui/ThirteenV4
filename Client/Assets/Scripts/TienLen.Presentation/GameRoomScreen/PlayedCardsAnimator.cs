@@ -1,6 +1,8 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
 using UnityEngine.UI;
@@ -38,6 +40,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private readonly Queue<GameObject> _pool = new();
         private readonly Dictionary<GameObject, int> _activeCards = new();
+        private ILogger<PlayedCardsAnimator> _logger = NullLogger<PlayedCardsAnimator>.Instance;
         private int _animationToken;
 
         private void Awake()
@@ -57,6 +60,15 @@ namespace TienLen.Presentation.GameRoomScreen
             _boardAnchor = boardAnchor;
             _uiParent = uiParent;
             TryInitializePool();
+        }
+
+        /// <summary>
+        /// Assigns a logger instance used for diagnostics.
+        /// </summary>
+        /// <param name="logger">Logger for this animator.</param>
+        public void SetLogger(ILogger<PlayedCardsAnimator> logger)
+        {
+            _logger = logger ?? NullLogger<PlayedCardsAnimator>.Instance;
         }
 
         /// <summary>
@@ -86,7 +98,7 @@ namespace TienLen.Presentation.GameRoomScreen
             if (cards.Count == 0 || sourceRects.Count == 0) return UniTask.CompletedTask;
             if (cards.Count != sourceRects.Count)
             {
-                Debug.LogWarning("PlayedCardsAnimator: cards/source count mismatch.");
+                _logger.LogWarning("PlayedCardsAnimator: cards/source count mismatch.");
                 return UniTask.CompletedTask;
             }
 
@@ -94,7 +106,7 @@ namespace TienLen.Presentation.GameRoomScreen
             var boardAnchor = ResolveBoardAnchor();
             if (cardPrefab == null || boardAnchor == null)
             {
-                Debug.LogWarning("PlayedCardsAnimator: Missing card prefab or board anchor.");
+                _logger.LogWarning("PlayedCardsAnimator: Missing card prefab or board anchor.");
                 return UniTask.CompletedTask;
             }
 

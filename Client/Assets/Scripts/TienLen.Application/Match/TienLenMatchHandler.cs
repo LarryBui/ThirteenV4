@@ -1,10 +1,11 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application.Session;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.ValueObjects;
-using UnityEngine;
 
 namespace TienLen.Application
 {
@@ -19,6 +20,7 @@ namespace TienLen.Application
         private readonly IMatchNetworkClient _networkClient;
         private readonly IAuthenticationService _authService;
         private readonly IGameSessionContext _gameSessionContext; // Injected
+        private readonly ILogger<TienLenMatchHandler> _logger;
 
         public Match CurrentMatch { get; private set; }
 
@@ -68,11 +70,16 @@ namespace TienLen.Application
         /// </summary>
         public event Action<int, string> GameErrorReceived;
 
-        public TienLenMatchHandler(IMatchNetworkClient networkClient, IAuthenticationService authService, IGameSessionContext gameSessionContext)
+        public TienLenMatchHandler(
+            IMatchNetworkClient networkClient,
+            IAuthenticationService authService,
+            IGameSessionContext gameSessionContext,
+            ILogger<TienLenMatchHandler> logger)
         {
             _networkClient = networkClient;
             _authService = authService;
             _gameSessionContext = gameSessionContext ?? throw new ArgumentNullException(nameof(gameSessionContext));
+            _logger = logger ?? NullLogger<TienLenMatchHandler>.Instance;
             SubscribeToNetworkEvents();
         }
 
@@ -146,7 +153,7 @@ namespace TienLen.Application
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"MatchHandler: LeaveMatchAsync failed: {ex.Message}");
+                _logger.LogWarning(ex, "MatchHandler: LeaveMatchAsync failed.");
             }
             finally
             {
@@ -218,7 +225,7 @@ namespace TienLen.Application
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"Handler: Error applying TurnPassed: {ex.Message}");
+                _logger.LogWarning(ex, "MatchHandler: Error applying TurnPassed.");
             }
         }
 
@@ -232,7 +239,7 @@ namespace TienLen.Application
 
         private void HandleGameError(int code, string message)
         {
-            Debug.LogWarning($"MatchHandler: Game error received. code={code}, message={message}");
+            _logger.LogWarning("MatchHandler: Game error received. code={code}, message={message}", code, message);
             GameErrorReceived?.Invoke(code, message);
         }
 
@@ -256,7 +263,7 @@ namespace TienLen.Application
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Handler: Error applying PlayTurn: {ex.Message}");
+                _logger.LogError(ex, "MatchHandler: Error applying PlayTurn.");
             }
         }
 
@@ -339,7 +346,10 @@ namespace TienLen.Application
         {
             if (snapshot.Seats.Length > MaxPlayers)
             {
-                Debug.LogWarning($"Handler op50: Server snapshot has {snapshot.Seats.Length} seats, but GameRoom supports a maximum of {MaxPlayers} players. Extra seats will be ignored.");
+                _logger.LogWarning(
+                    "MatchHandler: Server snapshot has {seatCount} seats, but GameRoom supports a maximum of {maxPlayers}. Extra seats will be ignored.",
+                    snapshot.Seats.Length,
+                    MaxPlayers);
             }
 
             var activeUserIds = new HashSet<string>();

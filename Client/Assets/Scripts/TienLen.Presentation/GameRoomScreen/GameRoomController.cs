@@ -1,5 +1,7 @@
 using System;
 using System.Collections.Generic;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
@@ -48,19 +50,33 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private GameRoomLogView _gameRoomLogView;
 
         private TienLenMatchHandler _matchHandler;
+        private ILogger<GameRoomController> _logger;
+        private ILoggerFactory _loggerFactory;
         private LocalHandView _localHandView;
         private bool _isLeaving;
         // Monotonic counter for tracking optimistic play animations.
         private int _pendingPlayToken;
 
+        /// <summary>
+        /// Injects required services for the GameRoom.
+        /// </summary>
+        /// <param name="matchHandler">Match handler for game state coordination.</param>
+        /// <param name="logger">Logger for GameRoom diagnostics.</param>
+        /// <param name="loggerFactory">Factory used to create child component loggers.</param>
         [Inject]
-        public void Construct(TienLenMatchHandler matchHandler)
+        public void Construct(
+            TienLenMatchHandler matchHandler,
+            ILogger<GameRoomController> logger,
+            ILoggerFactory loggerFactory)
         {
             _matchHandler = matchHandler;
+            _logger = logger ?? NullLogger<GameRoomController>.Instance;
+            _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         }
 
         private void Start()
         {
+            ConfigureChildLoggers();
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
             InitializeStartGameButton();
             UpdateStartGameButtonState();
@@ -68,7 +84,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
             if (_matchHandler == null)
             {
-                Debug.LogWarning("GameRoomController: TienLenMatchHandler not injected.");
+                _logger.LogWarning("GameRoomController: TienLenMatchHandler not injected.");
                 return;
             }
 
@@ -121,8 +137,11 @@ namespace TienLen.Presentation.GameRoomScreen
             var match = _matchHandler?.CurrentMatch;
             if (match != null)
             {
-                Debug.Log(
-                    $"GameRoomController: Game started. matchId={match.Id}, localSeat={match.LocalSeatIndex}, firstTurnSeat={match.CurrentTurnSeat}");
+                _logger.LogInformation(
+                    "GameRoomController: Game started. matchId={matchId}, localSeat={localSeat}, firstTurnSeat={firstTurnSeat}",
+                    match.Id,
+                    match.LocalSeatIndex,
+                    match.CurrentTurnSeat);
             }
             PrepareLocalHandReveal();
 
@@ -159,7 +178,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _playedCardsAnimator?.CancelActiveAnimations();
             _localHandView?.ShowHiddenSelectedCards();
             _gameMessagePresenter?.ShowError(message);
-            Debug.LogWarning($"GameRoomController: Game error received. code={code}, message={message}");
+            _logger.LogWarning("GameRoomController: Game error received. code={code}, message={message}", code, message);
         }
 
         private void HandleCardsPlayed(int seat, IReadOnlyList<Card> cards)
@@ -195,7 +214,9 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleGameRoomStateUpdated()
         {
-            Debug.Log($"GameRoomController: Game room state updated. seatid={_matchHandler?.CurrentMatch?.LocalSeatIndex}");
+            _logger.LogInformation(
+                "GameRoomController: Game room state updated. seatId={seatId}",
+                _matchHandler?.CurrentMatch?.LocalSeatIndex);
             if (_isLeaving) return;
             RefreshGameRoomUI();
 
@@ -404,7 +425,7 @@ namespace TienLen.Presentation.GameRoomScreen
             }
             else
             {
-                Debug.LogError("GameRoomController: Cannot start game, Match Handler or Match is null.");
+                _logger.LogError("GameRoomController: Cannot start game, Match Handler or Match is null.");
                 UpdateStartGameButtonState();
             }
         }
@@ -473,7 +494,7 @@ namespace TienLen.Presentation.GameRoomScreen
             }
             catch (Exception ex)
             {
-                Debug.LogWarning($"GameRoomController: Leave failed: {ex.Message}");
+                _logger.LogWarning(ex, "GameRoomController: Leave failed.");
             }
             finally
             {
@@ -574,7 +595,8 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_cardDealer == null) return;
             if (_localHandCardPrefab == null)
             {
-                Debug.LogError("GameRoomController: Local hand card prefab is not assigned. Assign a FrontCardView prefab to render the local hand.");
+                _logger.LogError(
+                    "GameRoomController: Local hand card prefab is not assigned. Assign a FrontCardView prefab to render the local hand.");
                 return;
             }
 
@@ -603,6 +625,10 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             var animator = _playedCardsAnimator ?? GetComponentInChildren<PlayedCardsAnimator>(includeInactive: true);
             if (animator == null) return;
+            if (_loggerFactory != null)
+            {
+                animator.SetLogger(_loggerFactory.CreateLogger<PlayedCardsAnimator>());
+            }
             if (_localHandView == null) return;
 
             if (!_localHandView.TryGetSelectedCardSnapshots(out var snapshots)) return;
@@ -622,6 +648,20 @@ namespace TienLen.Presentation.GameRoomScreen
             _pendingPlayToken++;
             _localHandView.HideSelectedCards();
             animator.AnimatePlay(cards, rects).Forget();
+        }
+
+        private void ConfigureChildLoggers()
+        {
+            if (_loggerFactory == null) return;
+
+            var profileLogger = _loggerFactory.CreateLogger<PlayerProfileUI>();
+            localPlayerProfile?.SetLogger(profileLogger);
+            opponentProfile_1?.SetLogger(profileLogger);
+            opponentProfile_2?.SetLogger(profileLogger);
+            opponentProfile_3?.SetLogger(profileLogger);
+
+            var animatorLogger = _loggerFactory.CreateLogger<PlayedCardsAnimator>();
+            _playedCardsAnimator?.SetLogger(animatorLogger);
         }
 
         private bool TryGetLocalHand(Match match, out IReadOnlyList<Card> cards)

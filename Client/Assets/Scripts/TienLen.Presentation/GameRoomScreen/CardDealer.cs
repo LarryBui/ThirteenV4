@@ -1,7 +1,10 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using UnityEngine;
+using VContainer;
 
 namespace TienLen.Presentation.GameRoomScreen
 {
@@ -31,6 +34,17 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private float _dealSecondsPerCard = 0.04f; // Delay between each dealt card.
 
         private Queue<GameObject> _cardPool = new Queue<GameObject>();
+        private ILogger<CardDealer> _logger = NullLogger<CardDealer>.Instance;
+
+        /// <summary>
+        /// Injects the logger used for diagnostics.
+        /// </summary>
+        /// <param name="logger">Logger instance for this dealer.</param>
+        [Inject]
+        public void Construct(ILogger<CardDealer> logger)
+        {
+            _logger = logger ?? NullLogger<CardDealer>.Instance;
+        }
 
         private void Awake()
         {
@@ -41,7 +55,7 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_cardPrefab == null)
             {
-                Debug.LogError("CardDealer: Card Prefab is not assigned.");
+                _logger.LogError("CardDealer: Card Prefab is not assigned.");
                 return;
             }
 
@@ -80,17 +94,17 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_playerAnchors == null || _playerAnchors.Length != 4)
             {
-                Debug.LogError("CardDealer: Player anchors not correctly assigned or not 4 players.");
+                _logger.LogError("CardDealer: Player anchors not correctly assigned or not 4 players.");
                 return;
             }
             if (_deckAnchor == null)
             {
-                Debug.LogError("CardDealer: Deck anchor is not assigned.");
+                _logger.LogError("CardDealer: Deck anchor is not assigned.");
                 return;
             }
             if (totalCardsToDeal <= 0)
             {
-                Debug.LogWarning("CardDealer: Total cards to deal must be greater than zero.");
+                _logger.LogWarning("CardDealer: Total cards to deal must be greater than zero.");
                 return;
             }
 
@@ -100,7 +114,7 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 if (!ReplenishPool(PoolGrowBatchSize, _deckAnchor.transform))
                 {
-                    Debug.LogError("CardDealer: Card pool is empty. Cannot animate deal.");
+                    _logger.LogError("CardDealer: Card pool is empty. Cannot animate deal.");
                     return;
                 }
             }
@@ -115,7 +129,8 @@ namespace TienLen.Presentation.GameRoomScreen
                 {
                     if (!ReplenishPool(PoolGrowBatchSize, _deckAnchor.transform))
                     {
-                        Debug.LogWarning("CardDealer: Card pool exhausted during animation. Some cards may not be dealt visually.");
+                        _logger.LogWarning(
+                            "CardDealer: Card pool exhausted during animation. Some cards may not be dealt visually.");
                         break;
                     }
                 }
@@ -149,7 +164,7 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_cardPrefab == null)
             {
-                Debug.LogError("CardDealer: Card Prefab is not assigned.");
+                _logger.LogError("CardDealer: Card Prefab is not assigned.");
                 return null;
             }
 

@@ -1,7 +1,8 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application; // Updated
-using TienLen.Application.Logging;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -18,14 +19,23 @@ namespace TienLen.Presentation.BootstrapScreen
 
         private IAuthenticationService _authService;
         private LifetimeScope _parentLifetimeScope; // Inject the current scope
-        private ILoggingService _loggingService;
+        private ILogger<BootstrapUIController> _logger;
 
+        /// <summary>
+        /// Injects required services for bootstrap initialization.
+        /// </summary>
+        /// <param name="authService">Authentication service used to login.</param>
+        /// <param name="parentLifetimeScope">Parent lifetime scope for scene loading.</param>
+        /// <param name="logger">Logger for bootstrap diagnostics.</param>
         [Inject]
-        public void Construct(IAuthenticationService authService, LifetimeScope parentLifetimeScope, ILoggingService loggingService)
+        public void Construct(
+            IAuthenticationService authService,
+            LifetimeScope parentLifetimeScope,
+            ILogger<BootstrapUIController> logger)
         {
             _authService = authService;
             _parentLifetimeScope = parentLifetimeScope; // Store the parent scope
-            _loggingService = loggingService;
+            _logger = logger ?? NullLogger<BootstrapUIController>.Instance;
         }
 
         private void Start()
@@ -49,7 +59,7 @@ namespace TienLen.Presentation.BootstrapScreen
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Bootstrap: Login failed: {ex.Message}");
+                _logger.LogError(ex, "Bootstrap: Login failed.");
                 // In a real app, handle retry here
                 return;
             }

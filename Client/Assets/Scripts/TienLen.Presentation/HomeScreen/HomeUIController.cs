@@ -1,5 +1,7 @@
 using System;
 using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application; // Updated
 using UnityEngine;
 using UnityEngine.SceneManagement; // Direct scene management
@@ -26,13 +28,26 @@ namespace TienLen.Presentation
         private IAuthenticationService _authService;
         private TienLenMatchHandler _matchHandler;
         private LifetimeScope _currentScope; // Inject the current scope (HomeLifetimeScope)
+        private ILogger<HomeUIController> _logger;
 
+        /// <summary>
+        /// Injects required services for the Home screen.
+        /// </summary>
+        /// <param name="authService">Authentication service used to check readiness.</param>
+        /// <param name="matchHandler">Match handler used to create/join matches.</param>
+        /// <param name="currentScope">Lifetime scope for the Home scene.</param>
+        /// <param name="logger">Logger for Home screen diagnostics.</param>
         [Inject]
-        public void Construct(IAuthenticationService authService, TienLenMatchHandler matchHandler, LifetimeScope currentScope)
+        public void Construct(
+            IAuthenticationService authService,
+            TienLenMatchHandler matchHandler,
+            LifetimeScope currentScope,
+            ILogger<HomeUIController> logger)
         {
             _authService = authService;
             _matchHandler = matchHandler;
             _currentScope = currentScope;
+            _logger = logger ?? NullLogger<HomeUIController>.Instance;
         }
 
         private void Awake()
@@ -77,7 +92,7 @@ namespace TienLen.Presentation
         {
             if (_matchHandler == null)
             {
-                Debug.LogError("Match Handler not initialized!");
+                _logger.LogError("Match handler not initialized.");
                 return;
             }
 
@@ -102,7 +117,7 @@ namespace TienLen.Presentation
             catch (Exception ex)
             {
                 SetMatchmakingState(false, "");
-                Debug.LogError($"Failed to find match: {ex.Message}");
+                _logger.LogError(ex, "Failed to find match.");
                 if (statusText) statusText.text = "Match failed. Try again.";
             }
         }
@@ -151,7 +166,7 @@ namespace TienLen.Presentation
         /// <param name="error">The error message from the authentication failure.</param>
         private void OnAuthFailed(string error)
         {
-            Debug.LogError($"Authentication failed on Home screen: {error}");
+            _logger.LogError("Authentication failed on Home screen. error={error}", error);
             SetPlayInteractable(false);
             if (statusText) statusText.text = "Authentication failed. Please restart.";
         }
@@ -169,7 +184,7 @@ namespace TienLen.Presentation
         {
             if (contentRoot == null)
             {
-                Debug.LogError("HomeUIController: contentRoot is not assigned. Cannot set UI visibility.");
+                _logger.LogError("HomeUIController: contentRoot is not assigned. Cannot set UI visibility.");
                 return;
             }
             contentRoot.SetActive(isVisible);

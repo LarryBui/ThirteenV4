@@ -1,11 +1,12 @@
 using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using Nakama;
 using TienLen.Application;
 using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
-using UnityEngine;
 
 namespace TienLen.Infrastructure.Services
 {
@@ -16,6 +17,7 @@ namespace TienLen.Infrastructure.Services
     {
         private readonly ITienLenAppConfig _config;
         private readonly IGameSessionContext _gameSessionContext; // Injected
+        private readonly ILogger<NakamaAuthenticationService> _logger;
         private readonly SemaphoreSlim _authLock = new(1, 1);
         private bool _socketEventsHooked;
 
@@ -23,10 +25,14 @@ namespace TienLen.Infrastructure.Services
         private IClient _client;
         private ISocket _socket;
 
-        public NakamaAuthenticationService(ITienLenAppConfig config, IGameSessionContext gameSessionContext)
+        public NakamaAuthenticationService(
+            ITienLenAppConfig config,
+            IGameSessionContext gameSessionContext,
+            ILogger<NakamaAuthenticationService> logger)
         {
             _config = config ?? throw new ArgumentNullException(nameof(config));
             _gameSessionContext = gameSessionContext ?? throw new ArgumentNullException(nameof(gameSessionContext));
+            _logger = logger ?? NullLogger<NakamaAuthenticationService>.Instance;
         }
 
         public bool IsAuthenticated => IsSessionValid() && IsSocketConnected();
@@ -56,9 +62,9 @@ namespace TienLen.Infrastructure.Services
                     return;
                 }
 
-                if (_config == null) Debug.LogError("NakamaAuth: Config is NULL!");
+                if (_config == null) _logger.LogError("NakamaAuth: Config is NULL!");
                 _client ??= CreateClient();
-                if (_client == null) Debug.LogError("NakamaAuth: Client creation failed (null).");
+                if (_client == null) _logger.LogError("NakamaAuth: Client creation failed (null).");
 
                 if (!IsSessionValid())
                 {
@@ -74,7 +80,7 @@ namespace TienLen.Infrastructure.Services
             }
             catch (Exception ex)
             {
-                Debug.LogError($"Authentication failed: {ex.Message} \n {ex.StackTrace}");
+                _logger.LogError(ex, "Authentication failed.");
                 OnAuthenticationFailed?.Invoke(ex.Message);
                 throw;
             }
@@ -128,10 +134,10 @@ namespace TienLen.Infrastructure.Services
             return Math.Abs(hash % 4); // Example: maps to indices 0, 1, 2, 3
         }
 
-        private static void HookSocketEvents(ISocket socket)
+        private void HookSocketEvents(ISocket socket)
         {
-            socket.Closed += reason => Debug.LogWarning($"Nakama socket closed: {reason}");
-            socket.ReceivedError += error => Debug.LogError($"Nakama socket error: {error.Message}");
+            socket.Closed += reason => _logger.LogWarning("Nakama socket closed. reason={reason}", reason);
+            socket.ReceivedError += error => _logger.LogError(error, "Nakama socket error.");
         }
 
         private bool IsSessionValid() => _session != null && !_session.IsExpired;

@@ -1,23 +1,20 @@
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
-using TienLen.Application.Logging;
 using UnityEngine;
 // Alias avoids collision with the TienLen.Application namespace.
 using UnityApplication = UnityEngine.Application;
 using ZLogger;
 using ZLogger.Formatters;
 using ZLogger.Unity;
-using MsLogger = Microsoft.Extensions.Logging.ILogger;
 
 namespace TienLen.Infrastructure.Logging
 {
     /// <summary>
-    /// Configures ZLogger providers for Unity and exposes loggers to the app.
+    /// Configures ZLogger providers for Unity and exposes the logger factory to the app.
     /// </summary>
-    public sealed class ZLoggerService : ILoggingService
+    public sealed class ZLoggerService : IDisposable
     {
         private static readonly JsonEncodedText AppNameKey = JsonEncodedText.Encode("appName");
         private static readonly JsonEncodedText AppVersionKey = JsonEncodedText.Encode("appVersion");
@@ -32,12 +29,18 @@ namespace TienLen.Infrastructure.Logging
         private static readonly JsonEncodedText ThreadPoolKey = JsonEncodedText.Encode("threadPool");
 
         private readonly ILoggerFactory _loggerFactory;
-        private readonly MsLogger _scopeLogger;
-        private readonly MsLogger _internalLogger;
+        private readonly ILogger<ZLoggerService> _internalLogger;
         private readonly LogEnvironment _environment;
 
-        /// <inheritdoc />
+        /// <summary>
+        /// Gets the full path of the active log file.
+        /// </summary>
         public string LogFilePath { get; }
+
+        /// <summary>
+        /// Gets the logger factory configured for the application.
+        /// </summary>
+        public ILoggerFactory LoggerFactory => _loggerFactory;
 
         /// <summary>
         /// Initializes the ZLogger pipeline for Unity.
@@ -47,43 +50,13 @@ namespace TienLen.Infrastructure.Logging
             _environment = LogEnvironment.Create();
             LogFilePath = BuildLogFilePath();
 
-            _loggerFactory = LoggerFactory.Create(ConfigureLogging);
-            _scopeLogger = _loggerFactory.CreateLogger("Scope");
+            _loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(ConfigureLogging);
             _internalLogger = _loggerFactory.CreateLogger<ZLoggerService>();
 
             _internalLogger.LogInformation("Logging initialized. logFile={logFile}", LogFilePath);
             UnityApplication.quitting += HandleApplicationQuitting;
         }
 
-        /// <inheritdoc />
-        public MsLogger CreateLogger(string categoryName)
-        {
-            if (string.IsNullOrWhiteSpace(categoryName))
-            {
-                categoryName = "App";
-            }
-
-            return _loggerFactory.CreateLogger(categoryName);
-        }
-
-        /// <inheritdoc />
-        public MsLogger CreateLogger<T>()
-        {
-            return _loggerFactory.CreateLogger<T>();
-        }
-
-        /// <inheritdoc />
-        public IDisposable BeginScope(IReadOnlyDictionary<string, object> scopeValues)
-        {
-            if (scopeValues == null || scopeValues.Count == 0)
-            {
-                return NoopScope.Instance;
-            }
-
-            return _scopeLogger.BeginScope(scopeValues);
-        }
-
-        /// <inheritdoc />
         public void Dispose()
         {
             UnityApplication.quitting -= HandleApplicationQuitting;
@@ -141,15 +114,6 @@ namespace TienLen.Infrastructure.Logging
         private void HandleApplicationQuitting()
         {
             Dispose();
-        }
-
-        private sealed class NoopScope : IDisposable
-        {
-            public static readonly NoopScope Instance = new NoopScope();
-
-            public void Dispose()
-            {
-            }
         }
 
         private readonly struct LogEnvironment

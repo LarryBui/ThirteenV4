@@ -1,6 +1,6 @@
 using System;
 using TienLen.Application;
-using TienLen.Application.Logging;
+using Microsoft.Extensions.Logging;
 using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
 using TienLen.Infrastructure.Logging;
@@ -43,8 +43,10 @@ namespace TienLen.Global
                 .As<IGameSessionContext>();
 
             // Register Logging
-            builder.Register<ZLoggerService>(Lifetime.Singleton)
-                .As<ILoggingService>();
+            var loggerService = new ZLoggerService();
+            builder.RegisterInstance(loggerService);
+            builder.RegisterInstance<ILoggerFactory>(loggerService.LoggerFactory);
+            builder.Register(typeof(ILogger<>), typeof(Logger<>), Lifetime.Singleton);
 
             // Register Auth Service as interface and self
             builder.Register<NakamaAuthenticationService>(Lifetime.Singleton)
