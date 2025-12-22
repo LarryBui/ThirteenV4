@@ -37,7 +37,7 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 	if len(matches) > 0 {
 		matchId := matches[0].MatchId
 		logger.Info("RpcFindMatch [User:%s]: Found existing match %s", userId, matchId)
-		return matchId, nil
+		return fmt.Sprintf(`{"match_id": "%s"}`, matchId), nil
 	}
 
 	// 3. If no match is found, create a new one.
@@ -49,5 +49,5 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 	}
 
 	logger.Info("RpcFindMatch [User:%s]: Created new match %s", userId, matchId)
-	return matchId, nil
+	return fmt.Sprintf(`{"match_id": "%s"}`, matchId), nil
 }

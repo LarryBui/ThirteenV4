@@ -35,39 +35,39 @@ namespace Tienlen.V1 {
             "LnYxLkNhcmQiEQoPUGFzc1R1cm5SZXF1ZXN0IhcKFVJlcXVlc3ROZXdHYW1l",
             "UmVxdWVzdCI8ChFQbGF5ZXJKb2luZWRFdmVudBInCgZwbGF5ZXIYASABKAsy",
             "Fy50aWVubGVuLnYxLlBsYXllclN0YXRlIjAKD1BsYXllckxlZnRFdmVudBIM",
-            "CgRzZWF0GAEgASgFEg8KB3VzZXJfaWQYAiABKAkibwoSTWF0Y2hTdGF0ZVNu",
-            "YXBzaG90Eg0KBXNlYXRzGAEgAygJEhIKCm93bmVyX3NlYXQYAiABKAUSDAoE",
-            "dGljaxgDIAEoAxIoCgdwbGF5ZXJzGAQgAygLMhcudGllbmxlbi52MS5QbGF5",
-            "ZXJTdGF0ZSKNAQoQR2FtZVN0YXJ0ZWRFdmVudBIXCg9maXJzdF90dXJuX3Nl",
-            "YXQYASABKAUSJAoFcGhhc2UYAiABKA4yFS50aWVubGVuLnYxLkdhbWVQaGFz",
-            "ZRIeCgRoYW5kGAMgAygLMhAudGllbmxlbi52MS5DYXJkEhoKEnR1cm5fZGVh",
-            "ZGxpbmVfdGljaxgEIAEoAyKHAQoPQ2FyZFBsYXllZEV2ZW50EgwKBHNlYXQY",
-            "ASABKAUSHwoFY2FyZHMYAiADKAsyEC50aWVubGVuLnYxLkNhcmQSFgoObmV4",
-            "dF90dXJuX3NlYXQYAyABKAUSEQoJbmV3X3JvdW5kGAQgASgIEhoKEnR1cm5f",
-            "ZGVhZGxpbmVfdGljaxgFIAEoAyJmCg9UdXJuUGFzc2VkRXZlbnQSDAoEc2Vh",
-            "dBgBIAEoBRIWCg5uZXh0X3R1cm5fc2VhdBgCIAEoBRIRCgluZXdfcm91bmQY",
-            "AyABKAgSGgoSdHVybl9kZWFkbGluZV90aWNrGAQgASgDIqwBCg5HYW1lRW5k",
-            "ZWRFdmVudBIaChJmaW5pc2hfb3JkZXJfc2VhdHMYASADKAUSRwoPYmFsYW5j",
-            "ZV9jaGFuZ2VzGAIgAygLMi4udGllbmxlbi52MS5HYW1lRW5kZWRFdmVudC5C",
-            "YWxhbmNlQ2hhbmdlc0VudHJ5GjUKE0JhbGFuY2VDaGFuZ2VzRW50cnkSCwoD",
-            "a2V5GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4ASIvCg5HYW1lRXJyb3JFdmVu",
-            "dBIMCgRjb2RlGAEgASgFEg8KB21lc3NhZ2UYAiABKAkqSwoEU3VpdBIPCgtT",
-            "VUlUX1NQQURFUxAAEg4KClNVSVRfQ0xVQlMQARIRCg1TVUlUX0RJQU1PTkRT",
-            "EAISDwoLU1VJVF9IRUFSVFMQAyrJAQoEUmFuaxIOCgpSQU5LX1RIUkVFEAAS",
-            "DQoJUkFOS19GT1VSEAESDQoJUkFOS19GSVZFEAISDAoIUkFOS19TSVgQAxIO",
-            "CgpSQU5LX1NFVkVOEAQSDgoKUkFOS19FSUdIVBAFEg0KCVJBTktfTklORRAG",
-            "EgwKCFJBTktfVEVOEAcSDQoJUkFOS19KQUNLEAgSDgoKUkFOS19RVUVFThAJ",
-            "Eg0KCVJBTktfS0lORxAKEgwKCFJBTktfQUNFEAsSDAoIUkFOS19UV08QDCpF",
-            "CglHYW1lUGhhc2USEQoNUEhBU0VfV0FJVElORxAAEhEKDVBIQVNFX1BMQVlJ",
-            "TkcQARISCg5QSEFTRV9GSU5JU0hFRBACKrYCCgZPcENvZGUSFwoTT1BfQ09E",
-            "RV9VTlNQRUNJRklFRBAAEhYKEk9QX0NPREVfU1RBUlRfR0FNRRABEhYKEk9Q",
-            "X0NPREVfUExBWV9DQVJEUxACEhUKEU9QX0NPREVfUEFTU19UVVJOEAMSHAoY",
-            "T1BfQ09ERV9SRVFVRVNUX05FV19HQU1FEAQSGQoVT1BfQ09ERV9QTEFZRVJf",
-            "Sk9JTkVEEDISFwoTT1BfQ09ERV9QTEFZRVJfTEVGVBAzEhgKFE9QX0NPREVf",
-            "R0FNRV9TVEFSVEVEEGQSFwoTT1BfQ09ERV9DQVJEX1BMQVlFRBBmEhcKE09Q",
-            "X0NPREVfVFVSTl9QQVNTRUQQZxIWChJPUF9DT0RFX0dBTUVfRU5ERUQQaBIW",
-            "ChJPUF9DT0RFX0dBTUVfRVJST1IQaUISWhB0aWVubGVuL3Byb3RvO3BiYgZw",
-            "cm90bzM="));
+            "CgRzZWF0GAEgASgFEg8KB3VzZXJfaWQYAiABKAkiiwEKEk1hdGNoU3RhdGVT",
+            "bmFwc2hvdBINCgVzZWF0cxgBIAMoCRISCgpvd25lcl9zZWF0GAIgASgFEgwK",
+            "BHRpY2sYAyABKAMSKAoHcGxheWVycxgEIAMoCzIXLnRpZW5sZW4udjEuUGxh",
+            "eWVyU3RhdGUSGgoSdHVybl9kZWFkbGluZV90aWNrGAUgASgDIo0BChBHYW1l",
+            "U3RhcnRlZEV2ZW50EhcKD2ZpcnN0X3R1cm5fc2VhdBgBIAEoBRIkCgVwaGFz",
+            "ZRgCIAEoDjIVLnRpZW5sZW4udjEuR2FtZVBoYXNlEh4KBGhhbmQYAyADKAsy",
+            "EC50aWVubGVuLnYxLkNhcmQSGgoSdHVybl9kZWFkbGluZV90aWNrGAQgASgD",
+            "IocBCg9DYXJkUGxheWVkRXZlbnQSDAoEc2VhdBgBIAEoBRIfCgVjYXJkcxgC",
+            "IAMoCzIQLnRpZW5sZW4udjEuQ2FyZBIWCg5uZXh0X3R1cm5fc2VhdBgDIAEo",
+            "BRIRCgluZXdfcm91bmQYBCABKAgSGgoSdHVybl9kZWFkbGluZV90aWNrGAUg",
+            "ASgDImYKD1R1cm5QYXNzZWRFdmVudBIMCgRzZWF0GAEgASgFEhYKDm5leHRf",
+            "dHVybl9zZWF0GAIgASgFEhEKCW5ld19yb3VuZBgDIAEoCBIaChJ0dXJuX2Rl",
+            "YWRsaW5lX3RpY2sYBCABKAMirAEKDkdhbWVFbmRlZEV2ZW50EhoKEmZpbmlz",
+            "aF9vcmRlcl9zZWF0cxgBIAMoBRJHCg9iYWxhbmNlX2NoYW5nZXMYAiADKAsy",
+            "Li50aWVubGVuLnYxLkdhbWVFbmRlZEV2ZW50LkJhbGFuY2VDaGFuZ2VzRW50",
+            "cnkaNQoTQmFsYW5jZUNoYW5nZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFs",
+            "dWUYAiABKAM6AjgBIi8KDkdhbWVFcnJvckV2ZW50EgwKBGNvZGUYASABKAUS",
+            "DwoHbWVzc2FnZRgCIAEoCSpLCgRTdWl0Eg8KC1NVSVRfU1BBREVTEAASDgoK",
+            "U1VJVF9DTFVCUxABEhEKDVNVSVRfRElBTU9ORFMQAhIPCgtTVUlUX0hFQVJU",
+            "UxADKskBCgRSYW5rEg4KClJBTktfVEhSRUUQABINCglSQU5LX0ZPVVIQARIN",
+            "CglSQU5LX0ZJVkUQAhIMCghSQU5LX1NJWBADEg4KClJBTktfU0VWRU4QBBIO",
+            "CgpSQU5LX0VJR0hUEAUSDQoJUkFOS19OSU5FEAYSDAoIUkFOS19URU4QBxIN",
+            "CglSQU5LX0pBQ0sQCBIOCgpSQU5LX1FVRUVOEAkSDQoJUkFOS19LSU5HEAoS",
+            "DAoIUkFOS19BQ0UQCxIMCghSQU5LX1RXTxAMKkUKCUdhbWVQaGFzZRIRCg1Q",
+            "SEFTRV9XQUlUSU5HEAASEQoNUEhBU0VfUExBWUlORxABEhIKDlBIQVNFX0ZJ",
+            "TklTSEVEEAIqtgIKBk9wQ29kZRIXChNPUF9DT0RFX1VOU1BFQ0lGSUVEEAAS",
+            "FgoST1BfQ09ERV9TVEFSVF9HQU1FEAESFgoST1BfQ09ERV9QTEFZX0NBUkRT",
+            "EAISFQoRT1BfQ09ERV9QQVNTX1RVUk4QAxIcChhPUF9DT0RFX1JFUVVFU1Rf",
+            "TkVXX0dBTUUQBBIZChVPUF9DT0RFX1BMQVlFUl9KT0lORUQQMhIXChNPUF9D",
+            "T0RFX1BMQVlFUl9MRUZUEDMSGAoUT1BfQ09ERV9HQU1FX1NUQVJURUQQZBIX",
+            "ChNPUF9DT0RFX0NBUkRfUExBWUVEEGYSFwoTT1BfQ09ERV9UVVJOX1BBU1NF",
+            "RBBnEhYKEk9QX0NPREVfR0FNRV9FTkRFRBBoEhYKEk9QX0NPREVfR0FNRV9F",
+            "UlJPUhBpQhJaEHRpZW5sZW4vcHJvdG87cGJiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -80,7 +80,7 @@ namespace Tienlen.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.RequestNewGameRequest), global::Tienlen.V1.RequestNewGameRequest.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerJoinedEvent), global::Tienlen.V1.PlayerJoinedEvent.Parser, new[]{ "Player" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerLeftEvent), global::Tienlen.V1.PlayerLeftEvent.Parser, new[]{ "Seat", "UserId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerSeat", "Tick", "Players" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerSeat", "Tick", "Players", "TurnDeadlineTick" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnSeat", "Phase", "Hand", "TurnDeadlineTick" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardPlayedEvent), global::Tienlen.V1.CardPlayedEvent.Parser, new[]{ "Seat", "Cards", "NextTurnSeat", "NewRound", "TurnDeadlineTick" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.TurnPassedEvent), global::Tienlen.V1.TurnPassedEvent.Parser, new[]{ "Seat", "NextTurnSeat", "NewRound", "TurnDeadlineTick" }, null, null, null, null),
@@ -2152,6 +2152,7 @@ namespace Tienlen.V1 {
       ownerSeat_ = other.ownerSeat_;
       tick_ = other.tick_;
       players_ = other.players_.Clone();
+      turnDeadlineTick_ = other.turnDeadlineTick_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2213,6 +2214,21 @@ namespace Tienlen.V1 {
       get { return players_; }
     }
 
+    /// <summary>Field number for the "turn_deadline_tick" field.</summary>
+    public const int TurnDeadlineTickFieldNumber = 5;
+    private long turnDeadlineTick_;
+    /// <summary>
+    /// Match tick when the current turn expires
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public long TurnDeadlineTick {
+      get { return turnDeadlineTick_; }
+      set {
+        turnDeadlineTick_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -2232,6 +2248,7 @@ namespace Tienlen.V1 {
       if (OwnerSeat != other.OwnerSeat) return false;
       if (Tick != other.Tick) return false;
       if(!players_.Equals(other.players_)) return false;
+      if (TurnDeadlineTick != other.TurnDeadlineTick) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2243,6 +2260,7 @@ namespace Tienlen.V1 {
       if (OwnerSeat != 0) hash ^= OwnerSeat.GetHashCode();
       if (Tick != 0L) hash ^= Tick.GetHashCode();
       hash ^= players_.GetHashCode();
+      if (TurnDeadlineTick != 0L) hash ^= TurnDeadlineTick.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2271,6 +2289,10 @@ namespace Tienlen.V1 {
         output.WriteInt64(Tick);
       }
       players_.WriteTo(output, _repeated_players_codec);
+      if (TurnDeadlineTick != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(TurnDeadlineTick);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -2291,6 +2313,10 @@ namespace Tienlen.V1 {
         output.WriteInt64(Tick);
       }
       players_.WriteTo(ref output, _repeated_players_codec);
+      if (TurnDeadlineTick != 0L) {
+        output.WriteRawTag(40);
+        output.WriteInt64(TurnDeadlineTick);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -2309,6 +2335,9 @@ namespace Tienlen.V1 {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(Tick);
       }
       size += players_.CalculateSize(_repeated_players_codec);
+      if (TurnDeadlineTick != 0L) {
+        size += 1 + pb::CodedOutputStream.ComputeInt64Size(TurnDeadlineTick);
+      }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -2329,6 +2358,9 @@ namespace Tienlen.V1 {
         Tick = other.Tick;
       }
       players_.Add(other.players_);
+      if (other.TurnDeadlineTick != 0L) {
+        TurnDeadlineTick = other.TurnDeadlineTick;
+      }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -2364,6 +2396,10 @@ namespace Tienlen.V1 {
             players_.AddEntriesFrom(input, _repeated_players_codec);
             break;
           }
+          case 40: {
+            TurnDeadlineTick = input.ReadInt64();
+            break;
+          }
         }
       }
     #endif
@@ -2397,6 +2433,10 @@ namespace Tienlen.V1 {
           }
           case 34: {
             players_.AddEntriesFrom(ref input, _repeated_players_codec);
+            break;
+          }
+          case 40: {
+            TurnDeadlineTick = input.ReadInt64();
             break;
           }
         }

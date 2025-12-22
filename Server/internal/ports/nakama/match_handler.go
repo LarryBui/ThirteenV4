@@ -111,7 +111,7 @@ type matchHandler struct{}
 
 // MatchInit is called when the match is created.
 func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, params map[string]interface{}) (interface{}, int, string) {
-	logger.Debug("MatchInit: Initializing match handler.")
+	logger.Info("MatchInit: Initializing match handler.")
 
 	// Load bot identities from data folder
 	if err := bot.LoadIdentities("data/bot_identities.json"); err != nil {
@@ -211,6 +211,8 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 		logger.Error("MatchJoin: state not found")
 		return state
 	}
+
+	logger.Info("MatchJoin: %d users joining match.", len(presences))
 
 	for _, p := range presences {
 		// Store presence
@@ -316,6 +318,7 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 
 	// Handle incoming messages
 	for _, msg := range messages {
+		logger.Info("MatchLoop: Received OpCode %d from %s", msg.GetOpCode(), msg.GetUserId())
 		switch msg.GetOpCode() {
 		case int64(pb.OpCode_OP_CODE_START_GAME):
 			mh.handleStartGame(ctx, matchState, dispatcher, logger, msg)
@@ -339,10 +342,10 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 			if err != nil {
 				logger.Error("MatchLoop: Failed to process timeout for seat %d: %v", currentTurn, err)
 			} else {
+				mh.updateTurnDeadline(matchState, logger)
 				for _, ev := range events {
 					mh.broadcastEvent(ctx, matchState, dispatcher, logger, ev)
 				}
-				mh.updateTurnDeadline(matchState, logger)
 			}
 		}
 	}
@@ -511,6 +514,7 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 		Seats:     state.Seats[:],
 		OwnerSeat: int32(state.OwnerSeat),
 		Tick:      state.Tick,
+		TurnDeadlineTick: state.TurnDeadlineTick,
 		Players:   playerStates,
 	}
 	bytes, _ := proto.Marshal(snapshot)
@@ -564,13 +568,13 @@ func (mh *matchHandler) handleStartGame(ctx context.Context, state *MatchState, 
 	// Update match label to reflect playing state
 	mh.updateLabel(state, dispatcher, logger)
 
+	// Start the turn timer
+	mh.updateTurnDeadline(state, logger)
+
 	// Broadcast resulting events
 	for _, ev := range events {
 		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
-
-	// Start the turn timer
-	mh.updateTurnDeadline(state, logger)
 
 	logger.Info("StartGame: Game started with %d players.", activeCount)
 }
@@ -622,12 +626,12 @@ func (mh *matchHandler) handlePlayCards(ctx context.Context, state *MatchState, 
 		return
 	}
 
+	mh.updateTurnDeadline(state, logger)
+
 	// Broadcast events
 	for _, ev := range events {
 		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
-
-	mh.updateTurnDeadline(state, logger)
 }
 
 func (mh *matchHandler) handlePassTurn(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
@@ -653,12 +657,12 @@ func (mh *matchHandler) handlePassTurn(ctx context.Context, state *MatchState, d
 		return
 	}
 
+	mh.updateTurnDeadline(state, logger)
+
 	// Broadcast events
 	for _, ev := range events {
 		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
-
-	mh.updateTurnDeadline(state, logger)
 }
 
 // broadcastEvent handles the conversion and dispatching of app events to Nakama.
@@ -676,26 +680,29 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			logger.Info("StartGame: Dealing to %s: %+v", ev.Recipients[0], p.Hand)
 		}
 		payload = &pb.GameStartedEvent{
-			Phase:         pb.GamePhase_PHASE_PLAYING,
-			FirstTurnSeat: int32(p.FirstTurnSeat),
-			Hand:          toProtoCards(p.Hand),
+			Phase:            pb.GamePhase_PHASE_PLAYING,
+			FirstTurnSeat:    int32(p.FirstTurnSeat),
+			Hand:             toProtoCards(p.Hand),
+			TurnDeadlineTick: state.TurnDeadlineTick,
 		}
 	case app.EventCardPlayed:
 		opCode = int64(pb.OpCode_OP_CODE_CARD_PLAYED)
 		p := ev.Payload.(app.CardPlayedPayload)
 		payload = &pb.CardPlayedEvent{
-			Seat:         int32(p.Seat),
-			Cards:        toProtoCards(p.Cards),
-			NextTurnSeat: int32(p.NextTurnSeat),
-			NewRound:     p.NewRound,
+			Seat:             int32(p.Seat),
+			Cards:            toProtoCards(p.Cards),
+			NextTurnSeat:     int32(p.NextTurnSeat),
+			NewRound:         p.NewRound,
+			TurnDeadlineTick: state.TurnDeadlineTick,
 		}
 	case app.EventTurnPassed:
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
 		p := ev.Payload.(app.TurnPassedPayload)
 		payload = &pb.TurnPassedEvent{
-			Seat:         int32(p.Seat),
-			NextTurnSeat: int32(p.NextTurnSeat),
-			NewRound:     p.NewRound,
+			Seat:             int32(p.Seat),
+			NextTurnSeat:     int32(p.NextTurnSeat),
+			NewRound:         p.NewRound,
+			TurnDeadlineTick: state.TurnDeadlineTick,
 		}
 	case app.EventGameEnded:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_ENDED)

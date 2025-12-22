@@ -102,6 +102,7 @@ message MatchStateSnapshot {
   int32 owner_seat = 2; // 0-based index
   int64 tick = 3;
   repeated PlayerState players = 4; // Full player details
+  int64 turn_deadline_tick = 5; // Match tick when the current turn expires
 }
 
 message GameStartedEvent {

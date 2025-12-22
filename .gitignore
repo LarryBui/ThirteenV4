@@ -98,3 +98,7 @@ InitTestScene*.unity*
 
 # Gradle cache directory
 .gradle/
+
+# TypeScript integration tests
+/Server/tests/integration/node_modules/
+/Server/tests/integration/coverage/

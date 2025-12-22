@@ -78,9 +78,28 @@ namespace TienLen.Infrastructure.Match
                 throw new InvalidOperationException($"RPC '{rpcId}' returned no match ID.");
             }
 
-            var matchId = rpcResponse.Payload;
+            try
+            {
+                var response = JsonConvert.DeserializeObject<RpcFindMatchResponse>(rpcResponse.Payload);
+                if (response == null || string.IsNullOrEmpty(response.match_id))
+                {
+                    throw new InvalidOperationException($"RPC '{rpcId}' returned invalid payload: {rpcResponse.Payload}");
+                }
+                return response.match_id;
+            }
+            catch (JsonException ex)
+            {
+                // Fallback for backward compatibility if server returns raw string
+                // But better to fail fast if we expect JSON now.
+                // Assuming purely JSON now.
+                _logger.LogError(ex, "Failed to parse find_match RPC response: {Payload}", rpcResponse.Payload);
+                throw;
+            }
+        }
 
-            return matchId;
+        private class RpcFindMatchResponse
+        {
+            public string match_id { get; set; }
         }
 
         public async UniTask SendJoinMatchAsync(string matchId)

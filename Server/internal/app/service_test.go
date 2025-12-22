@@ -198,3 +198,71 @@ func TestRoundResetsWhenLastPlayerFinishes(t *testing.T) {
 		t.Fatalf("expected round to reset after everyone passed following a finished player")
 	}
 }
+
+func TestTimeoutTurn(t *testing.T) {
+	svc := NewService(nil)
+	players := []string{"u1", "u2"}
+	game, _, _ := svc.StartGame(players, -1, 0)
+
+	// Case 1: New Round (Leader) Timeout -> Play Smallest Card
+	game.LastPlayedCombination = domain.CardCombination{Type: domain.Invalid}
+	game.CurrentTurn = 0 // u1
+	
+	// Ensure hand has a known smallest card
+	// 3 Spades (0,0) is smallest. 
+	game.Players["u1"].Hand = []domain.Card{
+		{Rank: 12, Suit: 3}, // 2 Hearts (Big)
+		{Rank: 0, Suit: 0},  // 3 Spades (Smallest)
+		{Rank: 5, Suit: 1},  // 8 Clubs (Medium)
+	}
+
+	events, err := svc.TimeoutTurn(game, 0)
+	if err != nil {
+		t.Fatalf("timeout turn error: %v", err)
+	}
+
+	// Should result in a PlayCards event
+	foundPlay := false
+	for _, ev := range events {
+		if ev.Kind == EventCardPlayed {
+			foundPlay = true
+			p := ev.Payload.(CardPlayedPayload)
+			if len(p.Cards) != 1 {
+				t.Fatalf("expected 1 card played, got %d", len(p.Cards))
+			}
+			if p.Cards[0].Rank != 0 || p.Cards[0].Suit != 0 {
+				t.Errorf("expected 3 Spades (0,0) to be played, got %+v", p.Cards[0])
+			}
+		}
+	}
+	if !foundPlay {
+		t.Fatal("expected PlayCards event on new round timeout")
+	}
+
+	// Case 2: Mid Round Timeout -> Pass Turn
+	game.LastPlayedCombination = domain.CardCombination{
+		Type:  domain.Single,
+		Cards: []domain.Card{{Rank: 0, Suit: 0}},
+	}
+	game.CurrentTurn = 1 // u2
+
+	events, err = svc.TimeoutTurn(game, 1)
+	if err != nil {
+		t.Fatalf("timeout turn error (mid round): %v", err)
+	}
+
+	// Should result in a TurnPassed event
+	foundPass := false
+	for _, ev := range events {
+		if ev.Kind == EventTurnPassed {
+			foundPass = true
+			p := ev.Payload.(TurnPassedPayload)
+			if p.Seat != 1 {
+				t.Errorf("expected pass from seat 1, got %d", p.Seat)
+			}
+		}
+	}
+	if !foundPass {
+		t.Fatal("expected TurnPassed event on mid round timeout")
+	}
+}
