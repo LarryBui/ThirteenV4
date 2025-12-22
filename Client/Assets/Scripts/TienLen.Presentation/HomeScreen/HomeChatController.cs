@@ -341,6 +341,7 @@ namespace TienLen.Presentation.HomeScreen
 
             try
             {
+                SetMicInteractable(false);
                 SetStatus("Listening...");
                 var text = await _speechService.CaptureOnceAsync(_speechTokenSource.Token);
                 SetStatus(string.Empty);
@@ -352,12 +353,24 @@ namespace TienLen.Presentation.HomeScreen
             }
             catch (Exception ex)
             {
+                if (ex is OperationCanceledException)
+                {
+                    return;
+                }
+
                 _logger.LogWarning(ex, "HomeChat: speech capture failed.");
-                SetStatus("Speech failed.");
+                SetStatus(_speechService != null && !_speechService.IsSupported
+                    ? "Enable Speech in Windows Settings > Privacy > Speech."
+                    : "Speech failed.");
             }
             finally
             {
                 DisposeSpeechToken();
+                SetMicInteractable(true);
+                if (inputField != null)
+                {
+                    inputField.ActivateInputField();
+                }
             }
         }
 
@@ -380,6 +393,12 @@ namespace TienLen.Presentation.HomeScreen
         {
             if (micButton == null) return;
             micButton.interactable = _speechService != null && _speechService.IsSupported;
+        }
+
+        private void SetMicInteractable(bool interactable)
+        {
+            if (micButton == null) return;
+            micButton.interactable = interactable && _speechService != null && _speechService.IsSupported;
         }
 
         private void SetStatus(string message)

@@ -19,6 +19,8 @@ namespace TienLen.Infrastructure.Speech
         private DictationRecognizer _recognizer;
         private UniTaskCompletionSource<string> _completionSource;
         private CancellationTokenRegistration _cancellationRegistration;
+        private bool _isSupported = true;
+        private int _completionState;
 #endif
 
         private readonly ILogger<WindowsSpeechToTextService> _logger;
@@ -39,7 +41,7 @@ namespace TienLen.Infrastructure.Speech
             get
             {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-                return true;
+                return _isSupported;
 #else
                 return false;
 #endif
@@ -58,10 +60,24 @@ namespace TienLen.Infrastructure.Speech
                 return UniTask.FromException<string>(new InvalidOperationException("Speech capture is already running."));
             }
 
-            EnsureRecognizer();
+            if (!_isSupported)
+            {
+                return UniTask.FromException<string>(new NotSupportedException("Speech capture is not supported on this device."));
+            }
+
+            try
+            {
+                EnsureRecognizer();
+            }
+            catch (Exception ex)
+            {
+                return UniTask.FromException<string>(new InvalidOperationException($"Speech capture failed to initialize: {ex.Message}", ex));
+            }
             _isListening = true;
+            _completionState = 0;
             _completionSource = new UniTaskCompletionSource<string>();
-            _cancellationRegistration = cancellationToken.Register(() => CancelCapture("Speech capture cancelled."));
+            _cancellationRegistration = cancellationToken.Register(() =>
+                FinishCaptureAsync(isSuccess: false, result: null, failure: new OperationCanceledException()).Forget());
 
             try
             {
@@ -69,7 +85,7 @@ namespace TienLen.Infrastructure.Speech
             }
             catch (Exception ex)
             {
-                CancelCapture($"Speech capture failed to start: {ex.Message}");
+                FinishCaptureAsync(isSuccess: false, result: null, failure: ex).Forget();
             }
 
             return _completionSource.Task;
@@ -98,41 +114,62 @@ namespace TienLen.Infrastructure.Speech
 
         private void HandleResult(string text, ConfidenceLevel confidence)
         {
-            CompleteCapture(text);
+            FinishCaptureAsync(isSuccess: true, result: text, failure: null).Forget();
         }
 
         private void HandleComplete(DictationCompletionCause cause)
         {
             if (!_isListening) return;
 
-            if (cause == DictationCompletionCause.Complete)
+            if (cause == DictationCompletionCause.Complete || cause == DictationCompletionCause.TimeoutExceeded)
             {
-                CompleteCapture(string.Empty);
+                FinishCaptureAsync(isSuccess: true, result: string.Empty, failure: null).Forget();
                 return;
             }
 
-            CancelCapture($"Speech capture ended: {cause}.");
+            FinishCaptureAsync(isSuccess: false, result: null, failure: new InvalidOperationException($"Speech capture ended: {cause}."))
+                .Forget();
         }
 
         private void HandleError(string error, int hresult)
         {
-            CancelCapture($"Speech capture error: {error} ({hresult}).");
+            if (hresult == unchecked((int)0x80045509))
+            {
+                _isSupported = false;
+            }
+
+            FinishCaptureAsync(isSuccess: false, result: null,
+                    failure: new InvalidOperationException($"Speech capture error: {error} ({hresult})."))
+                .Forget();
         }
 
-        private void CompleteCapture(string text)
+        /// <summary>
+        /// Finalizes a speech capture once, marshaling to the main thread for cleanup.
+        /// </summary>
+        private async UniTaskVoid FinishCaptureAsync(bool isSuccess, string result, Exception failure)
         {
             if (!_isListening) return;
+            if (Interlocked.Exchange(ref _completionState, 1) == 1) return;
 
-            _completionSource?.TrySetResult(text ?? string.Empty);
-            CleanupCaptureState();
-        }
+            await UniTask.SwitchToMainThread();
 
-        private void CancelCapture(string reason)
-        {
-            if (!_isListening) return;
+            if (isSuccess)
+            {
+                _completionSource?.TrySetResult(result ?? string.Empty);
+            }
+            else
+            {
+                if (failure is OperationCanceledException)
+                {
+                    _completionSource?.TrySetCanceled();
+                }
+                else
+                {
+                    _logger.LogWarning(failure, "Speech capture cancelled.");
+                    _completionSource?.TrySetException(failure ?? new InvalidOperationException("Speech capture cancelled."));
+                }
+            }
 
-            _logger.LogWarning("Speech capture cancelled. reason={reason}", reason);
-            _completionSource?.TrySetException(new InvalidOperationException(reason));
             CleanupCaptureState();
         }
 

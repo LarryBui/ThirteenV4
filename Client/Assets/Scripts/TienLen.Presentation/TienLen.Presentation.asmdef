@@ -6,6 +6,7 @@
         "TienLen.Application",
         "VContainer",
         "UniTask",
+        "Unity.InputSystem",
         "Unity.TextMeshPro"
     ],
     "includePlatforms": [],

@@ -44,6 +44,11 @@ namespace TienLen.Presentation.GameRoomScreen
         [Tooltip("Blend amount for the invalid selection tint.")]
         [Range(0f, 1f)]
         [SerializeField] private float _playButtonInvalidTintStrength = 0.35f;
+        [Tooltip("Tint applied to the Pass button when no valid play can beat the board.")]
+        [SerializeField] private Color _passButtonHighlightTint = new Color(0.85f, 1f, 0.85f, 1f);
+        [Tooltip("Blend amount for the pass highlight tint.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float _passButtonHighlightStrength = 0.35f;
 
         [Header("Player Profiles")]
         [SerializeField] private PlayerProfileUI localPlayerProfile;
@@ -78,6 +83,8 @@ namespace TienLen.Presentation.GameRoomScreen
         private int _dealArrivalCount;
         private ColorBlock _playButtonDefaultColors;
         private bool _playButtonColorsCached;
+        private ColorBlock _passButtonDefaultColors;
+        private bool _passButtonColorsCached;
 
         /// <summary>
         /// Injects required services for the GameRoom.
@@ -102,6 +109,7 @@ namespace TienLen.Presentation.GameRoomScreen
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
             InitializeStartGameButton();
             CachePlayButtonColors();
+            CachePassButtonColors();
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
 
@@ -665,13 +673,38 @@ namespace TienLen.Presentation.GameRoomScreen
             if (!showActions)
             {
                 ApplyPlayButtonValidationVisual(true);
+                ApplyPassButtonHighlight(false);
                 return;
             }
 
+            var canPass = PlayValidator.CanPass(match?.CurrentBoard);
+
             if (_passButton != null)
             {
-                _passButton.interactable = PlayValidator.CanPass(match?.CurrentBoard);
+                _passButton.interactable = canPass;
             }
+
+            IReadOnlyList<Card> localHandCards = Array.Empty<Card>();
+            if (TryGetLocalHand(match, out var handCards))
+            {
+                localHandCards = handCards;
+            }
+
+            var hasPlayableMove = canPass && PlayValidator.HasPlayableMove(localHandCards, match?.CurrentBoard);
+
+            if (_playButton != null)
+            {
+                _playButton.interactable = !canPass || hasPlayableMove;
+            }
+
+            if (canPass && !hasPlayableMove)
+            {
+                ApplyPlayButtonValidationVisual(true);
+                ApplyPassButtonHighlight(true);
+                return;
+            }
+
+            ApplyPassButtonHighlight(false);
 
             var selectedCards = _localHandView?.SelectedCards ?? Array.Empty<Card>();
             var validation = ValidateSelectionForPlay(match, selectedCards);
@@ -683,6 +716,13 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_playButtonColorsCached || _playButton == null) return;
             _playButtonDefaultColors = _playButton.colors;
             _playButtonColorsCached = true;
+        }
+
+        private void CachePassButtonColors()
+        {
+            if (_passButtonColorsCached || _passButton == null) return;
+            _passButtonDefaultColors = _passButton.colors;
+            _passButtonColorsCached = true;
         }
 
         private void ApplyPlayButtonValidationVisual(bool isValid)
@@ -709,6 +749,32 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             var strength = Mathf.Clamp01(_playButtonInvalidTintStrength);
             return Color.Lerp(baseColor, _playButtonInvalidTint, strength);
+        }
+
+        private void ApplyPassButtonHighlight(bool highlight)
+        {
+            if (_passButton == null) return;
+            if (!_passButtonColorsCached) CachePassButtonColors();
+            if (!_passButtonColorsCached) return;
+
+            if (!highlight)
+            {
+                _passButton.colors = _passButtonDefaultColors;
+                return;
+            }
+
+            var colors = _passButtonDefaultColors;
+            colors.normalColor = TintPassButtonColor(colors.normalColor);
+            colors.highlightedColor = TintPassButtonColor(colors.highlightedColor);
+            colors.pressedColor = TintPassButtonColor(colors.pressedColor);
+            colors.selectedColor = TintPassButtonColor(colors.selectedColor);
+            _passButton.colors = colors;
+        }
+
+        private Color TintPassButtonColor(Color baseColor)
+        {
+            var strength = Mathf.Clamp01(_passButtonHighlightStrength);
+            return Color.Lerp(baseColor, _passButtonHighlightTint, strength);
         }
 
         private PlayValidationResult ValidateSelectionForPlay(Match match, IReadOnlyList<Card> selectedCards)

@@ -58,6 +58,56 @@ namespace TienLen.Domain.Services
             return currentBoard != null && currentBoard.Count > 0;
         }
 
+        /// <summary>
+        /// Determines whether the hand contains any valid play that can beat the current board.
+        /// </summary>
+        /// <param name="handCards">Cards in the player's hand.</param>
+        /// <param name="currentBoard">Current board cards.</param>
+        /// <returns>True when at least one playable combination can beat the board; otherwise false.</returns>
+        public static bool HasPlayableMove(IReadOnlyList<Card> handCards, IReadOnlyList<Card> currentBoard)
+        {
+            if (handCards == null || handCards.Count == 0)
+            {
+                return false;
+            }
+
+            if (currentBoard == null || currentBoard.Count == 0)
+            {
+                return false;
+            }
+
+            var handCount = handCards.Count;
+            var subset = new List<Card>(handCount);
+            var maskLimit = 1 << handCount;
+
+            for (var mask = 1; mask < maskLimit; mask++)
+            {
+                subset.Clear();
+
+                for (var i = 0; i < handCount; i++)
+                {
+                    if ((mask & (1 << i)) == 0)
+                    {
+                        continue;
+                    }
+
+                    subset.Add(handCards[i]);
+                }
+
+                if (!GameRules.IsValidSet(subset))
+                {
+                    continue;
+                }
+
+                if (GameRules.CanBeat(currentBoard, subset))
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
         private static bool HasCards(IReadOnlyList<Card> handCards, IReadOnlyList<Card> selectedCards)
         {
             var counts = new Dictionary<Card, int>(handCards.Count);

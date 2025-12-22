@@ -77,6 +77,44 @@ namespace TienLen.Domain.Tests
             Assert.IsTrue(PlayValidator.CanPass(Cards(new Card(Rank.Three, Suit.Spades))));
         }
 
+        [Test]
+        public void HasPlayableMove_ReturnsFalseWhenBoardEmpty()
+        {
+            var hand = Cards(new Card(Rank.Three, Suit.Spades));
+            Assert.IsFalse(PlayValidator.HasPlayableMove(hand, new List<Card>()));
+        }
+
+        [Test]
+        public void HasPlayableMove_ReturnsTrueForHigherSingle()
+        {
+            var hand = Cards(new Card(Rank.Three, Suit.Clubs));
+            var board = Cards(new Card(Rank.Three, Suit.Spades));
+            Assert.IsTrue(PlayValidator.HasPlayableMove(hand, board));
+        }
+
+        [Test]
+        public void HasPlayableMove_ReturnsFalseWhenSingleTwoCannotBeBeaten()
+        {
+            var hand = Cards(
+                new Card(Rank.Ace, Suit.Spades),
+                new Card(Rank.King, Suit.Clubs),
+                new Card(Rank.Three, Suit.Hearts));
+            var board = Cards(new Card(Rank.Two, Suit.Hearts));
+            Assert.IsFalse(PlayValidator.HasPlayableMove(hand, board));
+        }
+
+        [Test]
+        public void HasPlayableMove_ReturnsTrueForQuadAgainstSingleTwo()
+        {
+            var hand = Cards(
+                new Card(Rank.Three, Suit.Spades),
+                new Card(Rank.Three, Suit.Clubs),
+                new Card(Rank.Three, Suit.Diamonds),
+                new Card(Rank.Three, Suit.Hearts));
+            var board = Cards(new Card(Rank.Two, Suit.Hearts));
+            Assert.IsTrue(PlayValidator.HasPlayableMove(hand, board));
+        }
+
         private static List<Card> Cards(params Card[] cards)
         {
             return new List<Card>(cards);
