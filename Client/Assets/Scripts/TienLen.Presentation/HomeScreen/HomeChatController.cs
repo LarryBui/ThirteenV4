@@ -10,6 +10,9 @@ using TienLen.Application.Chat;
 using TienLen.Application.Speech;
 using TMPro;
 using UnityEngine;
+#if ENABLE_INPUT_SYSTEM
+using UnityEngine.InputSystem;
+#endif
 using UnityEngine.UI;
 using VContainer;
 
@@ -22,6 +25,7 @@ namespace TienLen.Presentation.HomeScreen
     {
         [Header("UI References")]
         [SerializeField] private RectTransform panelRoot;
+        [SerializeField] private RectTransform inputRoot;
         [SerializeField] private TMP_Text logText;
         [SerializeField] private TMP_InputField inputField;
         [SerializeField] private Button sendButton;
@@ -31,6 +35,8 @@ namespace TienLen.Presentation.HomeScreen
         [Header("Layout")]
         [SerializeField] private float panelWidthPercent = 0.33f;
         [SerializeField] private float panelHeightPercent = 0.5f;
+        [SerializeField] private float inputWidthPercent = 0.6667f;
+        [SerializeField] private float minInputWidth = 600f;
         [SerializeField] private Vector2 panelPadding = new(16f, 16f);
         [SerializeField] private float inputRowHeight = 72f;
         [SerializeField] private int maxVisibleMessages = 60;
@@ -243,7 +249,19 @@ namespace TienLen.Presentation.HomeScreen
 
         private static bool IsSubmitKeyPressed()
         {
+#if ENABLE_INPUT_SYSTEM
+            var keyboard = Keyboard.current;
+            if (keyboard == null)
+            {
+                return true;
+            }
+
+            return keyboard.enterKey.wasPressedThisFrame || keyboard.numpadEnterKey.wasPressedThisFrame;
+#elif ENABLE_LEGACY_INPUT_MANAGER
             return Input.GetKeyDown(KeyCode.Return) || Input.GetKeyDown(KeyCode.KeypadEnter);
+#else
+            return true;
+#endif
         }
 
         private void UpdateLogText()
@@ -374,12 +392,18 @@ namespace TienLen.Presentation.HomeScreen
         {
             if (panelRoot != null) return;
 
-            Canvas canvas;
-#if UNITY_2023_1_OR_NEWER
-            canvas = FindFirstObjectByType<Canvas>();
-#else
-            canvas = FindObjectOfType<Canvas>();
-#endif
+            // Prefer the Home scene canvas to avoid attaching to additive scenes.
+            Canvas canvas = null;
+            var scene = gameObject.scene;
+            var rootObjects = scene.GetRootGameObjects();
+            for (int i = 0; i < rootObjects.Length; i++)
+            {
+                canvas = rootObjects[i].GetComponentInChildren<Canvas>(true);
+                if (canvas != null)
+                {
+                    break;
+                }
+            }
             if (canvas == null)
             {
                 _logger.LogError("HomeChat: Canvas not found; chat UI cannot be built.");
@@ -398,12 +422,12 @@ namespace TienLen.Presentation.HomeScreen
             var panelImage = panelObject.GetComponent<Image>();
             panelImage.color = new Color(0f, 0f, 0f, 0.6f);
 
-            var inputRoot = CreateRect("InputRow", panelRoot);
-            inputRoot.anchorMin = new Vector2(0f, 0f);
-            inputRoot.anchorMax = new Vector2(1f, 0f);
+            inputRoot = CreateRect("InputRow", canvas.transform as RectTransform);
+            inputRoot.anchorMin = new Vector2(0.5f, 0f);
+            inputRoot.anchorMax = new Vector2(0.5f, 0f);
             inputRoot.pivot = new Vector2(0.5f, 0f);
-            inputRoot.offsetMin = new Vector2(panelPadding.x, panelPadding.y);
-            inputRoot.offsetMax = new Vector2(-panelPadding.x, panelPadding.y + inputRowHeight);
+            inputRoot.anchoredPosition = new Vector2(0f, panelPadding.y);
+            inputRoot.sizeDelta = new Vector2(0f, inputRowHeight);
 
             micButton = CreateButton("Btn_Mic", inputRoot, "Mic", MicButtonWidth);
             var micRect = micButton.GetComponent<RectTransform>();
@@ -428,15 +452,15 @@ namespace TienLen.Presentation.HomeScreen
             statusRect.anchorMin = new Vector2(0f, 0f);
             statusRect.anchorMax = new Vector2(1f, 0f);
             statusRect.pivot = new Vector2(0f, 0f);
-            statusRect.offsetMin = new Vector2(panelPadding.x, panelPadding.y + inputRowHeight + InnerGap);
-            statusRect.offsetMax = new Vector2(-panelPadding.x, panelPadding.y + inputRowHeight + InnerGap + StatusHeight);
+            statusRect.offsetMin = new Vector2(panelPadding.x, panelPadding.y + InnerGap);
+            statusRect.offsetMax = new Vector2(-panelPadding.x, panelPadding.y + InnerGap + StatusHeight);
             statusText.alignment = TextAlignmentOptions.Left;
 
             logText = CreateText("ChatLog", panelRoot, 22, Color.white);
             var logRect = logText.GetComponent<RectTransform>();
             logRect.anchorMin = new Vector2(0f, 0f);
             logRect.anchorMax = new Vector2(1f, 1f);
-            var logMinY = panelPadding.y + inputRowHeight + StatusHeight + InnerGap * 2f;
+            var logMinY = panelPadding.y + StatusHeight + InnerGap * 2f;
             logRect.offsetMin = new Vector2(panelPadding.x, logMinY);
             logRect.offsetMax = new Vector2(-panelPadding.x, -panelPadding.y);
             logText.alignment = TextAlignmentOptions.BottomLeft;
@@ -454,6 +478,16 @@ namespace TienLen.Presentation.HomeScreen
             var height = parentRect.rect.height * Mathf.Clamp01(panelHeightPercent);
             panelRoot.sizeDelta = new Vector2(width, height);
             panelRoot.anchoredPosition = new Vector2(panelPadding.x, -panelPadding.y);
+
+            if (inputRoot == null) return;
+            if (inputRoot.parent is not RectTransform inputParent) return;
+
+            var maxWidth = Mathf.Max(0f, inputParent.rect.width - panelPadding.x * 2f);
+            var targetWidth = inputParent.rect.width * Mathf.Clamp01(inputWidthPercent);
+            var inputWidth = Mathf.Min(maxWidth, Mathf.Max(minInputWidth, targetWidth));
+
+            inputRoot.sizeDelta = new Vector2(inputWidth, inputRowHeight);
+            inputRoot.anchoredPosition = new Vector2(0f, panelPadding.y);
         }
 
         private static RectTransform CreateRect(string name, RectTransform parent)
