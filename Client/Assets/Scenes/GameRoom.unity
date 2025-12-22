@@ -1979,7 +1979,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1322838984650052823, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: 882
+      value: -845
       objectReference: {fileID: 0}
     - target: {fileID: 1322838984650052823, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_AnchoredPosition.y
@@ -2060,13 +2060,14 @@ MonoBehaviour:
   _passButton: {fileID: 551816065}
   _leaveButton: {fileID: 338565336}
   localPlayerProfile: {fileID: 16907759}
-  opponentProfile_1: {fileID: 1059197322}
+  opponentProfile_1: {fileID: 1640944418}
   opponentProfile_2: {fileID: 778642234}
-  opponentProfile_3: {fileID: 1640944418}
+  opponentProfile_3: {fileID: 1059197322}
   _boardCardsView: {fileID: 1700000002}
   _playedCardsAnimator: {fileID: 1130013622}
   _gameMessagePresenter: {fileID: 1943406719}
   _gameRoomLogView: {fileID: 621749202}
+  _opponentHandCounterPrefab: {fileID: 1001000005, guid: 6ed2027624b644b28eac21bf8bd622a2, type: 3}
 --- !u!4 &1130013620
 Transform:
   m_ObjectHideFlags: 0
@@ -2482,7 +2483,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1322838984650052823, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_AnchoredPosition.x
-      value: -882
+      value: 860
       objectReference: {fileID: 0}
     - target: {fileID: 1322838984650052823, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_AnchoredPosition.y

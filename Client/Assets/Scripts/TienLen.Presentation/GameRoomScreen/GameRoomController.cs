@@ -17,6 +17,8 @@ namespace TienLen.Presentation.GameRoomScreen
     public class GameRoomController : MonoBehaviour
     {
         private const int SeatCount = 4;
+        private const int TotalCardsToDeal = 52;
+        private const int MaxCardsPerHand = 13;
 
         [Header("Scene References")]
         [SerializeField] private CardDealer _cardDealer;
@@ -50,6 +52,9 @@ namespace TienLen.Presentation.GameRoomScreen
         [Tooltip("Displays recent room actions in the top-left corner.")]
         [SerializeField] private GameRoomLogView _gameRoomLogView;
 
+        [Header("Opponent Hand Counters")]
+        [SerializeField] private OpponentHandCounterView _opponentHandCounterPrefab;
+
         private TienLenMatchHandler _matchHandler;
         private ILogger<GameRoomController> _logger;
         private ILoggerFactory _loggerFactory;
@@ -58,6 +63,11 @@ namespace TienLen.Presentation.GameRoomScreen
         private CancellationTokenSource _turnCountdownCts;
         // Monotonic counter for tracking optimistic play animations.
         private int _pendingPlayToken;
+        private readonly OpponentHandCounterView[] _opponentHandCounters = new OpponentHandCounterView[SeatCount];
+        private readonly int[] _opponentDealCounts = new int[SeatCount];
+        private bool _isDealing;
+        private bool _dealCompleted;
+        private int _dealArrivalCount;
 
         /// <summary>
         /// Injects required services for the GameRoom.
@@ -149,9 +159,10 @@ namespace TienLen.Presentation.GameRoomScreen
                     match.CurrentTurnSeat);
             }
             PrepareLocalHandReveal();
+            BeginDealCounterTracking();
 
             // 52 cards, per-card delay configured on the CardDealer.
-            _cardDealer.AnimateDeal(52).Forget();
+            _cardDealer.AnimateDeal(TotalCardsToDeal).Forget();
 
             UpdateBoardView(match);
             UpdateStartGameButtonState();
@@ -253,6 +264,7 @@ namespace TienLen.Presentation.GameRoomScreen
             UpdateBoardView(_matchHandler?.CurrentMatch);
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
+            UpdateOpponentHandCounters();
         }
 
         private void RefreshGameRoomUI()
@@ -284,6 +296,7 @@ namespace TienLen.Presentation.GameRoomScreen
             ClearProfileSlot(opponentProfile_1);
             ClearProfileSlot(opponentProfile_2);
             ClearProfileSlot(opponentProfile_3);
+            HideOpponentHandCounters();
         }
 
         private void ClearTurnCountdownDisplays()
@@ -663,8 +676,184 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_isLeaving) return;
             // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
-            if (playerIndex != 0) return;
-            _localHandView?.RevealNextCard(anchorWorldPosition);
+            if (playerIndex == 0)
+            {
+                _localHandView?.RevealNextCard(anchorWorldPosition);
+            }
+
+            if (!_isDealing) return;
+
+            _dealArrivalCount++;
+            if (playerIndex != 0)
+            {
+                IncrementOpponentDealCount(playerIndex);
+            }
+
+            if (_dealArrivalCount >= TotalCardsToDeal)
+            {
+                CompleteDealCounterTracking();
+            }
+        }
+
+        private void BeginDealCounterTracking()
+        {
+            _isDealing = true;
+            _dealCompleted = false;
+            _dealArrivalCount = 0;
+            Array.Clear(_opponentDealCounts, 0, _opponentDealCounts.Length);
+            EnsureOpponentHandCounters();
+
+            for (int i = 1; i < SeatCount; i++)
+            {
+                _opponentHandCounters[i]?.SetCount(0);
+            }
+        }
+
+        private void CompleteDealCounterTracking()
+        {
+            _isDealing = false;
+            _dealCompleted = true;
+            SyncOpponentHandCountersFromMatch();
+        }
+
+        private void EnsureOpponentHandCounters()
+        {
+            if (_opponentHandCounterPrefab == null)
+            {
+                _logger.LogWarning("GameRoomController: Opponent hand counter prefab is not assigned.");
+                return;
+            }
+
+            if (_cardDealer == null) return;
+            // 0=South (local player). No counter for the local player.
+            // 1=East, 2=North, 3=West
+            EnsureOpponentHandCounter(1);
+            EnsureOpponentHandCounter(2);
+            EnsureOpponentHandCounter(3);
+        }
+
+        private void EnsureOpponentHandCounter(int playerIndex)
+        {
+            if (playerIndex <= 0 || playerIndex >= SeatCount) return;
+
+            var anchor = _cardDealer.GetPlayerAnchor(playerIndex);
+            if (anchor == null) return;
+
+            if (_opponentHandCounters[playerIndex] == null)
+            {
+                _opponentHandCounters[playerIndex] =
+                    Instantiate(_opponentHandCounterPrefab, anchor, worldPositionStays: false);
+            }
+
+            _opponentHandCounters[playerIndex].AttachToAnchor(anchor);
+            _opponentHandCounters[playerIndex].Hide();
+        }
+
+        private void IncrementOpponentDealCount(int playerIndex)
+        {
+            if (playerIndex <= 0 || playerIndex >= SeatCount) return;
+
+            var profile = GetOpponentProfileForIndex(playerIndex);
+            if (profile == null || !profile.gameObject.activeInHierarchy) return;
+
+            var counter = _opponentHandCounters[playerIndex];
+            if (counter == null) return;
+
+            var updatedCount = Mathf.Clamp(_opponentDealCounts[playerIndex] + 1, 0, MaxCardsPerHand);
+            _opponentDealCounts[playerIndex] = updatedCount;
+            counter.SetCount(updatedCount);
+        }
+
+        private void UpdateOpponentHandCounters()
+        {
+            var match = _matchHandler?.CurrentMatch;
+            if (match == null || !string.Equals(match.Phase, "Playing", StringComparison.OrdinalIgnoreCase))
+            {
+                _isDealing = false;
+                _dealCompleted = false;
+                _dealArrivalCount = 0;
+                HideOpponentHandCounters();
+                return;
+            }
+
+            if (_dealCompleted && !_isDealing)
+            {
+                SyncOpponentHandCountersFromMatch();
+            }
+        }
+
+        private void SyncOpponentHandCountersFromMatch()
+        {
+            if (_isDealing) return;
+
+            var match = _matchHandler?.CurrentMatch;
+            if (match == null)
+            {
+                HideOpponentHandCounters();
+                return;
+            }
+
+            EnsureOpponentHandCounters();
+            SyncOpponentHandCounter(opponentProfile_1, _opponentHandCounters[1], match);
+            SyncOpponentHandCounter(opponentProfile_2, _opponentHandCounters[2], match);
+            SyncOpponentHandCounter(opponentProfile_3, _opponentHandCounters[3], match);
+        }
+
+        private void SyncOpponentHandCounter(PlayerProfileUI profile, OpponentHandCounterView counter, Match match)
+        {
+            if (counter == null)
+            {
+                return;
+            }
+
+            if (profile == null || !profile.gameObject.activeInHierarchy)
+            {
+                counter.Hide();
+                return;
+            }
+
+            var seatIndex = profile.SeatIndex;
+            if (seatIndex < 0 || match.Seats == null || seatIndex >= match.Seats.Length)
+            {
+                counter.Hide();
+                return;
+            }
+
+            var userId = match.Seats[seatIndex];
+            if (string.IsNullOrWhiteSpace(userId))
+            {
+                counter.Hide();
+                return;
+            }
+
+            if (match.Players != null && match.Players.TryGetValue(userId, out var player))
+            {
+                var clamped = Mathf.Clamp(player.CardsRemaining, 0, MaxCardsPerHand);
+                counter.SetCount(clamped);
+            }
+            else
+            {
+                counter.Hide();
+            }
+        }
+
+        private void HideOpponentHandCounters()
+        {
+            for (int i = 1; i < SeatCount; i++)
+            {
+                _opponentHandCounters[i]?.Hide();
+            }
+        }
+
+        private PlayerProfileUI GetOpponentProfileForIndex(int playerIndex)
+        {
+            return playerIndex switch
+            {
+                1 => opponentProfile_1,
+                2 => opponentProfile_2,
+                3 => opponentProfile_3,
+                _ => null
+            };
         }
 
         private void PrepareLocalHandReveal()

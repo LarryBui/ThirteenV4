@@ -236,9 +236,9 @@ namespace TienLen.Presentation.GameRoomScreen
             return playerIndex switch
             {
                 0 => _southAnchor,
-                1 => _westAnchor,
+                1 => _eastAnchor,
                 2 => _northAnchor,
-                3 => _eastAnchor,
+                3 => _westAnchor,
                 _ => null
             };
         }
