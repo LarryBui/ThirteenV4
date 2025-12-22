@@ -2096,11 +2096,10 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _cardPrefab: {fileID: 4931620541885055150, guid: cfa5a6d0d272c7f4eaf2009290ba01be, type: 3}
   _deckAnchor: {fileID: 1497264654}
-  _playerAnchors:
-  - {fileID: 810115991}
-  - {fileID: 166385697}
-  - {fileID: 355377109}
-  - {fileID: 1212860438}
+  _southAnchor: {fileID: 810115991}
+  _westAnchor: {fileID: 166385697}
+  _northAnchor: {fileID: 355377109}
+  _eastAnchor: {fileID: 1212860438}
   _poolSize: 16
   _cardFlightDuration: 0.5
   _dealSecondsPerCard: 0.04

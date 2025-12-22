@@ -11,6 +11,7 @@ namespace TienLen.Presentation.GameRoomScreen
     public class CardDealer : MonoBehaviour
     {
         private const int PoolGrowBatchSize = 4;
+        private const int PlayerCount = 4;
         /// <summary>
         /// Raised when a dealt card reaches a player anchor (0=South, 1=West, 2=North, 3=East).
         /// Use this to synchronize persistent UI (e.g., revealing the local player's hand) with the
@@ -26,7 +27,10 @@ namespace TienLen.Presentation.GameRoomScreen
         [Header("References")]
         [SerializeField] private GameObject _cardPrefab;
         [SerializeField] private RectTransform _deckAnchor;
-        [SerializeField] private RectTransform[] _playerAnchors = new RectTransform[4]; // South, West, North, East
+        [SerializeField] private RectTransform _southAnchor;
+        [SerializeField] private RectTransform _westAnchor;
+        [SerializeField] private RectTransform _northAnchor;
+        [SerializeField] private RectTransform _eastAnchor;
 
         [Header("Settings")]
         [SerializeField] private int _poolSize = 16;
@@ -92,14 +96,14 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private async UniTask AnimateDealWithDelay(int totalCardsToDeal, float delayPerCard)
         {
-            if (_playerAnchors == null || _playerAnchors.Length != 4)
-            {
-                _logger.LogError("CardDealer: Player anchors not correctly assigned or not 4 players.");
-                return;
-            }
             if (_deckAnchor == null)
             {
                 _logger.LogError("CardDealer: Deck anchor is not assigned.");
+                return;
+            }
+            if (!AreDealAnchorsAssigned())
+            {
+                _logger.LogError("CardDealer: Deal anchors (South, West, North, East) must be assigned.");
                 return;
             }
             if (totalCardsToDeal <= 0)
@@ -143,8 +147,15 @@ namespace TienLen.Presentation.GameRoomScreen
                 flyingCard.SetActive(true);
 
                 // Determine target player anchor (0=South, 1=West, 2=North, 3=East)
-                int playerIndex = currentCardIndex % _playerAnchors.Length;
-                RectTransform targetAnchor = _playerAnchors[playerIndex];
+                int playerIndex = currentCardIndex % PlayerCount;
+                RectTransform targetAnchor = GetAnchorByIndex(playerIndex);
+                if (targetAnchor == null)
+                {
+                    _logger.LogError("CardDealer: Deal anchor missing for player index {PlayerIndex}.", playerIndex);
+                    flyingCard.SetActive(false);
+                    _cardPool.Enqueue(flyingCard);
+                    break;
+                }
 
                 // Fire and forget the card movement animation, returning it to the pool when done.
                 AnimateCardMovement(flyingCardRect, targetAnchor.position, playerIndex).Forget();
@@ -208,12 +219,28 @@ namespace TienLen.Presentation.GameRoomScreen
         /// <summary>
         /// Returns the UI anchor used for a player's deal target (0=South, 1=West, 2=North, 3=East).
         /// </summary>
-        /// <param name="playerIndex">Player index matching the <see cref="_playerAnchors"/> order.</param>
+        /// <param name="playerIndex">Player index matching the South/West/North/East order.</param>
         public RectTransform GetPlayerAnchor(int playerIndex)
         {
-            if (_playerAnchors == null || _playerAnchors.Length == 0) return null;
-            if (playerIndex < 0 || playerIndex >= _playerAnchors.Length) return null;
-            return _playerAnchors[playerIndex];
+            if (playerIndex < 0 || playerIndex >= PlayerCount) return null;
+            return GetAnchorByIndex(playerIndex);
+        }
+
+        private bool AreDealAnchorsAssigned()
+        {
+            return _southAnchor != null && _westAnchor != null && _northAnchor != null && _eastAnchor != null;
+        }
+
+        private RectTransform GetAnchorByIndex(int playerIndex)
+        {
+            return playerIndex switch
+            {
+                0 => _southAnchor,
+                1 => _westAnchor,
+                2 => _northAnchor,
+                3 => _eastAnchor,
+                _ => null
+            };
         }
     }
 }
