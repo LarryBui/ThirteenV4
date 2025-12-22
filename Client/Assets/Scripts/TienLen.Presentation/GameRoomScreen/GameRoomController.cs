@@ -96,7 +96,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.GameErrorReceived += HandleGameError;
             _matchHandler.CardsPlayed += HandleCardsPlayed;
             _matchHandler.TurnPassed += HandleTurnPassed;
-            _matchHandler.TurnDeadlineUpdated += HandleTurnDeadlineUpdated;
+            _matchHandler.TurnSecondsRemainingUpdated += HandleTurnSecondsRemainingUpdated;
             _matchHandler.MatchPresenceChanged += HandleMatchPresenceChanged;
 
             // Render current state once in case the initial snapshot arrived before this scene loaded.
@@ -122,7 +122,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 _matchHandler.GameErrorReceived -= HandleGameError;
                 _matchHandler.CardsPlayed -= HandleCardsPlayed;
                 _matchHandler.TurnPassed -= HandleTurnPassed;
-                _matchHandler.TurnDeadlineUpdated -= HandleTurnDeadlineUpdated;
+                _matchHandler.TurnSecondsRemainingUpdated -= HandleTurnSecondsRemainingUpdated;
                 _matchHandler.MatchPresenceChanged -= HandleMatchPresenceChanged;
             }
 
@@ -202,17 +202,18 @@ namespace TienLen.Presentation.GameRoomScreen
             _gameRoomLogView?.AddEntry($"{displayName} passed.");
         }
 
-        private void HandleTurnDeadlineUpdated(int activeSeat, long turnDeadlineTick)
+        private void HandleTurnSecondsRemainingUpdated(int activeSeat, long turnSecondsRemaining)
         {
             if (_isLeaving) return;
 
-            ClearTurnDeadlineDisplays();
+            ClearTurnCountdownDisplays();
             CancelTurnCountdown();
+            if (turnSecondsRemaining <= 0) return;
 
             var profile = FindProfileBySeat(activeSeat);
             if (profile == null) return;
 
-            StartTurnCountdown(profile, turnDeadlineTick);
+            StartTurnCountdown(profile, turnSecondsRemaining);
         }
 
         private void HandleMatchPresenceChanged(IReadOnlyList<PresenceChange> changes)
@@ -285,12 +286,12 @@ namespace TienLen.Presentation.GameRoomScreen
             ClearProfileSlot(opponentProfile_3);
         }
 
-        private void ClearTurnDeadlineDisplays()
+        private void ClearTurnCountdownDisplays()
         {
-            localPlayerProfile?.HideTurnDeadlineTick();
-            opponentProfile_1?.HideTurnDeadlineTick();
-            opponentProfile_2?.HideTurnDeadlineTick();
-            opponentProfile_3?.HideTurnDeadlineTick();
+            localPlayerProfile?.HideTurnCountdown();
+            opponentProfile_1?.HideTurnCountdown();
+            opponentProfile_2?.HideTurnCountdown();
+            opponentProfile_3?.HideTurnCountdown();
         }
 
         private void CancelTurnCountdown()
@@ -301,14 +302,14 @@ namespace TienLen.Presentation.GameRoomScreen
             _turnCountdownCts = null;
         }
 
-        private void StartTurnCountdown(PlayerProfileUI profile, long deadlineSeconds)
+        private void StartTurnCountdown(PlayerProfileUI profile, long turnSecondsRemaining)
         {
             if (profile == null) return;
-            var remainingSeconds = deadlineSeconds > int.MaxValue ? int.MaxValue : (int)deadlineSeconds;
+            var remainingSeconds = turnSecondsRemaining > int.MaxValue ? int.MaxValue : (int)turnSecondsRemaining;
             if (remainingSeconds < 0) remainingSeconds = 0;
             if (remainingSeconds == 0)
             {
-                profile.ShowTurnCountdownSeconds(0);
+                profile.HideTurnCountdown();
                 return;
             }
 
@@ -321,12 +322,13 @@ namespace TienLen.Presentation.GameRoomScreen
             var seconds = remainingSeconds;
             while (!token.IsCancellationRequested)
             {
-                profile.ShowTurnCountdownSeconds(seconds);
                 if (seconds <= 0)
                 {
+                    profile.HideTurnCountdown();
                     break;
                 }
 
+                profile.ShowTurnCountdownSeconds(seconds);
                 await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: token, ignoreTimeScale: true);
                 seconds--;
             }

@@ -1,4 +1,4 @@
-import { createTestUser, TestUser, waitForMatchState } from "./helpers";
+import { createTestUser, TestUser } from "./helpers";
 import * as protobuf from "protobufjs";
 import * as path from "path";
 
@@ -34,9 +34,8 @@ describe("Tien Len Integration Tests", () => {
         console.log("Owner calling test_create_match...");
         const rpcResult = await owner.client.rpc(owner.session, "test_create_match", {});
         
-        // Decode Protobuf
-        const payload = FindMatchResponse.decode(Buffer.from(rpcResult.payload as unknown as string, 'utf-8')) as any;
-        const finalMatchId = payload.matchId;
+        // Nakama JS automatically parses the quoted string from server into a plain string.
+        const finalMatchId = rpcResult.payload as unknown as string;
         
         if (!finalMatchId) {
             throw new Error(`RPC test_create_match returned empty matchId`);
@@ -54,32 +53,14 @@ describe("Tien Len Integration Tests", () => {
             console.log(`User ${i} joined match.`);
         }
 
-        // Wait a moment for presences to sync
+        // Wait a bit for presences to sync
         await new Promise(r => setTimeout(r, 1000));
 
         // 4. Setup Listeners for GameStarted
-        const startPromises = users.map((u, index) => {
-            return new Promise<void>((resolve, reject) => {
-                const timer = setTimeout(() => reject(new Error(`User ${index} did not receive GameStarted`)), 5000);
-                u.socket.onmatchdata = (msg) => {
-                    if (msg.op_code === OP_CODE_GAME_STARTED) {
-                        clearTimeout(timer);
-                        // Optional: Decode proto if we had it. 
-                        // For now just verifying we got the opcode is enough proof logic triggered.
-                        console.log(`User ${index} received GameStarted!`);
-                        resolve();
-                    }
-                };
-            });
-        });
+        const startPromises = users.map(u => u.waitForOpCode(OP_CODE_GAME_STARTED));
 
         // 5. Owner starts game
         console.log("Owner sending StartGame...");
-        // Payload should be a protobuf message. 
-        // Since we don't have proto generated in JS, we can send an empty byte array 
-        // IF the server handles empty payload gracefully (it should).
-        // The server code: proto.Unmarshal(msg.GetData(), request) -> if error return.
-        // Empty byte array usually unmarshals to empty object, which is valid.
         await owner.socket.sendMatchState(finalMatchId, OP_CODE_START_GAME, new Uint8Array(0));
 
         // 6. Assert everyone got the event

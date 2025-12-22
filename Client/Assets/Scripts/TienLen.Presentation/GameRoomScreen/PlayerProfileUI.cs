@@ -40,7 +40,7 @@ namespace TienLen.Presentation.GameRoomScreen
         public void SetProfile(string displayName, int avatarIndex, int seatIndex)
         {
             SeatIndex = seatIndex;
-            HideTurnDeadlineTick();
+            HideTurnCountdown();
             if (avatarImage == null)
             {
                 _logger.LogError("PlayerProfileUI: Avatar Image is not assigned.");
@@ -92,9 +92,9 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
-        /// Hides the turn deadline tick display.
+        /// Hides the turn countdown display.
         /// </summary>
-        public void HideTurnDeadlineTick()
+        public void HideTurnCountdown()
         {
             if (turnDeadlineText == null) return;
 
@@ -110,7 +110,7 @@ namespace TienLen.Presentation.GameRoomScreen
             displayNameText.text = "";
             avatarImage.sprite = null; // Or set a default placeholder
             SeatIndex = -1;
-            HideTurnDeadlineTick();
+            HideTurnCountdown();
         }
 
         /// <summary>

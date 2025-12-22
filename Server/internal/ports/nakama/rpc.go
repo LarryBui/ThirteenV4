@@ -3,7 +3,10 @@ package nakama
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"fmt"
+
+	"tienlen/internal/domain"
 
 	"github.com/heroiclabs/nakama-common/runtime"
 )
@@ -37,7 +40,7 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 	if len(matches) > 0 {
 		matchId := matches[0].MatchId
 		logger.Info("RpcFindMatch [User:%s]: Found existing match %s", userId, matchId)
-		return matchId, nil
+		return fmt.Sprintf("%q", matchId), nil
 	}
 
 	// 3. If no match is found, create a new one.
@@ -49,7 +52,7 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 	}
 
 	logger.Info("RpcFindMatch [User:%s]: Created new match %s", userId, matchId)
-	return matchId, nil
+	return fmt.Sprintf("%q", matchId), nil
 }
 
 // RpcCreateMatchTest is for integration testing only. It always creates a fresh match.
@@ -60,6 +63,78 @@ func RpcCreateMatchTest(ctx context.Context, logger runtime.Logger, db *sql.DB, 
 		return "", err
 	}
 
-	return matchId, nil
+	return fmt.Sprintf("%q", matchId), nil
+}
+
+type riggedHand struct {
+	Seat  int           `json:"seat"`
+	Cards []domain.Card `json:"cards"`
+}
+
+// RpcStartGameTest is for integration testing only.
+func RpcStartGameTest(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, payload string) (string, error) {
+	type request struct {
+		MatchId string       `json:"match_id"`
+		Hands   []riggedHand `json:"hands"`
+	}
+	var req request
+	if err := json.Unmarshal([]byte(payload), &req); err != nil {
+		logger.Error("RpcStartGameTest: Failed to unmarshal payload: %v", err)
+		return "", err
+	}
+	
+	fullDeck := domain.NewDeck()
+	usedCards := make(map[domain.Card]bool)
+	
+	// Mark used cards
+	for _, h := range req.Hands {
+		for _, c := range h.Cards {
+			usedCards[c] = true
+		}
+	}
+	
+	finalDeck := make([]domain.Card, 0, 52)
+	unusedIdx := 0
+	
+	for s := 0; s < 4; s++ {
+		var userHand []domain.Card
+		for _, h := range req.Hands {
+			if h.Seat == s {
+				userHand = h.Cards
+				break
+			}
+		}
+		
+		// Add explicit cards
+		finalDeck = append(finalDeck, userHand...)
+		
+		// Fill remaining
+		needed := 13 - len(userHand)
+		for k := 0; k < needed; k++ {
+			for unusedIdx < 52 {
+				c := fullDeck[unusedIdx]
+				unusedIdx++
+				if !usedCards[c] {
+					finalDeck = append(finalDeck, c)
+					// No need to mark used, we strictly iterate fullDeck once
+					break
+				}
+			}
+		}
+	}
+	
+	deckBytes, _ := json.Marshal(finalDeck)
+	
+	signalPayload := fmt.Sprintf(`{"op": "start_with_deck", "deck": %s}`, string(deckBytes))
+	
+	// Signal the match
+	_, err := nk.MatchSignal(ctx, req.MatchId, signalPayload)
+	if err != nil {
+		logger.Error("RpcStartGameTest: Failed to signal match: %v", err)
+		return "", err
+	}
+	
+	logger.Info("RpcStartGameTest: Signaled match %s to start with rigged deck.", req.MatchId)
+	return "ok", nil
 }
 

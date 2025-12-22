@@ -62,6 +62,31 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int, baseBet int6
 	deck := domain.NewDeck()
 	deck = domain.ShuffleDeck(deck)
 
+	return s.StartGameWithDeck(playerIDs, lastWinnerSeat, baseBet, deck)
+}
+
+// StartGameWithDeck initializes a game with a specific deck order.
+// Useful for testing or deterministic game modes.
+func (s *Service) StartGameWithDeck(playerIDs []string, lastWinnerSeat int, baseBet int64, deck []domain.Card) (*domain.Game, []Event, error) {
+	activePlayers := make(map[string]*domain.Player)
+	var seats []string // Active players' UIDs in seat order
+
+	// Filter empty seats and create players
+	for i, userID := range playerIDs {
+		if userID == "" {
+			continue
+		}
+		activePlayers[userID] = &domain.Player{
+			UserID: userID,
+			Seat:   i, // 0-based seat index for domain
+		}
+		seats = append(seats, userID)
+	}
+
+	if len(activePlayers) < MinPlayersToStartGame {
+		return nil, nil, ErrTooFewPlayers
+	}
+
 	game := &domain.Game{
 		Phase:                domain.PhasePlaying,
 		Players:              activePlayers,
@@ -73,6 +98,10 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int, baseBet int6
 	cardIdx := 0
 	for _, userID := range seats { // Iterate in seat order
 		pl := activePlayers[userID]
+		// Ensure we don't run out of cards
+		if cardIdx+13 > len(deck) {
+			break
+		}
 		pl.Hand = append([]domain.Card{}, deck[cardIdx:cardIdx+13]...)
 		domain.SortHand(pl.Hand) // Sort hand after dealing
 		pl.HasPassed = false

@@ -108,14 +108,14 @@ message MatchStateSnapshot {
   int32 owner_seat = 2; // 0-based index
   int64 tick = 3;
   repeated PlayerState players = 4; // Full player details
-  int64 turn_deadline_tick = 5; // Seconds remaining before the current turn expires
+  int64 turn_seconds_remaining = 5; // Seconds remaining before the current turn expires
 }
 
 message GameStartedEvent {
   int32 first_turn_seat = 1; // 0-based index
   GamePhase phase = 2;
   repeated Card hand = 3;
-  int64 turn_deadline_tick = 4; // Seconds remaining before the current turn expires
+  int64 turn_seconds_remaining = 4; // Seconds remaining before the current turn expires
 }
 
 message CardPlayedEvent {
@@ -123,14 +123,14 @@ message CardPlayedEvent {
   repeated Card cards = 2;
   int32 next_turn_seat = 3; // 0-based index
   bool new_round = 4; // True if this clears the board
-  int64 turn_deadline_tick = 5; // Seconds remaining before the next turn expires
+  int64 turn_seconds_remaining = 5; // Seconds remaining before the next turn expires
 }
 
 message TurnPassedEvent {
   int32 seat = 1; // 0-based index
   int32 next_turn_seat = 2; // 0-based index
   bool new_round = 3; // True if this pass results in a round reset
-  int64 turn_deadline_tick = 4; // Seconds remaining before the next turn expires
+  int64 turn_seconds_remaining = 4; // Seconds remaining before the next turn expires
 }
 
 message GameEndedEvent {

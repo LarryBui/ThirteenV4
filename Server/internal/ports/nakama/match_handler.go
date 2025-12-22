@@ -3,6 +3,7 @@ package nakama
 import (
 	"context"
 	"database/sql"
+	"encoding/json"
 	"math/rand"
 	"strconv"
 	"time"
@@ -38,7 +39,7 @@ type MatchState struct {
 	BotAutoFillDelay     int                         `json:"bot_auto_fill_delay"`    // Seconds to wait before auto-filling with bots
 	BotWaitUntil         int64                       `json:"bot_wait_until"`         // Tick when the bot should act
 	LastSinglePlayerTick int64                       `json:"last_single_player_tick"` // Tick when a single player started waiting
-	TurnDeadlineTick     int64                       `json:"turn_deadline_tick"`     // Tick when the current turn expires
+	TurnSecondsRemaining int64                       `json:"turn_seconds_remaining"` // Seconds remaining before the current turn expires
 	Bots                 map[string]*bot.Agent       `json:"-"`                       // Active bot agents
 	Economy              ports.EconomyPort           `json:"-"`                       // Interface to Nakama wallet
 }
@@ -333,16 +334,20 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 
 	// Turn Timer Check
 	if matchState.Game != nil && matchState.Game.Phase == domain.PhasePlaying {
-		if matchState.TurnDeadlineTick > 0 && matchState.Tick >= matchState.TurnDeadlineTick {
+		if matchState.TurnSecondsRemaining > 0 {
+			matchState.TurnSecondsRemaining--
+		}
+
+		if matchState.TurnSecondsRemaining <= 0 {
 			currentTurn := matchState.Game.CurrentTurn
 			logger.Info("MatchLoop: Turn timer expired for seat %d. Processing timeout.", currentTurn)
-			
+
 			// Call App Service to handle the timeout logic (Play Smallest vs Pass)
 			events, err := matchState.App.TimeoutTurn(matchState.Game, currentTurn)
 			if err != nil {
 				logger.Error("MatchLoop: Failed to process timeout for seat %d: %v", currentTurn, err)
 			} else {
-				mh.updateTurnDeadline(matchState, logger)
+				mh.resetTurnSecondsRemaining(matchState, logger)
 				for _, ev := range events {
 					mh.broadcastEvent(ctx, matchState, dispatcher, logger, ev)
 				}
@@ -358,38 +363,22 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 	return matchState
 }
 
-func (mh *matchHandler) updateTurnDeadline(state *MatchState, logger runtime.Logger) {
+func (mh *matchHandler) resetTurnSecondsRemaining(state *MatchState, logger runtime.Logger) {
 	if state.Game == nil || state.Game.Phase != domain.PhasePlaying {
-		state.TurnDeadlineTick = 0
+		state.TurnSecondsRemaining = 0
 		return
 	}
 
-	duration := 15 // Default
+	duration := 16 // Default
 	if cfg := config.GetGameConfig(); cfg != nil {
 		duration = cfg.TurnDurationSeconds
 	}
 
-	state.TurnDeadlineTick = state.Tick + int64(duration)
-	logger.Debug("Turn timer reset: Seat %d has until tick %d", state.Game.CurrentTurn, state.TurnDeadlineTick)
-}
-
-func (mh *matchHandler) remainingTurnSeconds(state *MatchState) int64 {
-	if state == nil {
-		return 0
-	}
-	if state.TurnDeadlineTick <= 0 {
-		return 0
-	}
-	if state.Tick <= 0 {
-		return state.TurnDeadlineTick
-	}
-
-	remaining := state.TurnDeadlineTick - state.Tick
-	if remaining < 0 {
-		return 0
-	}
-
-	return remaining
+	state.TurnSecondsRemaining = int64(duration)
+	logger.Debug(
+		"Turn timer reset: Seat %d has %d seconds remaining",
+		state.Game.CurrentTurn,
+		state.TurnSecondsRemaining)
 }
 
 func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
@@ -530,11 +519,11 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 	}
 
 	snapshot := &pb.MatchStateSnapshot{
-		Seats:     state.Seats[:],
-		OwnerSeat: int32(state.OwnerSeat),
-		Tick:      state.Tick,
-		TurnDeadlineTick: mh.remainingTurnSeconds(state),
-		Players:   playerStates,
+		Seats:                state.Seats[:],
+		OwnerSeat:            int32(state.OwnerSeat),
+		Tick:                 state.Tick,
+		TurnSecondsRemaining: state.TurnSecondsRemaining,
+		Players:              playerStates,
 	}
 	bytes, _ := proto.Marshal(snapshot)
 	dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_PLAYER_JOINED), bytes, nil, nil, true)
@@ -588,7 +577,7 @@ func (mh *matchHandler) handleStartGame(ctx context.Context, state *MatchState, 
 	mh.updateLabel(state, dispatcher, logger)
 
 	// Start the turn timer
-	mh.updateTurnDeadline(state, logger)
+	mh.resetTurnSecondsRemaining(state, logger)
 
 	// Broadcast resulting events
 	for _, ev := range events {
@@ -645,7 +634,7 @@ func (mh *matchHandler) handlePlayCards(ctx context.Context, state *MatchState, 
 		return
 	}
 
-	mh.updateTurnDeadline(state, logger)
+	mh.resetTurnSecondsRemaining(state, logger)
 
 	// Broadcast events
 	for _, ev := range events {
@@ -676,7 +665,7 @@ func (mh *matchHandler) handlePassTurn(ctx context.Context, state *MatchState, d
 		return
 	}
 
-	mh.updateTurnDeadline(state, logger)
+	mh.resetTurnSecondsRemaining(state, logger)
 
 	// Broadcast events
 	for _, ev := range events {
@@ -702,7 +691,7 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			Phase:            pb.GamePhase_PHASE_PLAYING,
 			FirstTurnSeat:    int32(p.FirstTurnSeat),
 			Hand:             toProtoCards(p.Hand),
-			TurnDeadlineTick: mh.remainingTurnSeconds(state),
+			TurnSecondsRemaining: state.TurnSecondsRemaining,
 		}
 	case app.EventCardPlayed:
 		opCode = int64(pb.OpCode_OP_CODE_CARD_PLAYED)
@@ -712,7 +701,7 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			Cards:            toProtoCards(p.Cards),
 			NextTurnSeat:     int32(p.NextTurnSeat),
 			NewRound:         p.NewRound,
-			TurnDeadlineTick: mh.remainingTurnSeconds(state),
+			TurnSecondsRemaining: state.TurnSecondsRemaining,
 		}
 	case app.EventTurnPassed:
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
@@ -721,7 +710,7 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			Seat:             int32(p.Seat),
 			NextTurnSeat:     int32(p.NextTurnSeat),
 			NewRound:         p.NewRound,
-			TurnDeadlineTick: mh.remainingTurnSeconds(state),
+			TurnSecondsRemaining: state.TurnSecondsRemaining,
 		}
 	case app.EventGameEnded:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_ENDED)
@@ -857,5 +846,47 @@ func (mh *matchHandler) MatchTerminate(ctx context.Context, logger runtime.Logge
 }
 
 func (mh *matchHandler) MatchSignal(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, dispatcher runtime.MatchDispatcher, tick int64, state interface{}, data string) (interface{}, string) {
-	return state, ""
+	matchState, ok := state.(*MatchState)
+	if !ok {
+		return state, "state not found"
+	}
+
+	var signal struct {
+		Op   string        `json:"op"`
+		Deck []domain.Card `json:"deck"`
+	}
+	if err := json.Unmarshal([]byte(data), &signal); err != nil {
+		logger.Warn("MatchSignal: Failed to unmarshal signal: %v", err)
+		return state, "invalid signal"
+	}
+
+	if signal.Op == "start_with_deck" {
+		logger.Info("MatchSignal: Starting game with rigged deck.")
+		
+		// Check standard constraints
+		if matchState.GetOccupiedSeatCount() < app.MinPlayersToStartGame {
+			return state, "not enough players"
+		}
+
+		baseBet := config.GetBaseBet("")
+		
+		// Call Service
+		game, events, err := matchState.App.StartGameWithDeck(matchState.Seats[:], matchState.LastWinnerSeat, baseBet, signal.Deck)
+		if err != nil {
+			logger.Error("MatchSignal: Failed to start game: %v", err)
+			return state, "failed to start"
+		}
+
+		matchState.Game = game
+		mh.updateLabel(matchState, dispatcher, logger)
+		mh.resetTurnSecondsRemaining(matchState, logger)
+
+		for _, ev := range events {
+			mh.broadcastEvent(ctx, matchState, dispatcher, logger, ev)
+		}
+		
+		return state, "game started"
+	}
+
+	return state, "unknown signal"
 }

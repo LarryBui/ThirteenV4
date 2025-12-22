@@ -35,10 +35,10 @@ namespace TienLen.Infrastructure.Match
         private readonly Dictionary<string, PresenceInfo> _presenceByUserId = new();
 
         // --- IMatchNetworkClient Events ---
-        public event Action<int, List<Card>, int, bool, long> OnCardsPlayed; // seat, cards, nextTurnSeat, newRound, turnDeadlineSeconds
+        public event Action<int, List<Card>, int, bool, long> OnCardsPlayed; // seat, cards, nextTurnSeat, newRound, turnSecondsRemaining
         public event Action<string> OnPlayerSkippedTurn;
-        public event Action<int, int, bool, long> OnTurnPassed; // seat, nextTurnSeat, newRound, turnDeadlineSeconds
-        public event Action<List<Card>, int, long> OnGameStarted; // hand, firstTurnSeat, turnDeadlineSeconds
+        public event Action<int, int, bool, long> OnTurnPassed; // seat, nextTurnSeat, newRound, turnSecondsRemaining
+        public event Action<List<Card>, int, long> OnGameStarted; // hand, firstTurnSeat, turnSecondsRemaining
         /// <inheritdoc />
         public event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
         /// <inheritdoc />
@@ -239,7 +239,7 @@ namespace TienLen.Infrastructure.Match
                             seats,
                             payload.OwnerSeat,
                             payload.Tick,
-                            payload.TurnDeadlineTick,
+                            payload.TurnSecondsRemaining,
                             players);
                         _logger?.LogInformation(
                             "Match join snapshot received. matchId={matchId} seatCount={seatCount} playerCount={playerCount} ownerSeat={ownerSeat}",
@@ -278,7 +278,7 @@ namespace TienLen.Infrastructure.Match
                             foreach (var c in payload.Hand) hand.Add(ToDomain(c));
                         }
 
-                        OnGameStarted?.Invoke(hand, payload.FirstTurnSeat, payload.TurnDeadlineTick);
+                        OnGameStarted?.Invoke(hand, payload.FirstTurnSeat, payload.TurnSecondsRemaining);
                     }
                     catch (Exception e)
                     {
@@ -298,7 +298,7 @@ namespace TienLen.Infrastructure.Match
                             cards,
                             payload.NextTurnSeat,
                             payload.NewRound,
-                            payload.TurnDeadlineTick);
+                            payload.TurnSecondsRemaining);
                     }
                     catch (Exception e)
                     {
@@ -314,7 +314,7 @@ namespace TienLen.Infrastructure.Match
                             payload.Seat,
                             payload.NextTurnSeat,
                             payload.NewRound,
-                            payload.TurnDeadlineTick);
+                            payload.TurnSecondsRemaining);
                     }
                     catch (Exception e)
                     {

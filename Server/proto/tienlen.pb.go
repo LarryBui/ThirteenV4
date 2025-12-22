@@ -795,14 +795,14 @@ func (x *PlayerLeftEvent) GetUserId() string {
 
 // Snapshot of lobby state broadcast after a player joins.
 type MatchStateSnapshot struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Seats            []string               `protobuf:"bytes,1,rep,name=seats,proto3" json:"seats,omitempty"`
-	OwnerSeat        int32                  `protobuf:"varint,2,opt,name=owner_seat,json=ownerSeat,proto3" json:"owner_seat,omitempty"` // 0-based index
-	Tick             int64                  `protobuf:"varint,3,opt,name=tick,proto3" json:"tick,omitempty"`
-	Players          []*PlayerState         `protobuf:"bytes,4,rep,name=players,proto3" json:"players,omitempty"`                                              // Full player details
-	TurnDeadlineTick int64                  `protobuf:"varint,5,opt,name=turn_deadline_tick,json=turnDeadlineTick,proto3" json:"turn_deadline_tick,omitempty"` // Seconds remaining before the current turn expires
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Seats                []string               `protobuf:"bytes,1,rep,name=seats,proto3" json:"seats,omitempty"`
+	OwnerSeat            int32                  `protobuf:"varint,2,opt,name=owner_seat,json=ownerSeat,proto3" json:"owner_seat,omitempty"` // 0-based index
+	Tick                 int64                  `protobuf:"varint,3,opt,name=tick,proto3" json:"tick,omitempty"`
+	Players              []*PlayerState         `protobuf:"bytes,4,rep,name=players,proto3" json:"players,omitempty"`                                                          // Full player details
+	TurnSecondsRemaining int64                  `protobuf:"varint,5,opt,name=turn_seconds_remaining,json=turnSecondsRemaining,proto3" json:"turn_seconds_remaining,omitempty"` // Seconds remaining before the current turn expires
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *MatchStateSnapshot) Reset() {
@@ -863,21 +863,21 @@ func (x *MatchStateSnapshot) GetPlayers() []*PlayerState {
 	return nil
 }
 
-func (x *MatchStateSnapshot) GetTurnDeadlineTick() int64 {
+func (x *MatchStateSnapshot) GetTurnSecondsRemaining() int64 {
 	if x != nil {
-		return x.TurnDeadlineTick
+		return x.TurnSecondsRemaining
 	}
 	return 0
 }
 
 type GameStartedEvent struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	FirstTurnSeat    int32                  `protobuf:"varint,1,opt,name=first_turn_seat,json=firstTurnSeat,proto3" json:"first_turn_seat,omitempty"` // 0-based index
-	Phase            GamePhase              `protobuf:"varint,2,opt,name=phase,proto3,enum=tienlen.v1.GamePhase" json:"phase,omitempty"`
-	Hand             []*Card                `protobuf:"bytes,3,rep,name=hand,proto3" json:"hand,omitempty"`
-	TurnDeadlineTick int64                  `protobuf:"varint,4,opt,name=turn_deadline_tick,json=turnDeadlineTick,proto3" json:"turn_deadline_tick,omitempty"` // Seconds remaining before the current turn expires
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	FirstTurnSeat        int32                  `protobuf:"varint,1,opt,name=first_turn_seat,json=firstTurnSeat,proto3" json:"first_turn_seat,omitempty"` // 0-based index
+	Phase                GamePhase              `protobuf:"varint,2,opt,name=phase,proto3,enum=tienlen.v1.GamePhase" json:"phase,omitempty"`
+	Hand                 []*Card                `protobuf:"bytes,3,rep,name=hand,proto3" json:"hand,omitempty"`
+	TurnSecondsRemaining int64                  `protobuf:"varint,4,opt,name=turn_seconds_remaining,json=turnSecondsRemaining,proto3" json:"turn_seconds_remaining,omitempty"` // Seconds remaining before the current turn expires
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *GameStartedEvent) Reset() {
@@ -931,22 +931,22 @@ func (x *GameStartedEvent) GetHand() []*Card {
 	return nil
 }
 
-func (x *GameStartedEvent) GetTurnDeadlineTick() int64 {
+func (x *GameStartedEvent) GetTurnSecondsRemaining() int64 {
 	if x != nil {
-		return x.TurnDeadlineTick
+		return x.TurnSecondsRemaining
 	}
 	return 0
 }
 
 type CardPlayedEvent struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Seat             int32                  `protobuf:"varint,1,opt,name=seat,proto3" json:"seat,omitempty"` // 0-based index
-	Cards            []*Card                `protobuf:"bytes,2,rep,name=cards,proto3" json:"cards,omitempty"`
-	NextTurnSeat     int32                  `protobuf:"varint,3,opt,name=next_turn_seat,json=nextTurnSeat,proto3" json:"next_turn_seat,omitempty"`             // 0-based index
-	NewRound         bool                   `protobuf:"varint,4,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`                           // True if this clears the board
-	TurnDeadlineTick int64                  `protobuf:"varint,5,opt,name=turn_deadline_tick,json=turnDeadlineTick,proto3" json:"turn_deadline_tick,omitempty"` // Seconds remaining before the next turn expires
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Seat                 int32                  `protobuf:"varint,1,opt,name=seat,proto3" json:"seat,omitempty"` // 0-based index
+	Cards                []*Card                `protobuf:"bytes,2,rep,name=cards,proto3" json:"cards,omitempty"`
+	NextTurnSeat         int32                  `protobuf:"varint,3,opt,name=next_turn_seat,json=nextTurnSeat,proto3" json:"next_turn_seat,omitempty"`                         // 0-based index
+	NewRound             bool                   `protobuf:"varint,4,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`                                       // True if this clears the board
+	TurnSecondsRemaining int64                  `protobuf:"varint,5,opt,name=turn_seconds_remaining,json=turnSecondsRemaining,proto3" json:"turn_seconds_remaining,omitempty"` // Seconds remaining before the next turn expires
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *CardPlayedEvent) Reset() {
@@ -1007,21 +1007,21 @@ func (x *CardPlayedEvent) GetNewRound() bool {
 	return false
 }
 
-func (x *CardPlayedEvent) GetTurnDeadlineTick() int64 {
+func (x *CardPlayedEvent) GetTurnSecondsRemaining() int64 {
 	if x != nil {
-		return x.TurnDeadlineTick
+		return x.TurnSecondsRemaining
 	}
 	return 0
 }
 
 type TurnPassedEvent struct {
-	state            protoimpl.MessageState `protogen:"open.v1"`
-	Seat             int32                  `protobuf:"varint,1,opt,name=seat,proto3" json:"seat,omitempty"`                                                   // 0-based index
-	NextTurnSeat     int32                  `protobuf:"varint,2,opt,name=next_turn_seat,json=nextTurnSeat,proto3" json:"next_turn_seat,omitempty"`             // 0-based index
-	NewRound         bool                   `protobuf:"varint,3,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`                           // True if this pass results in a round reset
-	TurnDeadlineTick int64                  `protobuf:"varint,4,opt,name=turn_deadline_tick,json=turnDeadlineTick,proto3" json:"turn_deadline_tick,omitempty"` // Seconds remaining before the next turn expires
-	unknownFields    protoimpl.UnknownFields
-	sizeCache        protoimpl.SizeCache
+	state                protoimpl.MessageState `protogen:"open.v1"`
+	Seat                 int32                  `protobuf:"varint,1,opt,name=seat,proto3" json:"seat,omitempty"`                                                               // 0-based index
+	NextTurnSeat         int32                  `protobuf:"varint,2,opt,name=next_turn_seat,json=nextTurnSeat,proto3" json:"next_turn_seat,omitempty"`                         // 0-based index
+	NewRound             bool                   `protobuf:"varint,3,opt,name=new_round,json=newRound,proto3" json:"new_round,omitempty"`                                       // True if this pass results in a round reset
+	TurnSecondsRemaining int64                  `protobuf:"varint,4,opt,name=turn_seconds_remaining,json=turnSecondsRemaining,proto3" json:"turn_seconds_remaining,omitempty"` // Seconds remaining before the next turn expires
+	unknownFields        protoimpl.UnknownFields
+	sizeCache            protoimpl.SizeCache
 }
 
 func (x *TurnPassedEvent) Reset() {
@@ -1075,9 +1075,9 @@ func (x *TurnPassedEvent) GetNewRound() bool {
 	return false
 }
 
-func (x *TurnPassedEvent) GetTurnDeadlineTick() int64 {
+func (x *TurnPassedEvent) GetTurnSecondsRemaining() int64 {
 	if x != nil {
-		return x.TurnDeadlineTick
+		return x.TurnSecondsRemaining
 	}
 	return 0
 }
@@ -1218,30 +1218,30 @@ const file_proto_tienlen_proto_rawDesc = "" +
 	"\x06player\x18\x01 \x01(\v2\x17.tienlen.v1.PlayerStateR\x06player\">\n" +
 	"\x0fPlayerLeftEvent\x12\x12\n" +
 	"\x04seat\x18\x01 \x01(\x05R\x04seat\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xbe\x01\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xc6\x01\n" +
 	"\x12MatchStateSnapshot\x12\x14\n" +
 	"\x05seats\x18\x01 \x03(\tR\x05seats\x12\x1d\n" +
 	"\n" +
 	"owner_seat\x18\x02 \x01(\x05R\townerSeat\x12\x12\n" +
 	"\x04tick\x18\x03 \x01(\x03R\x04tick\x121\n" +
-	"\aplayers\x18\x04 \x03(\v2\x17.tienlen.v1.PlayerStateR\aplayers\x12,\n" +
-	"\x12turn_deadline_tick\x18\x05 \x01(\x03R\x10turnDeadlineTick\"\xbb\x01\n" +
+	"\aplayers\x18\x04 \x03(\v2\x17.tienlen.v1.PlayerStateR\aplayers\x124\n" +
+	"\x16turn_seconds_remaining\x18\x05 \x01(\x03R\x14turnSecondsRemaining\"\xc3\x01\n" +
 	"\x10GameStartedEvent\x12&\n" +
 	"\x0ffirst_turn_seat\x18\x01 \x01(\x05R\rfirstTurnSeat\x12+\n" +
 	"\x05phase\x18\x02 \x01(\x0e2\x15.tienlen.v1.GamePhaseR\x05phase\x12$\n" +
-	"\x04hand\x18\x03 \x03(\v2\x10.tienlen.v1.CardR\x04hand\x12,\n" +
-	"\x12turn_deadline_tick\x18\x04 \x01(\x03R\x10turnDeadlineTick\"\xbe\x01\n" +
+	"\x04hand\x18\x03 \x03(\v2\x10.tienlen.v1.CardR\x04hand\x124\n" +
+	"\x16turn_seconds_remaining\x18\x04 \x01(\x03R\x14turnSecondsRemaining\"\xc6\x01\n" +
 	"\x0fCardPlayedEvent\x12\x12\n" +
 	"\x04seat\x18\x01 \x01(\x05R\x04seat\x12&\n" +
 	"\x05cards\x18\x02 \x03(\v2\x10.tienlen.v1.CardR\x05cards\x12$\n" +
 	"\x0enext_turn_seat\x18\x03 \x01(\x05R\fnextTurnSeat\x12\x1b\n" +
-	"\tnew_round\x18\x04 \x01(\bR\bnewRound\x12,\n" +
-	"\x12turn_deadline_tick\x18\x05 \x01(\x03R\x10turnDeadlineTick\"\x96\x01\n" +
+	"\tnew_round\x18\x04 \x01(\bR\bnewRound\x124\n" +
+	"\x16turn_seconds_remaining\x18\x05 \x01(\x03R\x14turnSecondsRemaining\"\x9e\x01\n" +
 	"\x0fTurnPassedEvent\x12\x12\n" +
 	"\x04seat\x18\x01 \x01(\x05R\x04seat\x12$\n" +
 	"\x0enext_turn_seat\x18\x02 \x01(\x05R\fnextTurnSeat\x12\x1b\n" +
-	"\tnew_round\x18\x03 \x01(\bR\bnewRound\x12,\n" +
-	"\x12turn_deadline_tick\x18\x04 \x01(\x03R\x10turnDeadlineTick\"\xda\x01\n" +
+	"\tnew_round\x18\x03 \x01(\bR\bnewRound\x124\n" +
+	"\x16turn_seconds_remaining\x18\x04 \x01(\x03R\x14turnSecondsRemaining\"\xda\x01\n" +
 	"\x0eGameEndedEvent\x12,\n" +
 	"\x12finish_order_seats\x18\x01 \x03(\x05R\x10finishOrderSeats\x12W\n" +
 	"\x0fbalance_changes\x18\x02 \x03(\v2..tienlen.v1.GameEndedEvent.BalanceChangesEntryR\x0ebalanceChanges\x1aA\n" +

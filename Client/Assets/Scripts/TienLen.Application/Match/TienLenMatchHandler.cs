@@ -66,9 +66,9 @@ namespace TienLen.Application
         public event Action<int> TurnPassed; // seat
 
         /// <summary>
-        /// Raised when the active turn deadline tick changes.
+        /// Raised when the active turn countdown value changes.
         /// </summary>
-        public event Action<int, long> TurnDeadlineUpdated; // activeSeat, turnDeadlineSeconds
+        public event Action<int, long> TurnSecondsRemainingUpdated; // activeSeat, turnSecondsRemaining
 
         /// <summary>
         /// Raised when the server reports a gameplay error (e.g., invalid play).
@@ -214,7 +214,7 @@ namespace TienLen.Application
             _networkClient.OnMatchPresenceChanged -= HandleMatchPresenceChanged;
         }
 
-        private void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound, long turnDeadlineTick)
+        private void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound, long turnSecondsRemaining)
         {
             if (CurrentMatch == null) return;
             try
@@ -224,10 +224,10 @@ namespace TienLen.Application
                 // or update Domain to use Seat.
                 // Assuming we update Domain Match to use SeatIndex as well.
                 CurrentMatch.HandleTurnPassed(seat, nextTurnSeat, newRound);
-                CurrentMatch.TurnDeadlineTick = turnDeadlineTick;
+                CurrentMatch.TurnSecondsRemaining = turnSecondsRemaining;
                 GameRoomStateUpdated?.Invoke();
                 GameBoardUpdated?.Invoke(seat, newRound);
-                TurnDeadlineUpdated?.Invoke(nextTurnSeat, turnDeadlineTick);
+                TurnSecondsRemainingUpdated?.Invoke(nextTurnSeat, turnSecondsRemaining);
                 TurnPassed?.Invoke(seat);
             }
             catch (Exception ex)
@@ -257,17 +257,17 @@ namespace TienLen.Application
             MatchPresenceChanged?.Invoke(changes);
         }
 
-        private void HandleCardsPlayed(int seat, List<Card> cards, int nextTurnSeat, bool newRound, long turnDeadlineTick)
+        private void HandleCardsPlayed(int seat, List<Card> cards, int nextTurnSeat, bool newRound, long turnSecondsRemaining)
         {
             if (CurrentMatch == null) return;
             
             try
             {
                 CurrentMatch.PlayTurn(seat, cards, nextTurnSeat, newRound);
-                CurrentMatch.TurnDeadlineTick = turnDeadlineTick;
+                CurrentMatch.TurnSecondsRemaining = turnSecondsRemaining;
                 GameRoomStateUpdated?.Invoke();
                 GameBoardUpdated?.Invoke(seat, newRound);
-                TurnDeadlineUpdated?.Invoke(nextTurnSeat, turnDeadlineTick);
+                TurnSecondsRemainingUpdated?.Invoke(nextTurnSeat, turnSecondsRemaining);
                 CardsPlayed?.Invoke(seat, cards ?? new List<Card>());
             }
             catch (Exception ex)
@@ -276,11 +276,11 @@ namespace TienLen.Application
             }
         }
 
-        private void HandleGameStarted(List<Card> hand, int firstTurnSeat, long turnDeadlineTick)
+        private void HandleGameStarted(List<Card> hand, int firstTurnSeat, long turnSecondsRemaining)
         {
             if (CurrentMatch == null) return;
             CurrentMatch.StartGame(firstTurnSeat);
-            CurrentMatch.TurnDeadlineTick = turnDeadlineTick;
+            CurrentMatch.TurnSecondsRemaining = turnSecondsRemaining;
             
             // Deal cards to self
             var localUserId = _authService.CurrentUserId;
@@ -293,7 +293,7 @@ namespace TienLen.Application
             GameRoomStateUpdated?.Invoke();
             GameStarted?.Invoke();
             GameBoardUpdated?.Invoke(firstTurnSeat, true);
-            TurnDeadlineUpdated?.Invoke(firstTurnSeat, turnDeadlineTick);
+            TurnSecondsRemainingUpdated?.Invoke(firstTurnSeat, turnSecondsRemaining);
         }
 
         private void HandlePlayerJoinedOP(MatchStateSnapshotDto snapshot)
@@ -305,7 +305,7 @@ namespace TienLen.Application
             var seatsToCopy = Math.Min(snapshot.Seats.Length, CurrentMatch.Seats.Length);
             Array.Copy(snapshot.Seats, CurrentMatch.Seats, seatsToCopy);
             CurrentMatch.OwnerSeat = snapshot.OwnerSeat;
-            CurrentMatch.TurnDeadlineTick = snapshot.TurnDeadlineTick;
+            CurrentMatch.TurnSecondsRemaining = snapshot.TurnSecondsRemaining;
 
             ApplyGameRoomSnapshotToPlayers(snapshot);
             UpdateLocalSeatIndex();

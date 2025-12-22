@@ -21,6 +21,9 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 		if err := initializer.RegisterRpc("test_create_match", RpcCreateMatchTest); err != nil {
 			return err
 		}
+		if err := initializer.RegisterRpc("test_start_game", RpcStartGameTest); err != nil {
+			return err
+		}
 		logger.Info("Test RPCs registered.")
 	}
 
