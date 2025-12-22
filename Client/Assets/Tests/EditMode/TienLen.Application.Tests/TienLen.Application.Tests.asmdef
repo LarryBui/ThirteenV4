@@ -1,0 +1,20 @@
+{
+    "name": "TienLen.Application.Tests",
+    "rootNamespace": "TienLen.Application.Tests",
+    "references": [
+        "TienLen.Application",
+        "UnityEngine.TestRunner",
+        "UnityEditor.TestRunner"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [],
+    "autoReferenced": true,
+    "defineConstraints": [],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

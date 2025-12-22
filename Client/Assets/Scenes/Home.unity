@@ -129,6 +129,7 @@ GameObject:
   m_Component:
   - component: {fileID: 400560580}
   - component: {fileID: 400560581}
+  - component: {fileID: 400560582}
   m_Layer: 0
   m_Name: HomeController
   m_TagString: Untagged
@@ -167,6 +168,30 @@ MonoBehaviour:
   quitButton: {fileID: 949182890}
   statusText: {fileID: 1610132010}
   contentRoot: {fileID: 1566008057}
+--- !u!114 &400560582
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 400560578}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 2b3d09be7cf4410f8abb77f47f85faa6, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  panelRoot: {fileID: 0}
+  logText: {fileID: 0}
+  inputField: {fileID: 0}
+  sendButton: {fileID: 0}
+  micButton: {fileID: 0}
+  statusText: {fileID: 0}
+  panelWidthPercent: 0.33
+  panelHeightPercent: 0.5
+  panelPadding: {x: 16, y: 16}
+  inputRowHeight: 72
+  maxVisibleMessages: 60
+  buildUiOnStart: 1
 --- !u!1 &507733571
 GameObject:
   m_ObjectHideFlags: 0

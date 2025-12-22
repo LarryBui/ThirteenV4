@@ -12,6 +12,7 @@ namespace TienLen.Presentation.HomeScreen
             // VContainer will find the component in the current scene hierarchy (the Home scene)
             // and inject its dependencies.
             builder.RegisterComponentInHierarchy<HomeUIController>();
+            builder.RegisterComponentInHierarchy<HomeChatController>();
         }
     }
 }

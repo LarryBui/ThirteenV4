@@ -5,6 +5,10 @@ using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
 using TienLen.Infrastructure.Logging;
 using TienLen.Infrastructure.Match;
+using TienLen.Application.Chat;
+using TienLen.Application.Speech;
+using TienLen.Infrastructure.Chat;
+using TienLen.Infrastructure.Speech;
 using TienLen.Infrastructure.Services;
 using TienLen.Presentation.BootstrapScreen; // Needed for BootstrapUIController
 using UnityEngine;
@@ -56,6 +60,20 @@ namespace TienLen.Global
             // Register Match Infrastructure
             builder.Register<NakamaMatchClient>(Lifetime.Singleton)
                 .As<IMatchNetworkClient>();
+
+            // Register Chat Infrastructure
+            builder.Register<NakamaChatClient>(Lifetime.Singleton)
+                .As<IChatNetworkClient>();
+            builder.Register<GlobalChatHandler>(Lifetime.Singleton);
+
+            // Register Speech-to-Text
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            builder.Register<WindowsSpeechToTextService>(Lifetime.Singleton)
+                .As<ISpeechToTextService>();
+#else
+            builder.Register<UnsupportedSpeechToTextService>(Lifetime.Singleton)
+                .As<ISpeechToTextService>();
+#endif
 
             // Register Application Handler
             builder.Register<TienLenMatchHandler>(Lifetime.Singleton);

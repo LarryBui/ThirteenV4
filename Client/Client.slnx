@@ -64,6 +64,7 @@
   <Project Path="TienLen.Domain.csproj" />
   <Project Path="NakamaRuntime.csproj" />
   <Project Path="Unity.RenderPipeline.Universal.ShaderLibrary.csproj" />
+  <Project Path="TienLen.Application.Tests.csproj" />
   <Project Path="UniTask.Editor.csproj" />
   <Project Path="Unity.Rendering.LightTransport.Editor.csproj" />
   <Project Path="Unity.InputSystem.DocCodeSamples.csproj" />
