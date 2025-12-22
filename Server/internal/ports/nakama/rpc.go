@@ -135,6 +135,6 @@ func RpcStartGameTest(ctx context.Context, logger runtime.Logger, db *sql.DB, nk
 	}
 	
 	logger.Info("RpcStartGameTest: Signaled match %s to start with rigged deck.", req.MatchId)
-	return "ok", nil
+	return "{}", nil
 }
 

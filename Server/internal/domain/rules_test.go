@@ -123,6 +123,12 @@ func TestCanBeat(t *testing.T) {
 			expected: true,
 		},
 		{
+			name:     "4-Pine chops Pair 2",
+			prev:     []Card{{Rank: 12, Suit: 0}, {Rank: 12, Suit: 1}},
+			new:      []Card{{Rank: 0, Suit: 0}, {Rank: 0, Suit: 1}, {Rank: 1, Suit: 0}, {Rank: 1, Suit: 1}, {Rank: 2, Suit: 0}, {Rank: 2, Suit: 1}, {Rank: 3, Suit: 0}, {Rank: 3, Suit: 1}},
+			expected: true,
+		},
+		{
 			name:     "5-Pine chops 4-Pine",
 			prev:     []Card{{Rank: 0, Suit: 0}, {Rank: 0, Suit: 1}, {Rank: 1, Suit: 0}, {Rank: 1, Suit: 1}, {Rank: 2, Suit: 0}, {Rank: 2, Suit: 1}, {Rank: 3, Suit: 0}, {Rank: 3, Suit: 1}},
 			new:      []Card{{Rank: 4, Suit: 0}, {Rank: 4, Suit: 1}, {Rank: 5, Suit: 0}, {Rank: 5, Suit: 1}, {Rank: 6, Suit: 0}, {Rank: 6, Suit: 1}, {Rank: 7, Suit: 0}, {Rank: 7, Suit: 1}, {Rank: 8, Suit: 0}, {Rank: 8, Suit: 1}},

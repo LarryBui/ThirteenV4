@@ -97,7 +97,7 @@ describe("Tien Len Gameplay Integration", () => {
 
         console.log(`User ${p1.username} (Seat ${firstTurnSeat}) playing: Rank ${smallestCard.rank} Suit ${smallestCard.suit}`);
         
-        const playWaiters = Promise.all(users.map(u => u.waitForOpCode(OP_CODE_CARD_PLAYED, 15000)));
+        const playWaiters = users.map(u => u.waitForOpCode(OP_CODE_CARD_PLAYED, 15000));
 
         // Create Payload manually
         // Use integer values for enums: Suit (0-3), Rank (0-12)
@@ -112,7 +112,7 @@ describe("Tien Len Gameplay Integration", () => {
         await p1.socket.sendMatchState(matchId, OP_CODE_PLAY_CARDS, playPayload);
         console.log("Sent OpCode 2.");
 
-        const playEvents = await playWaiters;
+        const playEvents = await Promise.all(playWaiters);
         const lastPlay = CardPlayedEvent.decode(playEvents[0]) as any;
         console.log(`Card Played successfully. Next Turn: ${lastPlay.nextTurnSeat}`);
 
@@ -122,10 +122,10 @@ describe("Tien Len Gameplay Integration", () => {
             const passer = seatToUser.get(currentNext)!;
             console.log(`User ${passer.username} (Seat ${currentNext}) passing...`);
             
-            const passWaiters = Promise.all(users.map(u => u.waitForOpCode(OP_CODE_TURN_PASSED, 15000)));
+            const passWaiters = users.map(u => u.waitForOpCode(OP_CODE_TURN_PASSED, 15000));
             await passer.socket.sendMatchState(matchId, OP_CODE_PASS_TURN, new Uint8Array(0));
             
-            const passEvents = await passWaiters;
+            const passEvents = await Promise.all(passWaiters);
             const passEvt = TurnPassedEvent.decode(passEvents[0]) as any;
             
             currentNext = passEvt.nextTurnSeat;

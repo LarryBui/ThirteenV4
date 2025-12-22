@@ -88,10 +88,12 @@ describe("Tien Len Bomb Scenario Integration", () => {
                 { seat: 1, cards: p1_cards }
             ]
         };
-        await owner.client.rpc(owner.session, "test_start_game", JSON.stringify(payload));
+
+        const gameStartPromises = users.map(u => u.waitForOpCode(OP_CODE_GAME_STARTED));
+        await owner.client.rpc(owner.session, "test_start_game", payload);
 
         // Wait for GameStarted
-        await Promise.all(users.map(u => u.waitForOpCode(OP_CODE_GAME_STARTED)));
+        await Promise.all(gameStartPromises);
         console.log("Game Started.");
 
         // 4. P0 plays 3 Spades (Lowest)
@@ -102,27 +104,34 @@ describe("Tien Len Bomb Scenario Integration", () => {
 
         console.log("Turn 1: P0 plays 3 Spades");
         let playPayload = PlayCardsRequest.encode({ cards: [{ rank: 0, suit: 0 }] }).finish();
+        
+        let playWaiters = users.map(u => u.waitForOpCode(OP_CODE_CARD_PLAYED));
         await p0.socket.sendMatchState(matchId, OP_CODE_PLAY_CARDS, new Uint8Array(playPayload));
-        await Promise.all(users.map(u => u.waitForOpCode(OP_CODE_CARD_PLAYED)));
+        await Promise.all(playWaiters);
 
         // 5. Others Pass
         console.log("Turn 2: P1 Passes");
+        let passWaiters = users.map(u => u.waitForOpCode(OP_CODE_TURN_PASSED));
         await p1.socket.sendMatchState(matchId, OP_CODE_PASS_TURN, new Uint8Array(0));
-        await Promise.all(users.map(u => u.waitForOpCode(OP_CODE_TURN_PASSED)));
+        await Promise.all(passWaiters);
 
         console.log("Turn 3: P2 Passes");
+        passWaiters = users.map(u => u.waitForOpCode(OP_CODE_TURN_PASSED));
         await p2.socket.sendMatchState(matchId, OP_CODE_PASS_TURN, new Uint8Array(0));
-        await Promise.all(users.map(u => u.waitForOpCode(OP_CODE_TURN_PASSED)));
+        await Promise.all(passWaiters);
 
         console.log("Turn 4: P3 Passes");
+        passWaiters = users.map(u => u.waitForOpCode(OP_CODE_TURN_PASSED));
         await p3.socket.sendMatchState(matchId, OP_CODE_PASS_TURN, new Uint8Array(0));
-        await Promise.all(users.map(u => u.waitForOpCode(OP_CODE_TURN_PASSED))); // New Round!
+        await Promise.all(passWaiters); // New Round!
 
         // 6. P0 plays 2 Hearts
         console.log("Turn 5: P0 plays 2 Hearts (Pig)");
         playPayload = PlayCardsRequest.encode({ cards: [{ rank: 12, suit: 3 }] }).finish();
+        
+        const pigEventPromise = p0.waitForOpCode(OP_CODE_CARD_PLAYED);
         await p0.socket.sendMatchState(matchId, OP_CODE_PLAY_CARDS, new Uint8Array(playPayload));
-        const pigEvent = await p0.waitForOpCode(OP_CODE_CARD_PLAYED);
+        const pigEvent = await pigEventPromise;
         const nextTurn = CardPlayedEvent.decode(pigEvent).toJSON().nextTurnSeat;
         
         if (nextTurn !== 1) throw new Error(`Expected P1 to have turn, got ${nextTurn}`);
@@ -130,8 +139,10 @@ describe("Tien Len Bomb Scenario Integration", () => {
         // 7. P1 plays 3-Pine (Chop!)
         console.log("Turn 6: P1 plays 3-Pine (Chop)");
         playPayload = PlayCardsRequest.encode({ cards: p1_cards }).finish();
+        
+        playWaiters = users.map(u => u.waitForOpCode(OP_CODE_CARD_PLAYED));
         await p1.socket.sendMatchState(matchId, OP_CODE_PLAY_CARDS, new Uint8Array(playPayload));
-        await Promise.all(users.map(u => u.waitForOpCode(OP_CODE_CARD_PLAYED)));
+        await Promise.all(playWaiters);
 
         console.log("Bomb logic verified!");
 
