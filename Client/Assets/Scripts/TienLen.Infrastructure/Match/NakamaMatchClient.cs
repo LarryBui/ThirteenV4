@@ -35,10 +35,10 @@ namespace TienLen.Infrastructure.Match
         private readonly Dictionary<string, PresenceInfo> _presenceByUserId = new();
 
         // --- IMatchNetworkClient Events ---
-        public event Action<int, List<Card>, int, bool, long> OnCardsPlayed; // seat, cards, nextTurnSeat, newRound, turnDeadlineTick
+        public event Action<int, List<Card>, int, bool, long> OnCardsPlayed; // seat, cards, nextTurnSeat, newRound, turnDeadlineSeconds
         public event Action<string> OnPlayerSkippedTurn;
-        public event Action<int, int, bool, long> OnTurnPassed; // seat, nextTurnSeat, newRound, turnDeadlineTick
-        public event Action<List<Card>, int, long> OnGameStarted; // hand, firstTurnSeat, turnDeadlineTick
+        public event Action<int, int, bool, long> OnTurnPassed; // seat, nextTurnSeat, newRound, turnDeadlineSeconds
+        public event Action<List<Card>, int, long> OnGameStarted; // hand, firstTurnSeat, turnDeadlineSeconds
         /// <inheritdoc />
         public event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
         /// <inheritdoc />
@@ -80,26 +80,16 @@ namespace TienLen.Infrastructure.Match
 
             try
             {
-                var response = JsonConvert.DeserializeObject<RpcFindMatchResponse>(rpcResponse.Payload);
-                if (response == null || string.IsNullOrEmpty(response.match_id))
-                {
-                    throw new InvalidOperationException($"RPC '{rpcId}' returned invalid payload: {rpcResponse.Payload}");
-                }
-                return response.match_id;
+                // The server returns a quoted JSON string (e.g. "uuid").
+                // DeserializeObject<string> will unquote it correctly.
+                var matchId = JsonConvert.DeserializeObject<string>(rpcResponse.Payload);
+                return matchId;
             }
             catch (JsonException ex)
             {
-                // Fallback for backward compatibility if server returns raw string
-                // But better to fail fast if we expect JSON now.
-                // Assuming purely JSON now.
                 _logger.LogError(ex, "Failed to parse find_match RPC response: {Payload}", rpcResponse.Payload);
                 throw;
             }
-        }
-
-        private class RpcFindMatchResponse
-        {
-            public string match_id { get; set; }
         }
 
         public async UniTask SendJoinMatchAsync(string matchId)
@@ -245,7 +235,12 @@ namespace TienLen.Infrastructure.Match
                         }
 
                         // Updated to use OwnerSeat (int) instead of OwnerId (string)
-                        var snapshot = new MatchStateSnapshotDto(seats, payload.OwnerSeat, payload.Tick, players);
+                        var snapshot = new MatchStateSnapshotDto(
+                            seats,
+                            payload.OwnerSeat,
+                            payload.Tick,
+                            payload.TurnDeadlineTick,
+                            players);
                         _logger?.LogInformation(
                             "Match join snapshot received. matchId={matchId} seatCount={seatCount} playerCount={playerCount} ownerSeat={ownerSeat}",
                             _matchId,

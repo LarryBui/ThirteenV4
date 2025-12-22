@@ -14,17 +14,20 @@ namespace TienLen.Application
         public int OwnerSeat { get; }
         /// <summary>Server tick when the snapshot was generated.</summary>
         public long Tick { get; }
+        /// <summary>Seconds remaining before the current turn expires.</summary>
+        public long TurnDeadlineTick { get; }
         /// <summary>Full list of player details in the match.</summary>
         public IReadOnlyList<PlayerStateDTO> Players { get; }
 
         /// <summary>
         /// Creates a new snapshot, copying seat values to avoid external mutation.
         /// </summary>
-        public MatchStateSnapshotDto(string[] seats, int ownerSeat, long tick, IReadOnlyList<PlayerStateDTO> players)
+        public MatchStateSnapshotDto(string[] seats, int ownerSeat, long tick, long turnDeadlineTick, IReadOnlyList<PlayerStateDTO> players)
         {
             Seats = seats == null ? Array.Empty<string>() : (string[])seats.Clone();
             OwnerSeat = ownerSeat;
             Tick = tick;
+            TurnDeadlineTick = turnDeadlineTick;
             Players = players ?? Array.Empty<PlayerStateDTO>();
         }
     }

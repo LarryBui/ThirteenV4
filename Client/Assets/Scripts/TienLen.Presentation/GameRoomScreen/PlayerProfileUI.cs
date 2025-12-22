@@ -79,14 +79,15 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
-        /// Shows the provided turn deadline tick above the avatar.
+        /// Shows the provided turn countdown value above the avatar.
         /// </summary>
-        /// <param name="turnDeadlineTick">Match tick when the current turn expires.</param>
-        public void ShowTurnDeadlineTick(long turnDeadlineTick)
+        /// <param name="secondsRemaining">Seconds remaining before the turn expires.</param>
+        public void ShowTurnCountdownSeconds(int secondsRemaining)
         {
             if (turnDeadlineText == null) return;
 
-            turnDeadlineText.text = turnDeadlineTick.ToString();
+            var clampedSeconds = Mathf.Max(0, secondsRemaining);
+            turnDeadlineText.text = clampedSeconds.ToString();
             turnDeadlineText.gameObject.SetActive(true);
         }
 

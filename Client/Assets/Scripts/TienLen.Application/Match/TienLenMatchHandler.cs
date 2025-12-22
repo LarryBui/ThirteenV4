@@ -68,7 +68,7 @@ namespace TienLen.Application
         /// <summary>
         /// Raised when the active turn deadline tick changes.
         /// </summary>
-        public event Action<int, long> TurnDeadlineUpdated; // activeSeat, turnDeadlineTick
+        public event Action<int, long> TurnDeadlineUpdated; // activeSeat, turnDeadlineSeconds
 
         /// <summary>
         /// Raised when the server reports a gameplay error (e.g., invalid play).
@@ -305,6 +305,7 @@ namespace TienLen.Application
             var seatsToCopy = Math.Min(snapshot.Seats.Length, CurrentMatch.Seats.Length);
             Array.Copy(snapshot.Seats, CurrentMatch.Seats, seatsToCopy);
             CurrentMatch.OwnerSeat = snapshot.OwnerSeat;
+            CurrentMatch.TurnDeadlineTick = snapshot.TurnDeadlineTick;
 
             ApplyGameRoomSnapshotToPlayers(snapshot);
             UpdateLocalSeatIndex();

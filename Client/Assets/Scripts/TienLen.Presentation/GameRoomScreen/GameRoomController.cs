@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Domain.Aggregates;
@@ -54,6 +55,7 @@ namespace TienLen.Presentation.GameRoomScreen
         private ILoggerFactory _loggerFactory;
         private LocalHandView _localHandView;
         private bool _isLeaving;
+        private CancellationTokenSource _turnCountdownCts;
         // Monotonic counter for tracking optimistic play animations.
         private int _pendingPlayToken;
 
@@ -129,6 +131,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 _cardDealer.CardArrivedAtPlayerAnchor -= HandleCardArrivedAtPlayerAnchor;
             }
 
+            CancelTurnCountdown();
             BindLocalHandView(null);
             BindRoomLogView(null);
         }
@@ -204,12 +207,12 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_isLeaving) return;
 
             ClearTurnDeadlineDisplays();
-            if (turnDeadlineTick <= 0) return;
+            CancelTurnCountdown();
 
             var profile = FindProfileBySeat(activeSeat);
             if (profile == null) return;
 
-            profile.ShowTurnDeadlineTick(turnDeadlineTick);
+            StartTurnCountdown(profile, turnDeadlineTick);
         }
 
         private void HandleMatchPresenceChanged(IReadOnlyList<PresenceChange> changes)
@@ -288,6 +291,45 @@ namespace TienLen.Presentation.GameRoomScreen
             opponentProfile_1?.HideTurnDeadlineTick();
             opponentProfile_2?.HideTurnDeadlineTick();
             opponentProfile_3?.HideTurnDeadlineTick();
+        }
+
+        private void CancelTurnCountdown()
+        {
+            if (_turnCountdownCts == null) return;
+            _turnCountdownCts.Cancel();
+            _turnCountdownCts.Dispose();
+            _turnCountdownCts = null;
+        }
+
+        private void StartTurnCountdown(PlayerProfileUI profile, long deadlineSeconds)
+        {
+            if (profile == null) return;
+            var remainingSeconds = deadlineSeconds > int.MaxValue ? int.MaxValue : (int)deadlineSeconds;
+            if (remainingSeconds < 0) remainingSeconds = 0;
+            if (remainingSeconds == 0)
+            {
+                profile.ShowTurnCountdownSeconds(0);
+                return;
+            }
+
+            _turnCountdownCts = new CancellationTokenSource();
+            RunTurnCountdown(profile, remainingSeconds, _turnCountdownCts.Token).Forget();
+        }
+
+        private async UniTaskVoid RunTurnCountdown(PlayerProfileUI profile, int remainingSeconds, CancellationToken token)
+        {
+            var seconds = remainingSeconds;
+            while (!token.IsCancellationRequested)
+            {
+                profile.ShowTurnCountdownSeconds(seconds);
+                if (seconds <= 0)
+                {
+                    break;
+                }
+
+                await UniTask.Delay(TimeSpan.FromSeconds(1), cancellationToken: token, ignoreTimeScale: true);
+                seconds--;
+            }
         }
 
         private void UpdateBoardView(Match match)

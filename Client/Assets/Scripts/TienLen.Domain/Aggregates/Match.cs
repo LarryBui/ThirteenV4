@@ -25,7 +25,7 @@ namespace TienLen.Domain.Aggregates
         public int CurrentTurnSeat { get; set; }
         /// <summary>Seat that last played cards (0-based).</summary>
         public int LastPlaySeat { get; set; }
-        /// <summary>Match tick when the current turn expires.</summary>
+        /// <summary>Seconds remaining before the current turn expires.</summary>
         public long TurnDeadlineTick { get; set; }
         /// <summary>Finish order (userIds) as players empty their hands.</summary>
         public List<string> FinishOrder { get; }
