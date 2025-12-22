@@ -50,6 +50,67 @@ func IsValidSet(cards []Card) bool {
 	return false
 }
 
+// DetectChop checks if the new move is a "Chop" (Bomb/Pine capturing a high-value target)
+// and returns true plus the name of the chop type (e.g., "3-Pine", "Quad").
+func DetectChop(prevCards, newCards []Card) (bool, string) {
+	if !CanBeat(prevCards, newCards) {
+		return false, ""
+	}
+
+	// Identify new types
+	isNew3Pine := isThreeConsecutivePairs(newCards)
+	isNew4Pine := isFourConsecutivePairs(newCards)
+	isNew5Pine := isFiveConsecutivePairs(newCards)
+	isNewQuad := isQuad(newCards)
+
+	// Identify prev types
+	isPrevSingle2 := len(prevCards) == 1 && prevCards[0].Rank == 12
+	isPrevPair2 := len(prevCards) == 2 && allSameRank(prevCards) && prevCards[0].Rank == 12
+	isPrev3Pine := isThreeConsecutivePairs(prevCards)
+	isPrev4Pine := isFourConsecutivePairs(prevCards)
+	isPrevQuad := isQuad(prevCards)
+
+	// 3-Pine chops Single 2
+	if isNew3Pine {
+		if isPrevSingle2 {
+			return true, "3-Pine"
+		}
+		if isPrev3Pine {
+			// Overchop
+			return true, "3-Pine"
+		}
+	}
+
+	// Quad chops Single 2, Pair 2, or 3-Pine
+	if isNewQuad {
+		if isPrevSingle2 || isPrevPair2 || isPrev3Pine {
+			return true, "Quad"
+		}
+		if isPrevQuad {
+			// Overchop
+			return true, "Quad"
+		}
+	}
+
+	// 4-Pine chops Single 2, Pair 2, Quad, or 3-Pine
+	if isNew4Pine {
+		if isPrevSingle2 || isPrevPair2 || isPrevQuad || isPrev3Pine {
+			return true, "4-Pine"
+		}
+		if isPrev4Pine {
+			// Overchop
+			return true, "4-Pine"
+		}
+	}
+
+	// 5-Pine chops everything
+	if isNew5Pine {
+		return true, "5-Pine"
+	}
+
+	return false, ""
+}
+
 // CanBeat determines if newCards can beat prevCards according to Tien Len rules.
 // Includes full "Pig Chopping" logic for Quads and Consecutive Pairs (Pine/Thong).
 func CanBeat(prevCards, newCards []Card) bool {

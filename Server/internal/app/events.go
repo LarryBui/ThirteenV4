@@ -10,6 +10,7 @@ const (
 	EventPlayerLeft   EventKind = "player_left"
 	EventGameStarted  EventKind = "game_started"
 	EventCardPlayed   EventKind = "card_played"
+	EventPigChopped   EventKind = "pig_chopped"
 	EventTurnPassed   EventKind = "turn_passed"
 	EventGameEnded    EventKind = "game_ended"
 )
@@ -37,42 +38,36 @@ type GameStartedPayload struct {
 	Hand          []domain.Card
 }
 
+type PigChoppedPayload struct {
+	SourceSeat     int
+	TargetSeat     int
+	ChopType       string
+	CardsChopped   []domain.Card
+	CardsChopping  []domain.Card
+	BalanceChanges map[string]int64
+}
+
 type CardPlayedPayload struct {
+	Seat int
 
-	Seat         int
-
-	Cards        []domain.Card
+	Cards []domain.Card
 
 	NextTurnSeat int
 
-	NewRound     bool
-
+	NewRound bool
 }
-
-
 
 type TurnPassedPayload struct {
-
-	Seat         int
+	Seat int
 
 	NextTurnSeat int
 
-	NewRound     bool
-
+	NewRound bool
 }
 
-
-
 type GameEndedPayload struct {
-
-
-
 	FinishOrderSeats []int
 
-
-
-	BalanceChanges   map[string]int64 // UserID -> Gold (+/-)
-
-
+	BalanceChanges map[string]int64 // UserID -> Gold (+/-)
 
 }

@@ -703,6 +703,40 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			NewRound:         p.NewRound,
 			TurnSecondsRemaining: state.TurnSecondsRemaining,
 		}
+	case app.EventPigChopped:
+		opCode = int64(pb.OpCode_OP_CODE_PIG_CHOPPED)
+		p := ev.Payload.(app.PigChoppedPayload)
+		payload = &pb.PigChoppedEvent{
+			SourceSeat:     int32(p.SourceSeat),
+			TargetSeat:     int32(p.TargetSeat),
+			ChopType:       p.ChopType,
+			CardsChopped:   toProtoCards(p.CardsChopped),
+			CardsChopping:  toProtoCards(p.CardsChopping),
+			BalanceChanges: p.BalanceChanges,
+		}
+
+		// Apply Immediate Balance Changes
+		if state.Economy != nil {
+			updates := make([]ports.WalletUpdate, 0, len(p.BalanceChanges))
+			for userID, amount := range p.BalanceChanges {
+				// Skip bots
+				if isBotUserId(userID) {
+					continue
+				}
+				updates = append(updates, ports.WalletUpdate{
+					UserID: userID,
+					Amount: amount,
+					Metadata: map[string]interface{}{
+						"match_id": ctx.Value(runtime.RUNTIME_CTX_MATCH_ID),
+						"reason":   "pig_chop",
+					},
+				})
+			}
+			if err := state.Economy.UpdateBalances(ctx, updates); err != nil {
+				logger.Error("Failed to update balances for Pig Chop: %v", err)
+			}
+		}
+
 	case app.EventTurnPassed:
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
 		p := ev.Payload.(app.TurnPassedPayload)

@@ -225,6 +225,7 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 	// 3. Validate against previous play
 
 	newRound := game.LastPlayedCombination.Type == domain.Invalid
+	var chopEvent *Event
 
 	if !newRound { // If there was a previous play
 
@@ -232,6 +233,86 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 			return nil, ErrCannotBeat
 
+		}
+
+		// Check for Pig Chop
+		if isChop, chopType := domain.DetectChop(game.LastPlayedCombination.Cards, playedCombo.Cards); isChop {
+			// Calculate Penalty based on the VICTIM (what was chopped)
+			multiplier := int64(1)
+			victimCombo := game.LastPlayedCombination
+			
+			// Identify Victim Type logic
+			// Note: domain doesn't export specific "IsRedPig" helpers easily, so we inspect cards manually.
+			// Ideally domain should export IdentifyCombinationType more granularly, but we can infer.
+			
+			switch victimCombo.Type {
+			case domain.Single:
+				// Must be a 2 if it was chopped. Check Suit.
+				// Suit: Spades(0), Clubs(1), Diamonds(2), Hearts(3)
+				if len(victimCombo.Cards) == 1 && victimCombo.Cards[0].Rank == 12 {
+					if victimCombo.Cards[0].Suit >= 2 { // Diamond or Heart
+						multiplier = 2 // Red Pig
+					} else {
+						multiplier = 1 // Black Pig
+					}
+				}
+			case domain.Pair:
+				// Pair of 2s
+				if len(victimCombo.Cards) == 2 && victimCombo.Cards[0].Rank == 12 {
+					// Check color of the pair.
+					// 2 Black = 2 units? 1 Black 1 Red = 3? 2 Red = 4?
+					// For simplicity: Base 2 units for Pair 2 (standard variation often used).
+					// Or sum of individual pigs. Let's use simpler: Pair 2 = 4 units (approx 2 red pigs).
+					// Let's stick to "Pair 2 = 4 Units" for this iteration or "Red Pair = 8, Black = 4".
+					// Simplest: Pair 2 = 4 Units.
+					multiplier = 4
+				}
+			case domain.Bomb:
+				// Could be Quad, 3-Pine, 4-Pine, 5-Pine
+				// We need to re-identify or check Count
+				switch victimCombo.Count {
+				case 4: 
+					multiplier = 4 // Quad
+				case 6:
+					multiplier = 3 // 3-Pine (usually less than Quad in value for chopping purposes? Varies. Let's say 3)
+				case 8:
+					multiplier = 5 // 4-Pine
+				case 10:
+					multiplier = 10 // 5-Pine
+				}
+			}
+
+			amount := game.BaseBet * multiplier
+			
+			// Identify Source (Current Actor) and Target (Last Player)
+			targetSeat := game.LastPlayerToPlaySeat
+			
+			// Find User IDs
+			var sourceID, targetID string
+			for uid, p := range game.Players {
+				if p.Seat == actorSeat {
+					sourceID = uid
+				} else if p.Seat == targetSeat {
+					targetID = uid
+				}
+			}
+
+			if sourceID != "" && targetID != "" {
+				chopEvent = &Event{
+					Kind: EventPigChopped,
+					Payload: PigChoppedPayload{
+						SourceSeat:     actorSeat,
+						TargetSeat:     targetSeat,
+						ChopType:       chopType,
+						CardsChopped:   victimCombo.Cards,
+						CardsChopping:  playedCombo.Cards,
+						BalanceChanges: map[string]int64{
+							sourceID: amount,
+							targetID: -amount,
+						},
+					},
+				}
+			}
 		}
 
 	}
@@ -248,22 +329,21 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 	game.Discards = append(game.Discards, cards...)
 
-	events := []Event{
-
-		{
-
-			Kind: EventCardPlayed,
-
-			Payload: CardPlayedPayload{
-
-				Seat: actorSeat,
-
-				Cards: cards,
-
-				NewRound: newRound,
-			},
-		},
+	events := []Event{}
+	
+	if chopEvent != nil {
+		events = append(events, *chopEvent)
 	}
+
+	events = append(events, Event{
+		Kind: EventCardPlayed,
+		Payload: CardPlayedPayload{
+			Seat:         actorSeat,
+			Cards:        cards,
+			NextTurnSeat: game.CurrentTurn, // Default next, updated later if valid
+			NewRound:     newRound,
+		},
+	})
 
 	if len(pl.Hand) == 0 && !pl.Finished {
 
@@ -337,7 +417,7 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 		// The logic for clearing the board happens in PassTurn.
 
-		events[0].Payload = CardPlayedPayload{ // Update payload to include next turn
+		events[len(events)-1].Payload = CardPlayedPayload{ // Update payload to include next turn
 
 			Seat: actorSeat,
 

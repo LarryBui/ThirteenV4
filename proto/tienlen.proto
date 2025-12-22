@@ -50,6 +50,7 @@ enum OpCode {
   OP_CODE_TURN_PASSED = 103;
   OP_CODE_GAME_ENDED = 104;
   OP_CODE_GAME_ERROR = 105;
+  OP_CODE_PIG_CHOPPED = 106;
 }
 
 // --- Basic Structures ---
@@ -141,4 +142,13 @@ message GameEndedEvent {
 message GameErrorEvent {
     int32 code = 1;
     string message = 2;
+}
+
+message PigChoppedEvent {
+  int32 source_seat = 1; // 0-based index
+  int32 target_seat = 2; // 0-based index
+  string chop_type = 3;  // "3-Pine", "Quad", "4-Pine", "5-Pine", "Black Pig", "Red Pig"
+  repeated Card cards_chopped = 4;
+  repeated Card cards_chopping = 5;
+  map<string, int64> balance_changes = 6; // UserID -> Gold (+/-)
 }
