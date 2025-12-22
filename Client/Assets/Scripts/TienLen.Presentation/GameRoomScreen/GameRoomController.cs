@@ -4,6 +4,7 @@ using System.Threading;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Domain.Aggregates;
+using TienLen.Domain.Services;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
 using UnityEngine.UI;
@@ -37,6 +38,13 @@ namespace TienLen.Presentation.GameRoomScreen
         [Tooltip("Leave button that exits the match and returns to the Home screen.")]
         [SerializeField] private Button _leaveButton;
 
+        [Header("Validation")]
+        [Tooltip("Tint applied to the Play button when the current selection is invalid.")]
+        [SerializeField] private Color _playButtonInvalidTint = new Color(1f, 0.75f, 0.75f, 1f);
+        [Tooltip("Blend amount for the invalid selection tint.")]
+        [Range(0f, 1f)]
+        [SerializeField] private float _playButtonInvalidTintStrength = 0.35f;
+
         [Header("Player Profiles")]
         [SerializeField] private PlayerProfileUI localPlayerProfile;
         [SerializeField] private PlayerProfileUI opponentProfile_1;
@@ -68,6 +76,8 @@ namespace TienLen.Presentation.GameRoomScreen
         private bool _isDealing;
         private bool _dealCompleted;
         private int _dealArrivalCount;
+        private ColorBlock _playButtonDefaultColors;
+        private bool _playButtonColorsCached;
 
         /// <summary>
         /// Injects required services for the GameRoom.
@@ -91,6 +101,7 @@ namespace TienLen.Presentation.GameRoomScreen
             ConfigureChildLoggers();
             ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
             InitializeStartGameButton();
+            CachePlayButtonColors();
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
 
@@ -530,22 +541,30 @@ namespace TienLen.Presentation.GameRoomScreen
         public void OnPlayClicked()
         {
             if (_isLeaving) return;
-            var selectedCards = _localHandView?.SelectedCards;
-            var selectedCount = selectedCards?.Count ?? 0;
+            if (_matchHandler == null) return;
 
-            if (selectedCount > 0 && _matchHandler != null)
+            var match = _matchHandler.CurrentMatch;
+            if (match == null) return;
+
+            var selectedCards = _localHandView?.SelectedCards ?? Array.Empty<Card>();
+            var validation = ValidateSelectionForPlay(match, selectedCards);
+            if (!validation.IsValid)
             {
-                TryAnimateSelectedCards();
-
-                // Create a copy list for the async call
-                var cardsToSend = new List<Card>(selectedCards);
-                _matchHandler.PlayCardsAsync(cardsToSend).Forget();
-                
-                // Optimistically clear selection or wait for server event?
-                // Server event will update the hand, which should trigger view refresh.
-                // But clearing selection immediately feels responsive.
-                _localHandView.ClearSelection();
+                _gameMessagePresenter?.ShowError(ResolvePlayValidationMessage(validation.Reason));
+                ApplyPlayButtonValidationVisual(false);
+                return;
             }
+
+            TryAnimateSelectedCards();
+
+            // Create a copy list for the async call
+            var cardsToSend = new List<Card>(selectedCards);
+            _matchHandler.PlayCardsAsync(cardsToSend).Forget();
+
+            // Optimistically clear selection or wait for server event?
+            // Server event will update the hand, which should trigger view refresh.
+            // But clearing selection immediately feels responsive.
+            _localHandView?.ClearSelection();
         }
 
         /// <summary>
@@ -555,11 +574,16 @@ namespace TienLen.Presentation.GameRoomScreen
         public void OnPassClicked()
         {
             if (_isLeaving) return;
-            if (_matchHandler != null)
+            if (_matchHandler == null) return;
+
+            var match = _matchHandler.CurrentMatch;
+            if (!PlayValidator.CanPass(match?.CurrentBoard))
             {
-                _matchHandler.PassTurnAsync().Forget();
-                _localHandView?.ClearSelection();
+                return;
             }
+
+            _matchHandler.PassTurnAsync().Forget();
+            _localHandView?.ClearSelection();
         }
 
         /// <summary>
@@ -637,6 +661,83 @@ namespace TienLen.Presentation.GameRoomScreen
             // Keep action buttons hidden until the game is live and it's the local player's turn.
             if (_playButton != null) _playButton.gameObject.SetActive(showActions);
             if (_passButton != null) _passButton.gameObject.SetActive(showActions);
+
+            if (!showActions)
+            {
+                ApplyPlayButtonValidationVisual(true);
+                return;
+            }
+
+            if (_passButton != null)
+            {
+                _passButton.interactable = PlayValidator.CanPass(match?.CurrentBoard);
+            }
+
+            var selectedCards = _localHandView?.SelectedCards ?? Array.Empty<Card>();
+            var validation = ValidateSelectionForPlay(match, selectedCards);
+            ApplyPlayButtonValidationVisual(validation.IsValid);
+        }
+
+        private void CachePlayButtonColors()
+        {
+            if (_playButtonColorsCached || _playButton == null) return;
+            _playButtonDefaultColors = _playButton.colors;
+            _playButtonColorsCached = true;
+        }
+
+        private void ApplyPlayButtonValidationVisual(bool isValid)
+        {
+            if (_playButton == null) return;
+            if (!_playButtonColorsCached) CachePlayButtonColors();
+            if (!_playButtonColorsCached) return;
+
+            if (isValid)
+            {
+                _playButton.colors = _playButtonDefaultColors;
+                return;
+            }
+
+            var invalidColors = _playButtonDefaultColors;
+            invalidColors.normalColor = TintPlayButtonColor(invalidColors.normalColor);
+            invalidColors.highlightedColor = TintPlayButtonColor(invalidColors.highlightedColor);
+            invalidColors.pressedColor = TintPlayButtonColor(invalidColors.pressedColor);
+            invalidColors.selectedColor = TintPlayButtonColor(invalidColors.selectedColor);
+            _playButton.colors = invalidColors;
+        }
+
+        private Color TintPlayButtonColor(Color baseColor)
+        {
+            var strength = Mathf.Clamp01(_playButtonInvalidTintStrength);
+            return Color.Lerp(baseColor, _playButtonInvalidTint, strength);
+        }
+
+        private PlayValidationResult ValidateSelectionForPlay(Match match, IReadOnlyList<Card> selectedCards)
+        {
+            if (match == null)
+            {
+                return PlayValidationResult.Invalid(PlayValidationReason.NoSelection);
+            }
+
+            IReadOnlyList<Card> localHandCards = Array.Empty<Card>();
+            if (TryGetLocalHand(match, out var handCards))
+            {
+                localHandCards = handCards;
+            }
+
+            var selection = selectedCards ?? Array.Empty<Card>();
+            return PlayValidator.ValidatePlay(localHandCards, selection, match.CurrentBoard);
+        }
+
+        private static string ResolvePlayValidationMessage(PlayValidationReason reason)
+        {
+            return reason switch
+            {
+                PlayValidationReason.NoSelection => "Select cards to play.",
+                PlayValidationReason.CardsNotInHand => "Selected cards are not in your hand.",
+                PlayValidationReason.InvalidCombination => "Invalid card combination.",
+                PlayValidationReason.CannotBeat => "Your play does not beat the current board.",
+                _ => "Invalid play."
+            };
         }
 
         private void InitializeStartGameButton()
