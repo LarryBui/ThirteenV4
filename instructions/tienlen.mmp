@@ -1,0 +1,87 @@
+<?xml version="1.0"?>
+<!DOCTYPE lmms-project>
+<lmms-project creator="Gemini" version="1.2.0" type="song">
+  <head mastervol="100" bpm="92" masterpitch="0" timesig_numerator="4" timesig_denominator="4"/>
+  <song>
+    <trackcontainer width="600" type="song" minimized="0" x="0" y="0" maximize="0" visible="1">
+      
+      <track name="Melody" solo="0" muted="0" type="0">
+        <instrumenttrack usemasterpitch="1" fxch="0" pitch="0" basenote="57" vol="80" pan="0">
+          <instrument name="tripleoscillator">
+            <tripleoscillator>
+              <osc1 waveform="0" vol="100" pan="0" crs="0" fl="0" mo="0"/>
+              <osc2 waveform="1" vol="50" pan="0" crs="0" fl="0" mo="0"/> <osc3 waveform="0" vol="0" pan="0" crs="0" fl="0" mo="0"/>
+            </tripleoscillator>
+          </instrument>
+          <eldata>
+             <elvol lamt="0" latt="0" rel="0.8" sust="0.5" dec="0.5" amt="1" hold="0" att="0.1" pamt="0" userel="1" usesust="1" usedec="1" usehold="0" useatt="1"/>
+          </eldata>
+        </instrumenttrack>
+        <pattern name="Theme" pos="0" steps="16" muted="0">
+          <note pos="0" key="62" len="96" vol="100" pan="0"/>   <note pos="96" key="64" len="48" vol="90" pan="0"/>   <note pos="144" key="67" len="48" vol="100" pan="0"/> <note pos="192" key="64" len="144" vol="95" pan="0"/> <note pos="336" key="62" len="48" vol="85" pan="0"/>  <note pos="384" key="59" len="96" vol="90" pan="0"/>  <note pos="480" key="62" len="96" vol="95" pan="0"/>  <note pos="576" key="60" len="96" vol="90" pan="0"/>  <note pos="672" key="59" len="96" vol="85" pan="0"/>  </pattern>
+      </track>
+
+      <track name="Guitar Arp" solo="0" muted="0" type="0">
+        <instrumenttrack usemasterpitch="1" fxch="0" pitch="0" basenote="57" vol="65" pan="-20">
+          <instrument name="tripleoscillator">
+            <tripleoscillator>
+              <osc1 waveform="3" vol="100" pan="0" crs="0" fl="0" mo="0"/> <osc2 waveform="3" vol="100" pan="0" crs="12" fl="0" mo="0"/> <osc3 waveform="0" vol="0" pan="0" crs="0" fl="0" mo="0"/>
+            </tripleoscillator>
+          </instrument>
+          <eldata>
+             <elvol lamt="0" latt="0" rel="0.3" sust="0.1" dec="0.4" amt="1" hold="0" att="0" pamt="0" userel="1" usesust="1" usedec="1" usehold="0" useatt="0"/>
+          </eldata>
+        </instrumenttrack>
+        <pattern name="Arps" pos="0" steps="16" muted="0">
+          <note pos="0" key="55" len="48" vol="80" pan="0"/>
+          <note pos="48" key="59" len="48" vol="60" pan="0"/>
+          <note pos="96" key="62" len="48" vol="70" pan="0"/>
+          <note pos="144" key="59" len="48" vol="60" pan="0"/>
+          <note pos="192" key="60" len="48" vol="80" pan="0"/>
+          <note pos="240" key="64" len="48" vol="60" pan="0"/>
+          <note pos="288" key="67" len="48" vol="70" pan="0"/>
+          <note pos="336" key="64" len="48" vol="60" pan="0"/>
+          <note pos="384" key="55" len="48" vol="80" pan="0"/>
+          <note pos="432" key="59" len="48" vol="60" pan="0"/>
+          <note pos="480" key="62" len="48" vol="70" pan="0"/>
+          <note pos="528" key="59" len="48" vol="60" pan="0"/>
+          <note pos="576" key="57" len="48" vol="80" pan="0"/>
+          <note pos="624" key="62" len="48" vol="60" pan="0"/>
+          <note pos="672" key="66" len="48" vol="70" pan="0"/>
+          <note pos="720" key="62" len="48" vol="60" pan="0"/>
+        </pattern>
+      </track>
+
+      <track name="Bass" solo="0" muted="0" type="0">
+        <instrumenttrack usemasterpitch="1" fxch="0" pitch="0" basenote="57" vol="90" pan="0">
+          <instrument name="tripleoscillator">
+             <tripleoscillator>
+              <osc1 waveform="0" vol="100" pan="0" crs="-12" fl="0" mo="0"/> </tripleoscillator>
+          </instrument>
+        </instrumenttrack>
+        <pattern name="Roots" pos="0" steps="16" muted="0">
+          <note pos="0" key="43" len="144" vol="100" pan="0"/>   <note pos="192" key="48" len="144" vol="100" pan="0"/>  <note pos="384" key="43" len="144" vol="100" pan="0"/>  <note pos="576" key="45" len="144" vol="100" pan="0"/>  </pattern>
+      </track>
+
+      <track name="Soft Kick" solo="0" muted="0" type="0">
+        <instrumenttrack usemasterpitch="1" fxch="0" pitch="0" basenote="57" vol="70" pan="0">
+          <instrument name="kicker">
+            <kicker>
+              <startfreq>150</startfreq>
+              <endfreq>40</endfreq>
+              <decay>0.3</decay>
+              <dist>0</dist>
+              <gain>1</gain>
+            </kicker>
+          </instrument>
+        </instrumenttrack>
+        <pattern name="Beat" pos="0" steps="16" muted="0">
+          <note pos="0" key="57" len="48" vol="100" pan="0"/>
+          <note pos="288" key="57" len="48" vol="80" pan="0"/> <note pos="384" key="57" len="48" vol="100" pan="0"/>
+          <note pos="672" key="57" len="48" vol="80" pan="0"/>
+        </pattern>
+      </track>
+
+    </trackcontainer>
+  </song>
+</lmms-project>
