@@ -15,6 +15,15 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 		return err
 	}
 
+	// Register test-only RPCs if test mode is enabled
+	env := ctx.Value(runtime.RUNTIME_CTX_ENV).(map[string]string)
+	if val, ok := env["tienlen_test_mode"]; ok && val == "true" {
+		if err := initializer.RegisterRpc("test_create_match", RpcCreateMatchTest); err != nil {
+			return err
+		}
+		logger.Info("Test RPCs registered.")
+	}
+
 	if err := initializer.RegisterBeforeAuthenticateDevice(BeforeAuthenticateDevice); err != nil {
 		return err
 	}

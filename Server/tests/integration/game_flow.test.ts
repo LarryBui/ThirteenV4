@@ -1,10 +1,18 @@
 import { createTestUser, TestUser, waitForMatchState } from "./helpers";
+import * as protobuf from "protobufjs";
+import * as path from "path";
 
 const OP_CODE_START_GAME = 1;
 const OP_CODE_GAME_STARTED = 100; // Server -> Client event
 
 describe("Tien Len Integration Tests", () => {
     let users: TestUser[] = [];
+    let FindMatchResponse: protobuf.Type;
+
+    beforeAll(async () => {
+        const root = await protobuf.load(path.join(__dirname, "../../../proto/tienlen.proto"));
+        FindMatchResponse = root.lookupType("tienlen.v1.FindMatchResponse");
+    });
 
     afterEach(async () => {
         // Cleanup all users
@@ -22,24 +30,21 @@ describe("Tien Len Integration Tests", () => {
         const owner = users[0];
         console.log(`User 0 (${owner.userId}) initialized.`);
 
-        // 2. Owner Finds/Creates Match via RPC (Required for Server Authoritative)
-        console.log("Owner calling find_match...");
-        // Payload must be an object for the JS client, even if server treats it as raw bytes/string often.
-        // Or if TS insists on object, we give it object.
-        const rpcResult = await owner.client.rpc(owner.session, "find_match", {});
+        // 2. Owner Finds/Creates Match via Test RPC
+        console.log("Owner calling test_create_match...");
+        const rpcResult = await owner.client.rpc(owner.session, "test_create_match", {});
         
-        // Nakama JS automatically parses JSON payload if content-type matches or it looks like JSON.
-        // Server returns {"match_id": "..."}
-        const payload = rpcResult.payload as any;
-        const finalMatchId = payload.match_id;
+        // Decode Protobuf
+        const payload = FindMatchResponse.decode(Buffer.from(rpcResult.payload as unknown as string, 'utf-8')) as any;
+        const finalMatchId = payload.matchId;
         
         if (!finalMatchId) {
-            throw new Error(`RPC find_match returned invalid payload: ${JSON.stringify(payload)}`);
+            throw new Error(`RPC test_create_match returned empty matchId`);
         }
         
-        console.log(`Match created/found: ${finalMatchId}`);
+        console.log(`Match created: ${finalMatchId}`);
         
-        // Owner must also join the match returned by RPC (RPC just creates it, doesn't join)
+        // Owner must join
         await owner.socket.joinMatch(finalMatchId);
         console.log("Owner joined match.");
 

@@ -7,12 +7,12 @@ database:
     - "postgresql://nakama:localdev@db:5432/nakama?sslmode=disable"
 
 runtime:
-  path: "/nakama/data/modules"
   env:
     - "tienlen_bots_enabled=true"
     - "tienlen_bot_min_delay_sec=1"
     - "tienlen_bot_max_delay_sec=3"
-    - "tienlen_bot_auto_fill_delay_sec=5"
+    - "tienlen_bot_auto_fill_delay_sec=10"
+    - "tienlen_test_mode=true"
 
 console:
   port: 7351

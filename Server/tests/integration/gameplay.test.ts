@@ -32,15 +32,9 @@ describe("Tien Len Gameplay Integration", () => {
         users = [];
     });
 
-    test("Sequential Gameplay: Play, Beat, Pass", async () => {
-        // 1. Setup 4 players
-        for (let i = 0; i < 4; i++) {
-            users.push(await createTestUser());
-        }
-
-        const owner = users[0];
-        const rpcResult = await owner.client.rpc(owner.session, "find_match", {});
-        const matchId = (rpcResult.payload as any).match_id;
+        const rpcResult = await owner.client.rpc(owner.session, "test_create_match", {});
+        const payload = root.lookupType("tienlen.v1.FindMatchResponse").decode(Buffer.from(rpcResult.payload as unknown as string, 'utf-8')) as any;
+        const matchId = payload.matchId;
 
         await Promise.all(users.map(u => u.socket.joinMatch(matchId)));
         await new Promise(r => setTimeout(r, 1000)); // Sync presences

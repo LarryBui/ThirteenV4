@@ -373,6 +373,25 @@ func (mh *matchHandler) updateTurnDeadline(state *MatchState, logger runtime.Log
 	logger.Debug("Turn timer reset: Seat %d has until tick %d", state.Game.CurrentTurn, state.TurnDeadlineTick)
 }
 
+func (mh *matchHandler) remainingTurnSeconds(state *MatchState) int64 {
+	if state == nil {
+		return 0
+	}
+	if state.TurnDeadlineTick <= 0 {
+		return 0
+	}
+	if state.Tick <= 0 {
+		return state.TurnDeadlineTick
+	}
+
+	remaining := state.TurnDeadlineTick - state.Tick
+	if remaining < 0 {
+		return 0
+	}
+
+	return remaining
+}
+
 func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
 	// 1. Auto-fill lobby with a single bot if there's exactly one human player alone after delay
 	if state.Game == nil {
@@ -514,7 +533,7 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 		Seats:     state.Seats[:],
 		OwnerSeat: int32(state.OwnerSeat),
 		Tick:      state.Tick,
-		TurnDeadlineTick: state.TurnDeadlineTick,
+		TurnDeadlineTick: mh.remainingTurnSeconds(state),
 		Players:   playerStates,
 	}
 	bytes, _ := proto.Marshal(snapshot)
@@ -683,7 +702,7 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			Phase:            pb.GamePhase_PHASE_PLAYING,
 			FirstTurnSeat:    int32(p.FirstTurnSeat),
 			Hand:             toProtoCards(p.Hand),
-			TurnDeadlineTick: state.TurnDeadlineTick,
+			TurnDeadlineTick: mh.remainingTurnSeconds(state),
 		}
 	case app.EventCardPlayed:
 		opCode = int64(pb.OpCode_OP_CODE_CARD_PLAYED)
@@ -693,7 +712,7 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			Cards:            toProtoCards(p.Cards),
 			NextTurnSeat:     int32(p.NextTurnSeat),
 			NewRound:         p.NewRound,
-			TurnDeadlineTick: state.TurnDeadlineTick,
+			TurnDeadlineTick: mh.remainingTurnSeconds(state),
 		}
 	case app.EventTurnPassed:
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
@@ -702,7 +721,7 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			Seat:             int32(p.Seat),
 			NextTurnSeat:     int32(p.NextTurnSeat),
 			NewRound:         p.NewRound,
-			TurnDeadlineTick: state.TurnDeadlineTick,
+			TurnDeadlineTick: mh.remainingTurnSeconds(state),
 		}
 	case app.EventGameEnded:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_ENDED)
