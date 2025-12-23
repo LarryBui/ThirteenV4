@@ -15,6 +15,7 @@ using UnityEngine.SceneManagement;
 
 namespace TienLen.Presentation.GameRoomScreen
 {
+    // TODO: Rename this class to GameRoomView to reflect its passive role.
     public class GameRoomController : MonoBehaviour
     {
         private const int SeatCount = 4;
@@ -68,13 +69,12 @@ namespace TienLen.Presentation.GameRoomScreen
         [Header("Opponent Hand Counters")]
         [SerializeField] private OpponentHandCounterView _opponentHandCounterPrefab;
 
-        private TienLenMatchHandler _matchHandler;
+        private GameRoomPresenter _presenter;
         private ILogger<GameRoomController> _logger;
         private ILoggerFactory _loggerFactory;
         private LocalHandView _localHandView;
         private bool _isLeaving;
         private CancellationTokenSource _turnCountdownCts;
-        // Monotonic counter for tracking optimistic play animations.
         private int _pendingPlayToken;
         private readonly OpponentHandCounterView[] _opponentHandCounters = new OpponentHandCounterView[SeatCount];
         private readonly int[] _opponentDealCounts = new int[SeatCount];
@@ -89,16 +89,16 @@ namespace TienLen.Presentation.GameRoomScreen
         /// <summary>
         /// Injects required services for the GameRoom.
         /// </summary>
-        /// <param name="matchHandler">Match handler for game state coordination.</param>
+        /// <param name="presenter">Presenter for game state and logic.</param>
         /// <param name="logger">Logger for GameRoom diagnostics.</param>
         /// <param name="loggerFactory">Factory used to create child component loggers.</param>
         [Inject]
         public void Construct(
-            TienLenMatchHandler matchHandler,
+            GameRoomPresenter presenter,
             ILogger<GameRoomController> logger,
             ILoggerFactory loggerFactory)
         {
-            _matchHandler = matchHandler;
+            _presenter = presenter;
             _logger = logger ?? NullLogger<GameRoomController>.Instance;
             _loggerFactory = loggerFactory ?? NullLoggerFactory.Instance;
         }
@@ -106,31 +106,30 @@ namespace TienLen.Presentation.GameRoomScreen
         private void Start()
         {
             ConfigureChildLoggers();
-            ClearAllPlayerProfiles(); // Clear profiles on start to ensure clean state
+            ClearAllPlayerProfiles();
             InitializeStartGameButton();
             CachePlayButtonColors();
             CachePassButtonColors();
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
 
-            if (_matchHandler == null)
+            if (_presenter == null)
             {
-                _logger.LogWarning("GameRoomController: TienLenMatchHandler not injected.");
+                _logger.LogWarning("GameRoomController: GameRoomPresenter not injected.");
                 return;
             }
 
-            _matchHandler.GameRoomStateUpdated += HandleGameRoomStateUpdated;
-            _matchHandler.GameStarted += HandleGameStarted;
-            _matchHandler.GameBoardUpdated += HandleGameBoardUpdated;
-            _matchHandler.GameErrorReceived += HandleGameError;
-            _matchHandler.CardsPlayed += HandleCardsPlayed;
-            _matchHandler.TurnPassed += HandleTurnPassed;
-            _matchHandler.TurnSecondsRemainingUpdated += HandleTurnSecondsRemainingUpdated;
-            _matchHandler.MatchPresenceChanged += HandleMatchPresenceChanged;
+            _presenter.OnStateUpdated += HandleGameRoomStateUpdated;
+            _presenter.OnGameStarted += HandleGameStarted;
+            _presenter.OnBoardUpdated += HandleGameBoardUpdated;
+            _presenter.OnError += HandleGameError;
+            _presenter.OnCardsPlayed += HandleCardsPlayed;
+            _presenter.OnTurnPassed += HandleTurnPassed;
+            _presenter.OnTurnCountdownUpdated += HandleTurnSecondsRemainingUpdated;
+            _presenter.OnPresenceChanged += HandleMatchPresenceChanged;
 
-            // Render current state once in case the initial snapshot arrived before this scene loaded.
             RefreshGameRoomUI();
-            UpdateBoardView(_matchHandler?.CurrentMatch);
+            UpdateBoardView(_presenter.CurrentMatch);
 
             if (_cardDealer != null)
             {
@@ -143,16 +142,16 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void OnDestroy()
         {
-            if (_matchHandler != null)
+            if (_presenter != null)
             {
-                _matchHandler.GameRoomStateUpdated -= HandleGameRoomStateUpdated;
-                _matchHandler.GameStarted -= HandleGameStarted;
-                _matchHandler.GameBoardUpdated -= HandleGameBoardUpdated;
-                _matchHandler.GameErrorReceived -= HandleGameError;
-                _matchHandler.CardsPlayed -= HandleCardsPlayed;
-                _matchHandler.TurnPassed -= HandleTurnPassed;
-                _matchHandler.TurnSecondsRemainingUpdated -= HandleTurnSecondsRemainingUpdated;
-                _matchHandler.MatchPresenceChanged -= HandleMatchPresenceChanged;
+                _presenter.OnStateUpdated -= HandleGameRoomStateUpdated;
+                _presenter.OnGameStarted -= HandleGameStarted;
+                _presenter.OnBoardUpdated -= HandleGameBoardUpdated;
+                _presenter.OnError -= HandleGameError;
+                _presenter.OnCardsPlayed -= HandleCardsPlayed;
+                _presenter.OnTurnPassed -= HandleTurnPassed;
+                _presenter.OnTurnCountdownUpdated -= HandleTurnSecondsRemainingUpdated;
+                _presenter.OnPresenceChanged -= HandleMatchPresenceChanged;
             }
 
             if (_cardDealer != null)
@@ -168,7 +167,7 @@ namespace TienLen.Presentation.GameRoomScreen
         private void HandleGameStarted()
         {
             if (_isLeaving) return;
-            var match = _matchHandler?.CurrentMatch;
+            var match = _presenter.CurrentMatch;
             if (match != null)
             {
                 _logger.LogInformation(
@@ -180,7 +179,6 @@ namespace TienLen.Presentation.GameRoomScreen
             PrepareLocalHandReveal();
             BeginDealCounterTracking();
 
-            // 52 cards, per-card delay configured on the CardDealer.
             _cardDealer.AnimateDeal(TotalCardsToDeal).Forget();
 
             UpdateBoardView(match);
@@ -191,7 +189,7 @@ namespace TienLen.Presentation.GameRoomScreen
         private void HandleGameBoardUpdated(int seat, bool newRound)
         {
             if (_isLeaving) return;
-            var match = _matchHandler?.CurrentMatch;
+            var match = _presenter.CurrentMatch;
             if (match == null) return;
 
             UpdateBoardView(match);
@@ -207,28 +205,26 @@ namespace TienLen.Presentation.GameRoomScreen
             }
         }
 
-        private void HandleGameError(int code, string message)
+        private void HandleGameError(string message)
         {
             if (_isLeaving) return;
             _playedCardsAnimator?.CancelActiveAnimations();
             _localHandView?.ShowHiddenSelectedCards();
             _gameMessagePresenter?.ShowError(message);
-            _logger.LogWarning("GameRoomController: Game error received. code={code}, message={message}", code, message);
+            _logger.LogWarning("GameRoomController: Game error received. message={message}", message);
         }
 
         private void HandleCardsPlayed(int seat, IReadOnlyList<Card> cards)
         {
             TryAnimateOpponentPlay(seat, cards);
-            var match = _matchHandler?.CurrentMatch;
-            var displayName = ResolveDisplayName(match, seat, userId: null);
+            var displayName = _presenter.ResolveDisplayName(seat);
             var cardText = FormatCards(cards);
             _gameRoomLogView?.AddEntry($"{displayName} played {cardText}.");
         }
 
         private void HandleTurnPassed(int seat)
         {
-            var match = _matchHandler?.CurrentMatch;
-            var displayName = ResolveDisplayName(match, seat, userId: null);
+            var displayName = _presenter.ResolveDisplayName(seat);
             _gameRoomLogView?.AddEntry($"{displayName} passed.");
         }
 
@@ -248,15 +244,14 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleMatchPresenceChanged(IReadOnlyList<PresenceChange> changes)
         {
-            var match = _matchHandler?.CurrentMatch;
-            if (match == null || changes == null) return;
+            if (changes == null) return;
 
             foreach (var change in changes)
             {
                 if (change == null || string.IsNullOrWhiteSpace(change.UserId)) continue;
 
-                var seat = FindSeatByUserId(match, change.UserId);
-                var displayName = ResolveDisplayName(match, seat, change.UserId);
+                var seat = _presenter.FindSeatByUserId(change.UserId);
+                var displayName = _presenter.ResolveDisplayName(seat, change.UserId);
                 var suffix = change.Joined ? "joined" : "left";
                 _gameRoomLogView?.AddEntry($"{displayName} {suffix}.");
             }
@@ -266,21 +261,16 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             _logger.LogInformation(
                 "GameRoomController: Game room state updated. seatId={seatId}",
-                _matchHandler?.CurrentMatch?.LocalSeatIndex);
+                _presenter.CurrentMatch?.LocalSeatIndex);
             if (_isLeaving) return;
             RefreshGameRoomUI();
 
-            // Sync the local hand view with the domain state
-            if (_localHandView != null && TryGetLocalHand(_matchHandler?.CurrentMatch, out var localHandCards))
+            if (_localHandView != null && _presenter.TryGetLocalHand(out var localHandCards))
             {
-                // Note: If an animation is playing (e.g. Deal), this might conflict. 
-                // However, PrepareLocalHandReveal calls BeginReveal which clears the hand anyway,
-                // so the conflict is minimal (flash). 
-                // Ideally, we check game phase or animation state.
                 _localHandView.SetHand(localHandCards);
             }
 
-            UpdateBoardView(_matchHandler?.CurrentMatch);
+            UpdateBoardView(_presenter.CurrentMatch);
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
             UpdateOpponentHandCounters();
@@ -288,7 +278,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void RefreshGameRoomUI()
         {
-            var match = _matchHandler?.CurrentMatch;
+            var match = _presenter.CurrentMatch;
 
             if (match == null || match.Seats == null || match.Seats.Length < SeatCount)
             {
@@ -299,7 +289,6 @@ namespace TienLen.Presentation.GameRoomScreen
             var localSeatIndex = match.LocalSeatIndex;
             if (localSeatIndex < 0 || localSeatIndex >= SeatCount)
             {
-                // Fallback to "seat 0 is local" until we can resolve the actual local seat index.
                 localSeatIndex = 0;
             }
 
@@ -387,59 +376,8 @@ namespace TienLen.Presentation.GameRoomScreen
                 return;
             }
 
-            var displayName = TryGetSeatDisplayName(match, seat);
+            var displayName = _presenter.ResolveDisplayName(seat);
             _boardCardsView.SetLabel(displayName);
-        }
-
-        private static string TryGetSeatDisplayName(Match match, int seat)
-        {
-            if (match == null || match.Seats == null) return "Player";
-            if (seat < 0 || seat >= match.Seats.Length) return "Player";
-
-            var userId = match.Seats[seat];
-            if (string.IsNullOrWhiteSpace(userId)) return "Player";
-
-            if (match.Players != null && match.Players.TryGetValue(userId, out var player))
-            {
-                if (!string.IsNullOrWhiteSpace(player.DisplayName))
-                {
-                    return player.DisplayName;
-                }
-            }
-
-            var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
-            return $"Player {suffix}";
-        }
-
-        private static string ResolveDisplayName(Match match, int seat, string userId)
-        {
-            if (match != null && seat >= 0 && seat < match.Seats.Length)
-            {
-                var nameFromSeat = TryGetSeatDisplayName(match, seat);
-                if (!string.IsNullOrWhiteSpace(nameFromSeat) && !string.Equals(nameFromSeat, "Player", StringComparison.OrdinalIgnoreCase))
-                {
-                    return nameFromSeat;
-                }
-            }
-
-            if (match != null && !string.IsNullOrWhiteSpace(userId))
-            {
-                if (match.Players != null && match.Players.TryGetValue(userId, out var player))
-                {
-                    if (!string.IsNullOrWhiteSpace(player.DisplayName))
-                    {
-                        return player.DisplayName;
-                    }
-                }
-            }
-
-            if (!string.IsNullOrWhiteSpace(userId))
-            {
-                var suffix = userId.Length <= 4 ? userId : userId.Substring(0, 4);
-                return $"Player {suffix}";
-            }
-
-            return seat >= 0 ? $"Player {seat + 1}" : "Player";
         }
 
         private PlayerProfileUI FindProfileBySeat(int seat)
@@ -465,19 +403,6 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             return string.Join(" ", parts);
-        }
-
-        private static int FindSeatByUserId(Match match, string userId)
-        {
-            if (match == null || match.Seats == null) return -1;
-            if (string.IsNullOrWhiteSpace(userId)) return -1;
-
-            for (int i = 0; i < match.Seats.Length; i++)
-            {
-                if (match.Seats[i] == userId) return i;
-            }
-
-            return -1;
         }
 
         private static void ClearProfileSlot(PlayerProfileUI slot)
@@ -518,10 +443,6 @@ namespace TienLen.Presentation.GameRoomScreen
             slot.SetActive(true);
         }
 
-        /// <summary>
-        /// UI callback for the "Start Game" button.
-        /// Sends a start-game request and hides the button immediately to prevent duplicate clicks.
-        /// </summary>
         public void OnStartGameClicked()
         {
             if (_isLeaving) return;
@@ -530,32 +451,24 @@ namespace TienLen.Presentation.GameRoomScreen
                 _startGameButton.interactable = false;
                 _startGameButton.gameObject.SetActive(false);
             }
-            if (_matchHandler != null && _matchHandler.CurrentMatch != null)
+            if (_presenter != null)
             {
-
-                _matchHandler.StartGameAsync().Forget();
+                _presenter.StartGame();
             }
             else
             {
-                _logger.LogError("GameRoomController: Cannot start game, Match Handler or Match is null.");
-                UpdateStartGameButtonState();
+                _logger.LogError("GameRoomController: Cannot start game, Presenter is null.");
             }
         }
 
-        /// <summary>
-        /// UI callback for the "Play" button.
-        /// Sends selected cards to the server.
-        /// </summary>
         public void OnPlayClicked()
         {
             if (_isLeaving) return;
-            if (_matchHandler == null) return;
-
-            var match = _matchHandler.CurrentMatch;
-            if (match == null) return;
+            if (_presenter == null) return;
 
             var selectedCards = _localHandView?.SelectedCards ?? Array.Empty<Card>();
-            var validation = ValidateSelectionForPlay(match, selectedCards);
+            var validation = _presenter.ValidatePlay(selectedCards);
+            
             if (!validation.IsValid)
             {
                 _gameMessagePresenter?.ShowError(ResolvePlayValidationMessage(validation.Reason));
@@ -567,37 +480,25 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Create a copy list for the async call
             var cardsToSend = new List<Card>(selectedCards);
-            _matchHandler.PlayCardsAsync(cardsToSend).Forget();
+            _presenter.PlayCards(cardsToSend);
 
-            // Optimistically clear selection or wait for server event?
-            // Server event will update the hand, which should trigger view refresh.
-            // But clearing selection immediately feels responsive.
             _localHandView?.ClearSelection();
         }
 
-        /// <summary>
-        /// UI callback for the "Pass" button.
-        /// Sends a pass turn request to the server.
-        /// </summary>
         public void OnPassClicked()
         {
             if (_isLeaving) return;
-            if (_matchHandler == null) return;
+            if (_presenter == null) return;
 
-            var match = _matchHandler.CurrentMatch;
-            if (!PlayValidator.CanPass(match?.CurrentBoard))
+            if (!_presenter.CanPass())
             {
                 return;
             }
 
-            _matchHandler.PassTurnAsync().Forget();
+            _presenter.PassTurn();
             _localHandView?.ClearSelection();
         }
 
-        /// <summary>
-        /// UI callback for the "Leave" button.
-        /// Leaves the current match (best-effort) and unloads the GameRoom scene to return to Home.
-        /// </summary>
         public void OnLeaveClicked()
         {
             LeaveToHomeAsync().Forget();
@@ -612,9 +513,9 @@ namespace TienLen.Presentation.GameRoomScreen
 
             try
             {
-                if (_matchHandler != null)
+                if (_presenter != null)
                 {
-                    await _matchHandler.LeaveMatchAsync();
+                    await _presenter.LeaveMatchAsync();
                 }
             }
             catch (Exception ex)
@@ -661,9 +562,9 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void UpdatePlayButtonState()
         {
-            var match = _matchHandler?.CurrentMatch;
+            var match = _presenter?.CurrentMatch;
             var isPlaying = match != null && string.Equals(match.Phase, "Playing", StringComparison.OrdinalIgnoreCase);
-            var isMyTurn = isPlaying && IsLocalPlayersTurn(match);
+            var isMyTurn = isPlaying && _presenter.IsMyTurn();
             var showActions = isPlaying && isMyTurn;
 
             // Keep action buttons hidden until the game is live and it's the local player's turn.
@@ -677,7 +578,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 return;
             }
 
-            var canPass = PlayValidator.CanPass(match?.CurrentBoard);
+            var canPass = _presenter.CanPass();
 
             if (_passButton != null)
             {
@@ -685,12 +586,12 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             IReadOnlyList<Card> localHandCards = Array.Empty<Card>();
-            if (TryGetLocalHand(match, out var handCards))
+            if (_presenter.TryGetLocalHand(out var handCards))
             {
                 localHandCards = handCards;
             }
 
-            var hasPlayableMove = canPass && PlayValidator.HasPlayableMove(localHandCards, match?.CurrentBoard);
+            var hasPlayableMove = canPass && _presenter.HasPlayableMove(localHandCards);
 
             if (_playButton != null)
             {
@@ -707,7 +608,7 @@ namespace TienLen.Presentation.GameRoomScreen
             ApplyPassButtonHighlight(false);
 
             var selectedCards = _localHandView?.SelectedCards ?? Array.Empty<Card>();
-            var validation = ValidateSelectionForPlay(match, selectedCards);
+            var validation = _presenter.ValidatePlay(selectedCards);
             ApplyPlayButtonValidationVisual(validation.IsValid);
         }
 
@@ -777,23 +678,6 @@ namespace TienLen.Presentation.GameRoomScreen
             return Color.Lerp(baseColor, _passButtonHighlightTint, strength);
         }
 
-        private PlayValidationResult ValidateSelectionForPlay(Match match, IReadOnlyList<Card> selectedCards)
-        {
-            if (match == null)
-            {
-                return PlayValidationResult.Invalid(PlayValidationReason.NoSelection);
-            }
-
-            IReadOnlyList<Card> localHandCards = Array.Empty<Card>();
-            if (TryGetLocalHand(match, out var handCards))
-            {
-                localHandCards = handCards;
-            }
-
-            var selection = selectedCards ?? Array.Empty<Card>();
-            return PlayValidator.ValidatePlay(localHandCards, selection, match.CurrentBoard);
-        }
-
         private static string ResolvePlayValidationMessage(PlayValidationReason reason)
         {
             return reason switch
@@ -817,32 +701,15 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_startGameButton == null) return;
 
-            var match = _matchHandler?.CurrentMatch;
-            var localSeatIndex = match?.LocalSeatIndex ?? -1;
-            var ownerSeat = match?.OwnerSeat ?? -1;
-            var isOwner = localSeatIndex >= 0 && ownerSeat == localSeatIndex;
-            var isLobby = match != null && string.Equals(match.Phase, "Lobby", StringComparison.OrdinalIgnoreCase);
-            var canStart = isOwner && isLobby;
+            var canStart = _presenter != null && _presenter.CanStartGame();
 
             _startGameButton.gameObject.SetActive(canStart);
             _startGameButton.interactable = canStart;
         }
 
-        private bool IsLocalPlayersTurn(Match match)
-        {
-            if (match == null) return false;
-
-            var localSeatIndex = match.LocalSeatIndex;
-            if (localSeatIndex < 0) return false;
-
-            // CurrentTurnSeat is 0-based from server.
-            return match.CurrentTurnSeat == localSeatIndex;
-        }
-
         private void HandleCardArrivedAtPlayerAnchor(int playerIndex, Vector3 anchorWorldPosition)
         {
             if (_isLeaving) return;
-            // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
             if (playerIndex == 0)
             {
                 _localHandView?.RevealNextCard(anchorWorldPosition);
@@ -892,8 +759,6 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             if (_cardDealer == null) return;
-            // 0=South (local player). No counter for the local player.
-            // 1=East, 2=North, 3=West
             EnsureOpponentHandCounter(1);
             EnsureOpponentHandCounter(2);
             EnsureOpponentHandCounter(3);
@@ -933,7 +798,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void UpdateOpponentHandCounters()
         {
-            var match = _matchHandler?.CurrentMatch;
+            var match = _presenter?.CurrentMatch;
             if (match == null || !string.Equals(match.Phase, "Playing", StringComparison.OrdinalIgnoreCase))
             {
                 _isDealing = false;
@@ -953,7 +818,7 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_isDealing) return;
 
-            var match = _matchHandler?.CurrentMatch;
+            var match = _presenter?.CurrentMatch;
             if (match == null)
             {
                 HideOpponentHandCounters();
@@ -1025,7 +890,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void PrepareLocalHandReveal()
         {
-            var match = _matchHandler?.CurrentMatch;
+            var match = _presenter?.CurrentMatch;
             if (match == null) return;
 
             if (_cardDealer == null) return;
@@ -1036,7 +901,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 return;
             }
 
-            if (!TryGetLocalHand(match, out var localHandCards))
+            if (!_presenter.TryGetLocalHand(out var localHandCards))
             {
                 return;
             }
@@ -1090,7 +955,7 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (cards == null || cards.Count == 0) return;
 
-            var match = _matchHandler?.CurrentMatch;
+            var match = _presenter?.CurrentMatch;
             if (match == null) return;
 
             var localSeatIndex = match.LocalSeatIndex;
@@ -1131,25 +996,6 @@ namespace TienLen.Presentation.GameRoomScreen
 
             var animatorLogger = _loggerFactory.CreateLogger<PlayedCardsAnimator>();
             _playedCardsAnimator?.SetLogger(animatorLogger);
-        }
-
-        private bool TryGetLocalHand(Match match, out IReadOnlyList<Card> cards)
-        {
-            cards = Array.Empty<Card>();
-
-            if (match == null || match.Seats == null) return false;
-            var localSeatIndex = match.LocalSeatIndex;
-            if (localSeatIndex < 0 || localSeatIndex >= match.Seats.Length) return false;
-
-            var localUserId = match.Seats[localSeatIndex];
-            if (string.IsNullOrWhiteSpace(localUserId)) return false;
-
-            if (match.Players == null) return false;
-            if (!match.Players.TryGetValue(localUserId, out var player)) return false;
-            if (player?.Hand == null) return false;
-
-            cards = player.Hand.Cards;
-            return cards != null && cards.Count > 0;
         }
     }
 }

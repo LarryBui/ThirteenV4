@@ -11,6 +11,9 @@ namespace TienLen.Presentation.GameRoomScreen
             builder.RegisterComponentInHierarchy<GameRoomController>();
             // Register CardDealer component in hierarchy so it gets injected
             builder.RegisterComponentInHierarchy<CardDealer>();
+
+            // Register Presenter
+            builder.Register<GameRoomPresenter>(Lifetime.Scoped);
         }
     }
 }
