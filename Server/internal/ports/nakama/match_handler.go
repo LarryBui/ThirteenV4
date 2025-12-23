@@ -760,9 +760,20 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 		for i, seat := range p.FinishOrderSeats {
 			protoSeats[i] = int32(seat)
 		}
+
+		protoRemainingHands := make(map[int32]*pb.CardList)
+		if p.RemainingHands != nil {
+			for seat, hand := range p.RemainingHands {
+				protoRemainingHands[int32(seat)] = &pb.CardList{
+					Cards: toProtoCards(hand),
+				}
+			}
+		}
+
 		payload = &pb.GameEndedEvent{
 			FinishOrderSeats: protoSeats,
 			BalanceChanges:   p.BalanceChanges,
+			RemainingHands:   protoRemainingHands,
 		}
 
 		// Apply Balance Changes to Nakama Wallets

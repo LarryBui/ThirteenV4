@@ -49,36 +49,40 @@ namespace Tienlen.V1 {
             "FnR1cm5fc2Vjb25kc19yZW1haW5pbmcYBSABKAMiagoPVHVyblBhc3NlZEV2",
             "ZW50EgwKBHNlYXQYASABKAUSFgoObmV4dF90dXJuX3NlYXQYAiABKAUSEQoJ",
             "bmV3X3JvdW5kGAMgASgIEh4KFnR1cm5fc2Vjb25kc19yZW1haW5pbmcYBCAB",
-            "KAMirAEKDkdhbWVFbmRlZEV2ZW50EhoKEmZpbmlzaF9vcmRlcl9zZWF0cxgB",
+            "KAMiKwoIQ2FyZExpc3QSHwoFY2FyZHMYASADKAsyEC50aWVubGVuLnYxLkNh",
+            "cmQiwgIKDkdhbWVFbmRlZEV2ZW50EhoKEmZpbmlzaF9vcmRlcl9zZWF0cxgB",
             "IAMoBRJHCg9iYWxhbmNlX2NoYW5nZXMYAiADKAsyLi50aWVubGVuLnYxLkdh",
-            "bWVFbmRlZEV2ZW50LkJhbGFuY2VDaGFuZ2VzRW50cnkaNQoTQmFsYW5jZUNo",
-            "YW5nZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAM6AjgBIjEK",
-            "E1BsYXllckZpbmlzaGVkRXZlbnQSDAoEc2VhdBgBIAEoBRIMCgRyYW5rGAIg",
-            "ASgFIi8KDkdhbWVFcnJvckV2ZW50EgwKBGNvZGUYASABKAUSDwoHbWVzc2Fn",
-            "ZRgCIAEoCSKiAgoPUGlnQ2hvcHBlZEV2ZW50EhMKC3NvdXJjZV9zZWF0GAEg",
-            "ASgFEhMKC3RhcmdldF9zZWF0GAIgASgFEhEKCWNob3BfdHlwZRgDIAEoCRIn",
-            "Cg1jYXJkc19jaG9wcGVkGAQgAygLMhAudGllbmxlbi52MS5DYXJkEigKDmNh",
-            "cmRzX2Nob3BwaW5nGAUgAygLMhAudGllbmxlbi52MS5DYXJkEkgKD2JhbGFu",
-            "Y2VfY2hhbmdlcxgGIAMoCzIvLnRpZW5sZW4udjEuUGlnQ2hvcHBlZEV2ZW50",
-            "LkJhbGFuY2VDaGFuZ2VzRW50cnkaNQoTQmFsYW5jZUNoYW5nZXNFbnRyeRIL",
-            "CgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAM6AjgBKksKBFN1aXQSDwoLU1VJ",
-            "VF9TUEFERVMQABIOCgpTVUlUX0NMVUJTEAESEQoNU1VJVF9ESUFNT05EUxAC",
-            "Eg8KC1NVSVRfSEVBUlRTEAMqyQEKBFJhbmsSDgoKUkFOS19USFJFRRAAEg0K",
-            "CVJBTktfRk9VUhABEg0KCVJBTktfRklWRRACEgwKCFJBTktfU0lYEAMSDgoK",
-            "UkFOS19TRVZFThAEEg4KClJBTktfRUlHSFQQBRINCglSQU5LX05JTkUQBhIM",
-            "CghSQU5LX1RFThAHEg0KCVJBTktfSkFDSxAIEg4KClJBTktfUVVFRU4QCRIN",
-            "CglSQU5LX0tJTkcQChIMCghSQU5LX0FDRRALEgwKCFJBTktfVFdPEAwqRQoJ",
-            "R2FtZVBoYXNlEhEKDVBIQVNFX1dBSVRJTkcQABIRCg1QSEFTRV9QTEFZSU5H",
-            "EAESEgoOUEhBU0VfRklOSVNIRUQQAirsAgoGT3BDb2RlEhcKE09QX0NPREVf",
-            "VU5TUEVDSUZJRUQQABIWChJPUF9DT0RFX1NUQVJUX0dBTUUQARIWChJPUF9D",
-            "T0RFX1BMQVlfQ0FSRFMQAhIVChFPUF9DT0RFX1BBU1NfVFVSThADEhwKGE9Q",
-            "X0NPREVfUkVRVUVTVF9ORVdfR0FNRRAEEhkKFU9QX0NPREVfUExBWUVSX0pP",
-            "SU5FRBAyEhcKE09QX0NPREVfUExBWUVSX0xFRlQQMxIYChRPUF9DT0RFX0dB",
-            "TUVfU1RBUlRFRBBkEhcKE09QX0NPREVfQ0FSRF9QTEFZRUQQZhIXChNPUF9D",
-            "T0RFX1RVUk5fUEFTU0VEEGcSFgoST1BfQ09ERV9HQU1FX0VOREVEEGgSFgoS",
-            "T1BfQ09ERV9HQU1FX0VSUk9SEGkSFwoTT1BfQ09ERV9QSUdfQ0hPUFBFRBBq",
-            "EhsKF09QX0NPREVfUExBWUVSX0ZJTklTSEVEEGtCEloQdGllbmxlbi9wcm90",
-            "bztwYmIGcHJvdG8z"));
+            "bWVFbmRlZEV2ZW50LkJhbGFuY2VDaGFuZ2VzRW50cnkSRwoPcmVtYWluaW5n",
+            "X2hhbmRzGAMgAygLMi4udGllbmxlbi52MS5HYW1lRW5kZWRFdmVudC5SZW1h",
+            "aW5pbmdIYW5kc0VudHJ5GjUKE0JhbGFuY2VDaGFuZ2VzRW50cnkSCwoDa2V5",
+            "GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4ARpLChNSZW1haW5pbmdIYW5kc0Vu",
+            "dHJ5EgsKA2tleRgBIAEoBRIjCgV2YWx1ZRgCIAEoCzIULnRpZW5sZW4udjEu",
+            "Q2FyZExpc3Q6AjgBIjEKE1BsYXllckZpbmlzaGVkRXZlbnQSDAoEc2VhdBgB",
+            "IAEoBRIMCgRyYW5rGAIgASgFIi8KDkdhbWVFcnJvckV2ZW50EgwKBGNvZGUY",
+            "ASABKAUSDwoHbWVzc2FnZRgCIAEoCSKiAgoPUGlnQ2hvcHBlZEV2ZW50EhMK",
+            "C3NvdXJjZV9zZWF0GAEgASgFEhMKC3RhcmdldF9zZWF0GAIgASgFEhEKCWNo",
+            "b3BfdHlwZRgDIAEoCRInCg1jYXJkc19jaG9wcGVkGAQgAygLMhAudGllbmxl",
+            "bi52MS5DYXJkEigKDmNhcmRzX2Nob3BwaW5nGAUgAygLMhAudGllbmxlbi52",
+            "MS5DYXJkEkgKD2JhbGFuY2VfY2hhbmdlcxgGIAMoCzIvLnRpZW5sZW4udjEu",
+            "UGlnQ2hvcHBlZEV2ZW50LkJhbGFuY2VDaGFuZ2VzRW50cnkaNQoTQmFsYW5j",
+            "ZUNoYW5nZXNFbnRyeRILCgNrZXkYASABKAkSDQoFdmFsdWUYAiABKAM6AjgB",
+            "KksKBFN1aXQSDwoLU1VJVF9TUEFERVMQABIOCgpTVUlUX0NMVUJTEAESEQoN",
+            "U1VJVF9ESUFNT05EUxACEg8KC1NVSVRfSEVBUlRTEAMqyQEKBFJhbmsSDgoK",
+            "UkFOS19USFJFRRAAEg0KCVJBTktfRk9VUhABEg0KCVJBTktfRklWRRACEgwK",
+            "CFJBTktfU0lYEAMSDgoKUkFOS19TRVZFThAEEg4KClJBTktfRUlHSFQQBRIN",
+            "CglSQU5LX05JTkUQBhIMCghSQU5LX1RFThAHEg0KCVJBTktfSkFDSxAIEg4K",
+            "ClJBTktfUVVFRU4QCRINCglSQU5LX0tJTkcQChIMCghSQU5LX0FDRRALEgwK",
+            "CFJBTktfVFdPEAwqRQoJR2FtZVBoYXNlEhEKDVBIQVNFX1dBSVRJTkcQABIR",
+            "Cg1QSEFTRV9QTEFZSU5HEAESEgoOUEhBU0VfRklOSVNIRUQQAirsAgoGT3BD",
+            "b2RlEhcKE09QX0NPREVfVU5TUEVDSUZJRUQQABIWChJPUF9DT0RFX1NUQVJU",
+            "X0dBTUUQARIWChJPUF9DT0RFX1BMQVlfQ0FSRFMQAhIVChFPUF9DT0RFX1BB",
+            "U1NfVFVSThADEhwKGE9QX0NPREVfUkVRVUVTVF9ORVdfR0FNRRAEEhkKFU9Q",
+            "X0NPREVfUExBWUVSX0pPSU5FRBAyEhcKE09QX0NPREVfUExBWUVSX0xFRlQQ",
+            "MxIYChRPUF9DT0RFX0dBTUVfU1RBUlRFRBBkEhcKE09QX0NPREVfQ0FSRF9Q",
+            "TEFZRUQQZhIXChNPUF9DT0RFX1RVUk5fUEFTU0VEEGcSFgoST1BfQ09ERV9H",
+            "QU1FX0VOREVEEGgSFgoST1BfQ09ERV9HQU1FX0VSUk9SEGkSFwoTT1BfQ09E",
+            "RV9QSUdfQ0hPUFBFRBBqEhsKF09QX0NPREVfUExBWUVSX0ZJTklTSEVEEGtC",
+            "EloQdGllbmxlbi9wcm90bztwYmIGcHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
           new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
@@ -97,7 +101,8 @@ namespace Tienlen.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnSeat", "Phase", "Hand", "TurnSecondsRemaining" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardPlayedEvent), global::Tienlen.V1.CardPlayedEvent.Parser, new[]{ "Seat", "Cards", "NextTurnSeat", "NewRound", "TurnSecondsRemaining" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.TurnPassedEvent), global::Tienlen.V1.TurnPassedEvent.Parser, new[]{ "Seat", "NextTurnSeat", "NewRound", "TurnSecondsRemaining" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameEndedEvent), global::Tienlen.V1.GameEndedEvent.Parser, new[]{ "FinishOrderSeats", "BalanceChanges" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, }),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardList), global::Tienlen.V1.CardList.Parser, new[]{ "Cards" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameEndedEvent), global::Tienlen.V1.GameEndedEvent.Parser, new[]{ "FinishOrderSeats", "BalanceChanges", "RemainingHands" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, null, }),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerFinishedEvent), global::Tienlen.V1.PlayerFinishedEvent.Parser, new[]{ "Seat", "Rank" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameErrorEvent), global::Tienlen.V1.GameErrorEvent.Parser, new[]{ "Code", "Message" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PigChoppedEvent), global::Tienlen.V1.PigChoppedEvent.Parser, new[]{ "SourceSeat", "TargetSeat", "ChopType", "CardsChopped", "CardsChopping", "BalanceChanges" }, null, null, null, new pbr::GeneratedClrTypeInfo[] { null, })
@@ -3795,6 +3800,193 @@ namespace Tienlen.V1 {
   }
 
   [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
+  public sealed partial class CardList : pb::IMessage<CardList>
+  #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      , pb::IBufferMessage
+  #endif
+  {
+    private static readonly pb::MessageParser<CardList> _parser = new pb::MessageParser<CardList>(() => new CardList());
+    private pb::UnknownFieldSet _unknownFields;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pb::MessageParser<CardList> Parser { get { return _parser; } }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public static pbr::MessageDescriptor Descriptor {
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[15]; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    pbr::MessageDescriptor pb::IMessage.Descriptor {
+      get { return Descriptor; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CardList() {
+      OnConstruction();
+    }
+
+    partial void OnConstruction();
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CardList(CardList other) : this() {
+      cards_ = other.cards_.Clone();
+      _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public CardList Clone() {
+      return new CardList(this);
+    }
+
+    /// <summary>Field number for the "cards" field.</summary>
+    public const int CardsFieldNumber = 1;
+    private static readonly pb::FieldCodec<global::Tienlen.V1.Card> _repeated_cards_codec
+        = pb::FieldCodec.ForMessage(10, global::Tienlen.V1.Card.Parser);
+    private readonly pbc::RepeatedField<global::Tienlen.V1.Card> cards_ = new pbc::RepeatedField<global::Tienlen.V1.Card>();
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::RepeatedField<global::Tienlen.V1.Card> Cards {
+      get { return cards_; }
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override bool Equals(object other) {
+      return Equals(other as CardList);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool Equals(CardList other) {
+      if (ReferenceEquals(other, null)) {
+        return false;
+      }
+      if (ReferenceEquals(other, this)) {
+        return true;
+      }
+      if(!cards_.Equals(other.cards_)) return false;
+      return Equals(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override int GetHashCode() {
+      int hash = 1;
+      hash ^= cards_.GetHashCode();
+      if (_unknownFields != null) {
+        hash ^= _unknownFields.GetHashCode();
+      }
+      return hash;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public override string ToString() {
+      return pb::JsonFormatter.ToDiagnosticString(this);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void WriteTo(pb::CodedOutputStream output) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      output.WriteRawMessage(this);
+    #else
+      cards_.WriteTo(output, _repeated_cards_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(output);
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
+      cards_.WriteTo(ref output, _repeated_cards_codec);
+      if (_unknownFields != null) {
+        _unknownFields.WriteTo(ref output);
+      }
+    }
+    #endif
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int CalculateSize() {
+      int size = 0;
+      size += cards_.CalculateSize(_repeated_cards_codec);
+      if (_unknownFields != null) {
+        size += _unknownFields.CalculateSize();
+      }
+      return size;
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(CardList other) {
+      if (other == null) {
+        return;
+      }
+      cards_.Add(other.cards_);
+      _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
+    }
+
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public void MergeFrom(pb::CodedInputStream input) {
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+      input.ReadRawMessage(this);
+    #else
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, input);
+            break;
+          case 10: {
+            cards_.AddEntriesFrom(input, _repeated_cards_codec);
+            break;
+          }
+        }
+      }
+    #endif
+    }
+
+    #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    void pb::IBufferMessage.InternalMergeFrom(ref pb::ParseContext input) {
+      uint tag;
+      while ((tag = input.ReadTag()) != 0) {
+      if ((tag & 7) == 4) {
+        // Abort on any end group tag.
+        return;
+      }
+      switch(tag) {
+          default:
+            _unknownFields = pb::UnknownFieldSet.MergeFieldFrom(_unknownFields, ref input);
+            break;
+          case 10: {
+            cards_.AddEntriesFrom(ref input, _repeated_cards_codec);
+            break;
+          }
+        }
+      }
+    }
+    #endif
+
+  }
+
+  [global::System.Diagnostics.DebuggerDisplayAttribute("{ToString(),nq}")]
   public sealed partial class GameEndedEvent : pb::IMessage<GameEndedEvent>
   #if !GOOGLE_PROTOBUF_REFSTRUCT_COMPATIBILITY_MODE
       , pb::IBufferMessage
@@ -3809,7 +4001,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[15]; }
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[16]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -3831,6 +4023,7 @@ namespace Tienlen.V1 {
     public GameEndedEvent(GameEndedEvent other) : this() {
       finishOrderSeats_ = other.finishOrderSeats_.Clone();
       balanceChanges_ = other.balanceChanges_.Clone();
+      remainingHands_ = other.remainingHands_.Clone();
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -3868,6 +4061,20 @@ namespace Tienlen.V1 {
       get { return balanceChanges_; }
     }
 
+    /// <summary>Field number for the "remaining_hands" field.</summary>
+    public const int RemainingHandsFieldNumber = 3;
+    private static readonly pbc::MapField<int, global::Tienlen.V1.CardList>.Codec _map_remainingHands_codec
+        = new pbc::MapField<int, global::Tienlen.V1.CardList>.Codec(pb::FieldCodec.ForInt32(8, 0), pb::FieldCodec.ForMessage(18, global::Tienlen.V1.CardList.Parser), 26);
+    private readonly pbc::MapField<int, global::Tienlen.V1.CardList> remainingHands_ = new pbc::MapField<int, global::Tienlen.V1.CardList>();
+    /// <summary>
+    /// Seat Index -> Cards
+    /// </summary>
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public pbc::MapField<int, global::Tienlen.V1.CardList> RemainingHands {
+      get { return remainingHands_; }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -3885,6 +4092,7 @@ namespace Tienlen.V1 {
       }
       if(!finishOrderSeats_.Equals(other.finishOrderSeats_)) return false;
       if (!BalanceChanges.Equals(other.BalanceChanges)) return false;
+      if (!RemainingHands.Equals(other.RemainingHands)) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -3894,6 +4102,7 @@ namespace Tienlen.V1 {
       int hash = 1;
       hash ^= finishOrderSeats_.GetHashCode();
       hash ^= BalanceChanges.GetHashCode();
+      hash ^= RemainingHands.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -3914,6 +4123,7 @@ namespace Tienlen.V1 {
     #else
       finishOrderSeats_.WriteTo(output, _repeated_finishOrderSeats_codec);
       balanceChanges_.WriteTo(output, _map_balanceChanges_codec);
+      remainingHands_.WriteTo(output, _map_remainingHands_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -3926,6 +4136,7 @@ namespace Tienlen.V1 {
     void pb::IBufferMessage.InternalWriteTo(ref pb::WriteContext output) {
       finishOrderSeats_.WriteTo(ref output, _repeated_finishOrderSeats_codec);
       balanceChanges_.WriteTo(ref output, _map_balanceChanges_codec);
+      remainingHands_.WriteTo(ref output, _map_remainingHands_codec);
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -3938,6 +4149,7 @@ namespace Tienlen.V1 {
       int size = 0;
       size += finishOrderSeats_.CalculateSize(_repeated_finishOrderSeats_codec);
       size += balanceChanges_.CalculateSize(_map_balanceChanges_codec);
+      size += remainingHands_.CalculateSize(_map_remainingHands_codec);
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
       }
@@ -3952,6 +4164,7 @@ namespace Tienlen.V1 {
       }
       finishOrderSeats_.Add(other.finishOrderSeats_);
       balanceChanges_.MergeFrom(other.balanceChanges_);
+      remainingHands_.MergeFrom(other.remainingHands_);
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
 
@@ -3978,6 +4191,10 @@ namespace Tienlen.V1 {
           }
           case 18: {
             balanceChanges_.AddEntriesFrom(input, _map_balanceChanges_codec);
+            break;
+          }
+          case 26: {
+            remainingHands_.AddEntriesFrom(input, _map_remainingHands_codec);
             break;
           }
         }
@@ -4008,6 +4225,10 @@ namespace Tienlen.V1 {
             balanceChanges_.AddEntriesFrom(ref input, _map_balanceChanges_codec);
             break;
           }
+          case 26: {
+            remainingHands_.AddEntriesFrom(ref input, _map_remainingHands_codec);
+            break;
+          }
         }
       }
     }
@@ -4030,7 +4251,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[16]; }
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[17]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4271,7 +4492,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[17]; }
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[18]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
@@ -4506,7 +4727,7 @@ namespace Tienlen.V1 {
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public static pbr::MessageDescriptor Descriptor {
-      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[18]; }
+      get { return global::Tienlen.V1.TienlenReflection.Descriptor.MessageTypes[19]; }
     }
 
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]

@@ -414,6 +414,13 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 		}
 
+		remainingHands := make(map[int][]domain.Card)
+		for _, p := range game.Players {
+			if len(p.Hand) > 0 {
+				remainingHands[p.Seat] = p.Hand
+			}
+		}
+
 		events = append(events, Event{
 
 			Kind: EventGameEnded,
@@ -423,6 +430,8 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 				FinishOrderSeats: game.FinishOrderSeats,
 
 				BalanceChanges: finalChanges,
+
+				RemainingHands: remainingHands,
 			},
 		})
 

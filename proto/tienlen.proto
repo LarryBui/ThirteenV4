@@ -135,9 +135,14 @@ message TurnPassedEvent {
   int64 turn_seconds_remaining = 4; // Seconds remaining before the next turn expires
 }
 
+message CardList {
+  repeated Card cards = 1;
+}
+
 message GameEndedEvent {
   repeated int32 finish_order_seats = 1; // 0-based seat indices in rank order
   map<string, int64> balance_changes = 2; // UserID -> Gold (+/-)
+  map<int32, CardList> remaining_hands = 3; // Seat Index -> Cards
 }
 
 message PlayerFinishedEvent {

@@ -74,6 +74,23 @@ func TestPlayCardsAndEnd(t *testing.T) {
 			if len(payload.FinishOrderSeats) != 2 {
 				t.Errorf("expected 2 players in GameEndedPayload, got %d", len(payload.FinishOrderSeats))
 			}
+			if len(payload.RemainingHands) == 0 {
+				t.Errorf("expected remaining hands in GameEndedPayload")
+			}
+			// Player 2 lost, should have cards
+			// Wait, the loser's cards are removed when the game ends? No, they stay in hand.
+			// Actually, the game ends when count <= 1. The last player definitely has cards.
+			// Let's check if there is at least one hand.
+			foundHand := false
+			for _, hand := range payload.RemainingHands {
+				if len(hand) > 0 {
+					foundHand = true
+					break
+				}
+			}
+			if !foundHand {
+				t.Errorf("expected at least one remaining hand with cards")
+			}
 		}
 	}
 	if !foundEnd {

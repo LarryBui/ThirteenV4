@@ -76,4 +76,5 @@ type GameEndedPayload struct {
 
 	BalanceChanges map[string]int64 // UserID -> Gold (+/-)
 
+	RemainingHands map[int][]domain.Card // Seat -> Cards
 }
