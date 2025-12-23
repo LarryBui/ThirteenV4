@@ -193,7 +193,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1322838984650052823, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: -411
+      value: -336
       objectReference: {fileID: 0}
     - target: {fileID: 1322838984650052823, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -351,7 +351,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: 851, y: 477}
+  m_AnchoredPosition: {x: 851, y: 396}
   m_SizeDelta: {x: 160, y: 30}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &338565336
@@ -1294,7 +1294,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 1322838984650052823, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_AnchoredPosition.y
-      value: 434.3
+      value: 343
       objectReference: {fileID: 0}
     - target: {fileID: 1322838984650052823, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_LocalEulerAnglesHint.x
@@ -2059,6 +2059,10 @@ MonoBehaviour:
   _playButton: {fileID: 753827556}
   _passButton: {fileID: 551816065}
   _leaveButton: {fileID: 338565336}
+  _playButtonInvalidTint: {r: 1, g: 0.75, b: 0.75, a: 1}
+  _playButtonInvalidTintStrength: 0.35
+  _passButtonHighlightTint: {r: 0.85, g: 1, b: 0.85, a: 1}
+  _passButtonHighlightStrength: 0.35
   localPlayerProfile: {fileID: 16907759}
   opponentProfile_1: {fileID: 1640944418}
   opponentProfile_2: {fileID: 778642234}

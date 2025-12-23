@@ -24,28 +24,13 @@ namespace TienLen.Presentation.HomeScreen
     public sealed class HomeChatController : MonoBehaviour
     {
         [Header("UI References")]
-        [SerializeField] private RectTransform panelRoot;
-        [SerializeField] private RectTransform inputRoot;
         [SerializeField] private TMP_Text logText;
         [SerializeField] private TMP_InputField inputField;
         [SerializeField] private Button sendButton;
         [SerializeField] private Button micButton;
         [SerializeField] private TMP_Text statusText;
-
-        [Header("Layout")]
-        [SerializeField] private float panelWidthPercent = 0.33f;
-        [SerializeField] private float panelHeightPercent = 0.5f;
-        [SerializeField] private float inputWidthPercent = 0.6667f;
-        [SerializeField] private float minInputWidth = 600f;
-        [SerializeField] private Vector2 panelPadding = new(16f, 16f);
-        [SerializeField] private float inputRowHeight = 72f;
+        [Header("Settings")]
         [SerializeField] private int maxVisibleMessages = 60;
-        [SerializeField] private bool buildUiOnStart = true;
-
-        private const float InnerGap = 8f;
-        private const float StatusHeight = 24f;
-        private const float SendButtonWidth = 96f;
-        private const float MicButtonWidth = 72f;
 
         private IAuthenticationService _authService;
         private GlobalChatHandler _chatHandler;
@@ -55,7 +40,6 @@ namespace TienLen.Presentation.HomeScreen
         private readonly List<string> _messageLines = new();
         private readonly StringBuilder _stringBuilder = new();
         private CancellationTokenSource _speechTokenSource;
-        private Vector2Int _lastScreenSize;
 
         /// <summary>
         /// Injects dependencies for the chat controller.
@@ -77,16 +61,14 @@ namespace TienLen.Presentation.HomeScreen
             _logger = logger ?? NullLogger<HomeChatController>.Instance;
         }
 
-        private void Awake()
-        {
-            if (buildUiOnStart)
-            {
-                EnsureView();
-            }
-        }
-
         private void Start()
         {
+            if (!ValidateReferences())
+            {
+                enabled = false;
+                return;
+            }
+
             BindUiEvents();
             BindServiceEvents();
             RefreshMicState();
@@ -95,18 +77,6 @@ namespace TienLen.Presentation.HomeScreen
             if (_authService != null && _authService.IsAuthenticated)
             {
                 ConnectChatAsync().Forget();
-            }
-        }
-
-        private void Update()
-        {
-            if (panelRoot == null) return;
-
-            var size = new Vector2Int(Screen.width, Screen.height);
-            if (size != _lastScreenSize)
-            {
-                _lastScreenSize = size;
-                ApplyPanelSizing();
             }
         }
 
@@ -407,203 +377,33 @@ namespace TienLen.Presentation.HomeScreen
             statusText.text = message ?? string.Empty;
         }
 
-        private void EnsureView()
+        /// <summary>
+        /// Validates that required UI references are assigned in the editor.
+        /// </summary>
+        /// <returns>True when all required references are present.</returns>
+        private bool ValidateReferences()
         {
-            if (panelRoot != null) return;
+            var hasAllReferences = logText != null
+                && inputField != null
+                && sendButton != null
+                && micButton != null
+                && statusText != null;
 
-            // Prefer the Home scene canvas to avoid attaching to additive scenes.
-            Canvas canvas = null;
-            var scene = gameObject.scene;
-            var rootObjects = scene.GetRootGameObjects();
-            for (int i = 0; i < rootObjects.Length; i++)
+            if (hasAllReferences)
             {
-                canvas = rootObjects[i].GetComponentInChildren<Canvas>(true);
-                if (canvas != null)
-                {
-                    break;
-                }
-            }
-            if (canvas == null)
-            {
-                _logger.LogError("HomeChat: Canvas not found; chat UI cannot be built.");
-                return;
+                return true;
             }
 
-            var panelObject = new GameObject("ChatPanel", typeof(RectTransform), typeof(CanvasRenderer), typeof(Image));
-            panelObject.layer = canvas.gameObject.layer;
-            panelRoot = panelObject.GetComponent<RectTransform>();
-            panelRoot.SetParent(canvas.transform, false);
-            panelRoot.anchorMin = new Vector2(0f, 1f);
-            panelRoot.anchorMax = new Vector2(0f, 1f);
-            panelRoot.pivot = new Vector2(0f, 1f);
-            panelRoot.anchoredPosition = new Vector2(panelPadding.x, -panelPadding.y);
-
-            var panelImage = panelObject.GetComponent<Image>();
-            panelImage.color = new Color(0f, 0f, 0f, 0.6f);
-
-            inputRoot = CreateRect("InputRow", canvas.transform as RectTransform);
-            inputRoot.anchorMin = new Vector2(0.5f, 0f);
-            inputRoot.anchorMax = new Vector2(0.5f, 0f);
-            inputRoot.pivot = new Vector2(0.5f, 0f);
-            inputRoot.anchoredPosition = new Vector2(0f, panelPadding.y);
-            inputRoot.sizeDelta = new Vector2(0f, inputRowHeight);
-
-            micButton = CreateButton("Btn_Mic", inputRoot, "Mic", MicButtonWidth);
-            var micRect = micButton.GetComponent<RectTransform>();
-            micRect.anchorMin = new Vector2(1f, 0f);
-            micRect.anchorMax = new Vector2(1f, 1f);
-            micRect.pivot = new Vector2(1f, 0.5f);
-            micRect.sizeDelta = new Vector2(MicButtonWidth, 0f);
-            micRect.anchoredPosition = new Vector2(-InnerGap, 0f);
-
-            sendButton = CreateButton("Btn_Send", inputRoot, "Send", SendButtonWidth);
-            var sendRect = sendButton.GetComponent<RectTransform>();
-            sendRect.anchorMin = new Vector2(1f, 0f);
-            sendRect.anchorMax = new Vector2(1f, 1f);
-            sendRect.pivot = new Vector2(1f, 0.5f);
-            sendRect.sizeDelta = new Vector2(SendButtonWidth, 0f);
-            sendRect.anchoredPosition = new Vector2(-(MicButtonWidth + InnerGap * 2f), 0f);
-
-            inputField = CreateInputField("InputField", inputRoot, SendButtonWidth + MicButtonWidth + InnerGap * 3f);
-
-            statusText = CreateText("StatusText", panelRoot, 20, new Color(1f, 1f, 1f, 0.85f));
-            var statusRect = statusText.GetComponent<RectTransform>();
-            statusRect.anchorMin = new Vector2(0f, 0f);
-            statusRect.anchorMax = new Vector2(1f, 0f);
-            statusRect.pivot = new Vector2(0f, 0f);
-            statusRect.offsetMin = new Vector2(panelPadding.x, panelPadding.y + InnerGap);
-            statusRect.offsetMax = new Vector2(-panelPadding.x, panelPadding.y + InnerGap + StatusHeight);
-            statusText.alignment = TextAlignmentOptions.Left;
-
-            logText = CreateText("ChatLog", panelRoot, 22, Color.white);
-            var logRect = logText.GetComponent<RectTransform>();
-            logRect.anchorMin = new Vector2(0f, 0f);
-            logRect.anchorMax = new Vector2(1f, 1f);
-            var logMinY = panelPadding.y + StatusHeight + InnerGap * 2f;
-            logRect.offsetMin = new Vector2(panelPadding.x, logMinY);
-            logRect.offsetMax = new Vector2(-panelPadding.x, -panelPadding.y);
-            logText.alignment = TextAlignmentOptions.BottomLeft;
-            logText.enableWordWrapping = true;
-
-            ApplyPanelSizing();
-        }
-
-        private void ApplyPanelSizing()
-        {
-            if (panelRoot == null) return;
-            if (panelRoot.parent is not RectTransform parentRect) return;
-
-            var width = parentRect.rect.width * Mathf.Clamp01(panelWidthPercent);
-            var height = parentRect.rect.height * Mathf.Clamp01(panelHeightPercent);
-            panelRoot.sizeDelta = new Vector2(width, height);
-            panelRoot.anchoredPosition = new Vector2(panelPadding.x, -panelPadding.y);
-
-            if (inputRoot == null) return;
-            if (inputRoot.parent is not RectTransform inputParent) return;
-
-            var maxWidth = Mathf.Max(0f, inputParent.rect.width - panelPadding.x * 2f);
-            var targetWidth = inputParent.rect.width * Mathf.Clamp01(inputWidthPercent);
-            var inputWidth = Mathf.Min(maxWidth, Mathf.Max(minInputWidth, targetWidth));
-
-            inputRoot.sizeDelta = new Vector2(inputWidth, inputRowHeight);
-            inputRoot.anchoredPosition = new Vector2(0f, panelPadding.y);
-        }
-
-        private static RectTransform CreateRect(string name, RectTransform parent)
-        {
-            var go = new GameObject(name, typeof(RectTransform));
-            go.layer = parent.gameObject.layer;
-            var rect = go.GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.localScale = Vector3.one;
-            return rect;
-        }
-
-        private TMP_Text CreateText(string name, RectTransform parent, int fontSize, Color color)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(TextMeshProUGUI));
-            go.layer = parent.gameObject.layer;
-            var rect = go.GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.localScale = Vector3.one;
-
-            var text = go.GetComponent<TextMeshProUGUI>();
-            if (TMP_Settings.defaultFontAsset != null)
+            if (_logger != null)
             {
-                text.font = TMP_Settings.defaultFontAsset;
+                _logger.LogError("HomeChat: missing UI references. Assign them in the inspector.");
             }
-            text.fontSize = fontSize;
-            text.color = color;
-            text.text = string.Empty;
-            return text;
-        }
+            else
+            {
+                Debug.LogError("HomeChat: missing UI references. Assign them in the inspector.", this);
+            }
 
-        private Button CreateButton(string name, RectTransform parent, string label, float width)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(Button));
-            go.layer = parent.gameObject.layer;
-
-            var rect = go.GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.localScale = Vector3.one;
-            rect.sizeDelta = new Vector2(width, 0f);
-
-            var image = go.GetComponent<Image>();
-            image.color = new Color(1f, 1f, 1f, 0.9f);
-
-            var button = go.GetComponent<Button>();
-            button.targetGraphic = image;
-
-            var labelText = CreateText($"{name}_Label", rect, 20, new Color(0.1f, 0.1f, 0.1f, 1f));
-            var labelRect = labelText.GetComponent<RectTransform>();
-            labelRect.anchorMin = Vector2.zero;
-            labelRect.anchorMax = Vector2.one;
-            labelRect.offsetMin = Vector2.zero;
-            labelRect.offsetMax = Vector2.zero;
-            labelText.alignment = TextAlignmentOptions.Center;
-            labelText.text = label;
-
-            return button;
-        }
-
-        private TMP_InputField CreateInputField(string name, RectTransform parent, float rightOffset)
-        {
-            var go = new GameObject(name, typeof(RectTransform), typeof(CanvasRenderer), typeof(Image), typeof(TMP_InputField));
-            go.layer = parent.gameObject.layer;
-
-            var rect = go.GetComponent<RectTransform>();
-            rect.SetParent(parent, false);
-            rect.localScale = Vector3.one;
-            rect.anchorMin = new Vector2(0f, 0f);
-            rect.anchorMax = new Vector2(1f, 1f);
-            rect.offsetMin = new Vector2(0f, 0f);
-            rect.offsetMax = new Vector2(-rightOffset, 0f);
-
-            var background = go.GetComponent<Image>();
-            background.color = new Color(1f, 1f, 1f, 0.15f);
-
-            var textArea = CreateRect("TextArea", rect);
-            textArea.anchorMin = Vector2.zero;
-            textArea.anchorMax = Vector2.one;
-            textArea.offsetMin = new Vector2(8f, 8f);
-            textArea.offsetMax = new Vector2(-8f, -8f);
-            textArea.gameObject.AddComponent<RectMask2D>();
-
-            var placeholder = CreateText("Placeholder", textArea, 20, new Color(1f, 1f, 1f, 0.4f));
-            placeholder.text = "Type or speak...";
-            placeholder.alignment = TextAlignmentOptions.MidlineLeft;
-
-            var text = CreateText("Text", textArea, 20, Color.white);
-            text.alignment = TextAlignmentOptions.MidlineLeft;
-
-            var input = go.GetComponent<TMP_InputField>();
-            input.textViewport = textArea;
-            input.textComponent = text;
-            input.placeholder = placeholder;
-            input.lineType = TMP_InputField.LineType.SingleLine;
-            input.characterLimit = 256;
-
-            return input;
+            return false;
         }
     }
 }

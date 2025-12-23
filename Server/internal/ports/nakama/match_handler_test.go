@@ -112,7 +112,7 @@ func TestMatchLabel_Marshal(t *testing.T) {
 				Open:  3,
 				State: "lobby",
 			},
-			expected: `{"open":3, "state":"lobby"}`,
+			expected: `{"open":3,"state":"lobby"}`,
 		},
 		{
 			name: "PlayingState",
@@ -120,7 +120,7 @@ func TestMatchLabel_Marshal(t *testing.T) {
 				Open:  0,
 				State: "playing",
 			},
-			expected: `{"open":0, "state":"playing"}`,
+			expected: `{"open":0,"state":"playing"}`,
 		},
 	}
 

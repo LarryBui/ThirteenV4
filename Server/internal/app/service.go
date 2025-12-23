@@ -350,6 +350,14 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 		pl.Finished = true
 
 		game.FinishOrderSeats = append(game.FinishOrderSeats, actorSeat)
+		
+		events = append(events, Event{
+			Kind: EventPlayerFinished,
+			Payload: PlayerFinishedPayload{
+				Seat: actorSeat,
+				Rank: len(game.FinishOrderSeats),
+			},
+		})
 
 	}
 
@@ -409,23 +417,19 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 		game.CurrentTurn = s.findNextPlayer(game, actorSeat, game.Players)
 
-		// Note: If findNextPlayer returns actorSeat, it means everyone else is finished/passed.
-
-		// But actorSeat just played, so they can't be passed.
-
-		// However, if actorSeat just played, they initiated a new round or continued.
-
-		// The logic for clearing the board happens in PassTurn.
-
-		events[len(events)-1].Payload = CardPlayedPayload{ // Update payload to include next turn
-
-			Seat: actorSeat,
-
-			Cards: cards,
-
-			NextTurnSeat: game.CurrentTurn,
-
-			NewRound: newRound,
+		// Update the CardPlayed event payload with the next turn information.
+		// We search for the EventCardPlayed in the recently added events to avoid 
+		// overwriting other events like EventPlayerFinished.
+		for i := len(events) - 1; i >= 0; i-- {
+			if events[i].Kind == EventCardPlayed {
+				events[i].Payload = CardPlayedPayload{
+					Seat:         actorSeat,
+					Cards:        cards,
+					NextTurnSeat: game.CurrentTurn,
+					NewRound:     newRound,
+				}
+				break
+			}
 		}
 
 	}

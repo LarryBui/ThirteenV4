@@ -12,6 +12,7 @@ const (
 	EventCardPlayed   EventKind = "card_played"
 	EventPigChopped   EventKind = "pig_chopped"
 	EventTurnPassed   EventKind = "turn_passed"
+	EventPlayerFinished EventKind = "player_finished"
 	EventGameEnded    EventKind = "game_ended"
 )
 
@@ -45,6 +46,11 @@ type PigChoppedPayload struct {
 	CardsChopped   []domain.Card
 	CardsChopping  []domain.Card
 	BalanceChanges map[string]int64
+}
+
+type PlayerFinishedPayload struct {
+	Seat int
+	Rank int
 }
 
 type CardPlayedPayload struct {

@@ -266,3 +266,36 @@ func TestTimeoutTurn(t *testing.T) {
 		t.Fatal("expected TurnPassed event on mid round timeout")
 	}
 }
+
+func TestPlayerFinishedEvent(t *testing.T) {
+	svc := NewService(nil)
+	players := []string{"u1", "u2", "u3"}
+	game, _, _ := svc.StartGame(players, -1, 0)
+
+	// u1 has 1 card
+	game.Players["u1"].Hand = []domain.Card{{Rank: 0, Suit: 0}}
+	game.CurrentTurn = 0
+
+	events, err := svc.PlayCards(game, 0, []domain.Card{{Rank: 0, Suit: 0}})
+	if err != nil {
+		t.Fatalf("PlayCards error: %v", err)
+	}
+
+	foundFinisher := false
+	for _, ev := range events {
+		if ev.Kind == EventPlayerFinished {
+			foundFinisher = true
+			payload := ev.Payload.(PlayerFinishedPayload)
+			if payload.Seat != 0 {
+				t.Errorf("expected seat 0, got %d", payload.Seat)
+			}
+			if payload.Rank != 1 {
+				t.Errorf("expected rank 1, got %d", payload.Rank)
+			}
+		}
+	}
+
+	if !foundFinisher {
+		t.Fatal("EventPlayerFinished not found in events")
+	}
+}

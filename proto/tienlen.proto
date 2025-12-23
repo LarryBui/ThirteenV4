@@ -51,6 +51,7 @@ enum OpCode {
   OP_CODE_GAME_ENDED = 104;
   OP_CODE_GAME_ERROR = 105;
   OP_CODE_PIG_CHOPPED = 106;
+  OP_CODE_PLAYER_FINISHED = 107;
 }
 
 // --- Basic Structures ---
@@ -137,6 +138,11 @@ message TurnPassedEvent {
 message GameEndedEvent {
   repeated int32 finish_order_seats = 1; // 0-based seat indices in rank order
   map<string, int64> balance_changes = 2; // UserID -> Gold (+/-)
+}
+
+message PlayerFinishedEvent {
+  int32 seat = 1; // 0-based index
+  int32 rank = 2; // 1 = 1st, 2 = 2nd, etc.
 }
 
 message GameErrorEvent {

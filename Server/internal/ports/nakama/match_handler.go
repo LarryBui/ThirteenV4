@@ -746,6 +746,13 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			NewRound:         p.NewRound,
 			TurnSecondsRemaining: state.TurnSecondsRemaining,
 		}
+	case app.EventPlayerFinished:
+		opCode = int64(pb.OpCode_OP_CODE_PLAYER_FINISHED)
+		p := ev.Payload.(app.PlayerFinishedPayload)
+		payload = &pb.PlayerFinishedEvent{
+			Seat: int32(p.Seat),
+			Rank: int32(p.Rank),
+		}
 	case app.EventGameEnded:
 		opCode = int64(pb.OpCode_OP_CODE_GAME_ENDED)
 		p := ev.Payload.(app.GameEndedPayload)
