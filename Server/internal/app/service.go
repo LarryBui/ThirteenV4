@@ -367,6 +367,21 @@ func (s *Service) PlayCards(game *domain.Game, actorSeat int, cards []domain.Car
 
 		game.Phase = domain.PhaseEnded
 
+		// Add the last remaining player(s) who haven't finished to the finish order.
+		// In standard Tien Len, there's exactly one such player when the game ends.
+		for _, p := range game.Players {
+			alreadyFinished := false
+			for _, finishedSeat := range game.FinishOrderSeats {
+				if finishedSeat == p.Seat {
+					alreadyFinished = true
+					break
+				}
+			}
+			if !alreadyFinished {
+				game.FinishOrderSeats = append(game.FinishOrderSeats, p.Seat)
+			}
+		}
+
 		settlement := game.CalculateSettlement()
 
 		// Apply Tax to positive winnings

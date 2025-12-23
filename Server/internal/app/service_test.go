@@ -63,10 +63,17 @@ func TestPlayCardsAndEnd(t *testing.T) {
 	if game.Phase != domain.PhaseEnded {
 		t.Fatalf("game should have ended when one player remains")
 	}
+	if len(game.FinishOrderSeats) != 2 {
+		t.Errorf("expected 2 players in finish order, got %d", len(game.FinishOrderSeats))
+	}
 	foundEnd := false
 	for _, ev := range evs {
 		if ev.Kind == EventGameEnded {
 			foundEnd = true
+			payload := ev.Payload.(GameEndedPayload)
+			if len(payload.FinishOrderSeats) != 2 {
+				t.Errorf("expected 2 players in GameEndedPayload, got %d", len(payload.FinishOrderSeats))
+			}
 		}
 	}
 	if !foundEnd {
