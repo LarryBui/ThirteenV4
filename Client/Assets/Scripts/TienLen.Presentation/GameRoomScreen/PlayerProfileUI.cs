@@ -14,6 +14,7 @@ namespace TienLen.Presentation.GameRoomScreen
         [SerializeField] private Image avatarImage;
         [SerializeField] private TMP_Text displayNameText;
         [SerializeField] private TMP_Text turnDeadlineText;
+        [SerializeField] private GameObject turnDeadlineBackground;
         [SerializeField] private Sprite[] avatarSprites; // Assign your avatar sprites here in the Inspector
         private ILogger<PlayerProfileUI> _logger = NullLogger<PlayerProfileUI>.Instance;
 
@@ -88,7 +89,10 @@ namespace TienLen.Presentation.GameRoomScreen
 
             var clampedSeconds = Mathf.Max(0, secondsRemaining);
             turnDeadlineText.text = clampedSeconds.ToString();
-            turnDeadlineText.gameObject.SetActive(true);
+            if (turnDeadlineBackground != null)
+            {
+                turnDeadlineBackground.SetActive(true);
+            }
         }
 
         /// <summary>
@@ -99,7 +103,10 @@ namespace TienLen.Presentation.GameRoomScreen
             if (turnDeadlineText == null) return;
 
             turnDeadlineText.text = string.Empty;
-            turnDeadlineText.gameObject.SetActive(false);
+            if (turnDeadlineBackground != null)
+            {
+                turnDeadlineBackground.SetActive(false);
+            }
         }
 
         /// <summary>

@@ -59,7 +59,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Material: {fileID: 0}
-  m_Color: {r: 0.066037714, g: 0.05825025, b: 0.05825025, a: 0.4627451}
+  m_Color: {r: 0.066037714, g: 0.05825025, b: 0.05825025, a: 0.654902}
   m_RaycastTarget: 1
   m_RaycastPadding: {x: 0, y: 0, z: 0, w: 0}
   m_Maskable: 1
@@ -174,7 +174,7 @@ MonoBehaviour:
   m_enableAutoSizing: 0
   m_fontSizeMin: 18
   m_fontSizeMax: 72
-  m_fontStyle: 0
+  m_fontStyle: 1
   m_HorizontalAlignment: 2
   m_VerticalAlignment: 512
   m_textAlignment: 65535
@@ -479,6 +479,7 @@ MonoBehaviour:
   avatarImage: {fileID: 1368147130118067578}
   displayNameText: {fileID: 5107084005626152000}
   turnDeadlineText: {fileID: 3178901234567890126}
+  turnDeadlineBackground: {fileID: 0}
   avatarSprites:
   - {fileID: 1274817188, guid: 7a9d35a147b59c8428dd474fc955e73c, type: 3}
   - {fileID: 1050291865, guid: 6ad464f64d8e8694f9cf52109f5d9024, type: 3}
