@@ -27,6 +27,7 @@ namespace TienLen.Presentation.GameRoomScreen
         public event Action<string> OnError;
         public event Action<IReadOnlyList<PresenceChange>> OnPresenceChanged;
         public event Action OnGameStarted;
+        public event Action<List<int>> OnGameEnded;
 
         // Expose current match for read-only binding in View
         public Match CurrentMatch => _matchHandler?.CurrentMatch;
@@ -52,6 +53,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.TurnPassed += HandleTurnPassed;
             _matchHandler.TurnSecondsRemainingUpdated += HandleCountdown;
             _matchHandler.MatchPresenceChanged += HandlePresenceChanged;
+            _matchHandler.GameEnded += HandleGameEnded;
         }
 
         public void Dispose()
@@ -65,6 +67,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.TurnPassed -= HandleTurnPassed;
             _matchHandler.TurnSecondsRemainingUpdated -= HandleCountdown;
             _matchHandler.MatchPresenceChanged -= HandlePresenceChanged;
+            _matchHandler.GameEnded -= HandleGameEnded;
         }
 
         // --- Event Forwarding ---
@@ -76,6 +79,7 @@ namespace TienLen.Presentation.GameRoomScreen
         private void HandleTurnPassed(int seat) => OnTurnPassed?.Invoke(seat);
         private void HandleCountdown(int seat, long seconds) => OnTurnCountdownUpdated?.Invoke(seat, seconds);
         private void HandlePresenceChanged(IReadOnlyList<PresenceChange> changes) => OnPresenceChanged?.Invoke(changes);
+        private void HandleGameEnded(List<int> finishOrder) => OnGameEnded?.Invoke(finishOrder);
 
 
         // --- Actions ---

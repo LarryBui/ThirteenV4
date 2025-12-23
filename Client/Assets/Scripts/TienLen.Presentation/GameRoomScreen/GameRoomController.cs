@@ -85,6 +85,9 @@ namespace TienLen.Presentation.GameRoomScreen
         private bool _playButtonColorsCached;
         private ColorBlock _passButtonDefaultColors;
         private bool _passButtonColorsCached;
+        
+        // Flag to block Start Game button during end-game animation sequence
+        private bool _isGameEndingAnimation;
 
         /// <summary>
         /// Injects required services for the GameRoom.
@@ -127,6 +130,7 @@ namespace TienLen.Presentation.GameRoomScreen
             _presenter.OnTurnPassed += HandleTurnPassed;
             _presenter.OnTurnCountdownUpdated += HandleTurnSecondsRemainingUpdated;
             _presenter.OnPresenceChanged += HandleMatchPresenceChanged;
+            _presenter.OnGameEnded += HandleGameEnded;
 
             RefreshGameRoomUI();
             UpdateBoardView(_presenter.CurrentMatch);
@@ -152,6 +156,7 @@ namespace TienLen.Presentation.GameRoomScreen
                 _presenter.OnTurnPassed -= HandleTurnPassed;
                 _presenter.OnTurnCountdownUpdated -= HandleTurnSecondsRemainingUpdated;
                 _presenter.OnPresenceChanged -= HandleMatchPresenceChanged;
+                _presenter.OnGameEnded -= HandleGameEnded;
             }
 
             if (_cardDealer != null)
@@ -184,6 +189,40 @@ namespace TienLen.Presentation.GameRoomScreen
             UpdateBoardView(match);
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
+        }
+
+        private void HandleGameEnded(List<int> finishOrder)
+        {
+            if (_isLeaving) return;
+            RunGameEndSequenceAsync().Forget();
+        }
+
+        private async UniTaskVoid RunGameEndSequenceAsync()
+        {
+            _isGameEndingAnimation = true;
+            UpdateStartGameButtonState(); // Hide it
+
+            // 1. Reveal any hidden/selected cards in the local hand so the player sees what they had left.
+            _localHandView?.ShowHiddenSelectedCards();
+            
+            // Note: If we had data on opponent hands, we would reveal them here.
+
+            // 2. Wait 3 seconds
+            await UniTask.Delay(TimeSpan.FromSeconds(3), ignoreTimeScale: true, cancellationToken: this.GetCancellationTokenOnDestroy());
+
+            // 3. Clean up
+            _boardCardsView?.Clear();
+            _localHandView?.Clear();
+            
+            // 4. Reset opponent counters
+            HideOpponentHandCounters();
+            Array.Clear(_opponentDealCounts, 0, _opponentDealCounts.Length);
+
+            _isGameEndingAnimation = false;
+            
+            // 5. Allow Start Game if applicable
+            UpdateStartGameButtonState();
+            RefreshGameRoomUI(); // Ensure profiles are up to date (e.g. balance changes)
         }
 
         private void HandleGameBoardUpdated(int seat, bool newRound)
@@ -263,17 +302,24 @@ namespace TienLen.Presentation.GameRoomScreen
                 "GameRoomController: Game room state updated. seatId={seatId}",
                 _presenter.CurrentMatch?.LocalSeatIndex);
             if (_isLeaving) return;
-            RefreshGameRoomUI();
-
-            if (_localHandView != null && _presenter.TryGetLocalHand(out var localHandCards))
+            
+            // If the ending animation is playing, we suppress full UI refreshes that might conflict (like re-dealing hands from a snapshot)
+            // But we might want balance updates.
+            if (!_isGameEndingAnimation)
             {
-                _localHandView.SetHand(localHandCards);
-            }
+                RefreshGameRoomUI();
 
-            UpdateBoardView(_presenter.CurrentMatch);
+                if (_localHandView != null && _presenter.TryGetLocalHand(out var localHandCards))
+                {
+                    _localHandView.SetHand(localHandCards);
+                }
+                
+                UpdateBoardView(_presenter.CurrentMatch);
+                UpdateOpponentHandCounters();
+            }
+            
             UpdateStartGameButtonState();
             UpdatePlayButtonState();
-            UpdateOpponentHandCounters();
         }
 
         private void RefreshGameRoomUI()
@@ -700,6 +746,13 @@ namespace TienLen.Presentation.GameRoomScreen
         private void UpdateStartGameButtonState()
         {
             if (_startGameButton == null) return;
+
+            // Block start game if ending animation is running
+            if (_isGameEndingAnimation)
+            {
+                _startGameButton.gameObject.SetActive(false);
+                return;
+            }
 
             var canStart = _presenter != null && _presenter.CanStartGame();
 

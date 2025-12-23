@@ -75,6 +75,11 @@ namespace TienLen.Application
         /// </summary>
         public event Action<int, string> GameErrorReceived;
 
+        /// <summary>
+        /// Raised when the game ends, providing the finish order (seat indices).
+        /// </summary>
+        public event Action<List<int>> GameEnded;
+
         public TienLenMatchHandler(
             IMatchNetworkClient networkClient,
             IAuthenticationService authService,
@@ -240,7 +245,7 @@ namespace TienLen.Application
         {
             if (CurrentMatch == null) return;
             CurrentMatch.Phase = "Lobby";
-            // TODO: Process finish order seats
+            GameEnded?.Invoke(finishOrderSeats);
             GameRoomStateUpdated?.Invoke();
         }
 
