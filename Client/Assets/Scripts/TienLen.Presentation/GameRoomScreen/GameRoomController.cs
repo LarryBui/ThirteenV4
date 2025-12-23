@@ -28,6 +28,8 @@ namespace TienLen.Presentation.GameRoomScreen
         [Header("Hand View")]
         [Tooltip("Prefab used to render the local player's hand (front face). Should be a UI prefab with a RectTransform.")]
         [SerializeField] private GameObject _localHandCardPrefab;
+        [Tooltip("Component used to reveal opponent hands at game end.")]
+        [SerializeField] private OpponentHandRevealer _opponentHandRevealer;
 
         [Header("Actions")]
         [Tooltip("Start Game button visible only to the match owner.")]
@@ -142,6 +144,24 @@ namespace TienLen.Presentation.GameRoomScreen
 
             BindLocalHandView(GetComponent<LocalHandView>());
             BindRoomLogView(_gameRoomLogView ?? GetComponentInChildren<GameRoomLogView>(includeInactive: true));
+            
+            // Lazy initialization of OpponentHandRevealer
+            if (_opponentHandRevealer == null)
+            {
+                _opponentHandRevealer = GetComponent<OpponentHandRevealer>();
+                if (_opponentHandRevealer == null)
+                {
+                    _logger.LogInformation("GameRoomController: Adding OpponentHandRevealer component.");
+                    _opponentHandRevealer = gameObject.AddComponent<OpponentHandRevealer>();
+                }
+            }
+            
+            // Configure it if needed (it might be missing references if added dynamically)
+            if (_opponentHandRevealer != null && _cardDealer != null)
+            {
+                // We use the CardDealer's prefab for the opponent hands too
+                _opponentHandRevealer.Configure(_cardDealer, _cardDealer.CardPrefab);
+            }
         }
 
         private void OnDestroy()
@@ -191,38 +211,69 @@ namespace TienLen.Presentation.GameRoomScreen
             UpdatePlayButtonState();
         }
 
-        private void HandleGameEnded(List<int> finishOrder)
+        private void HandleGameEnded(List<int> finishOrder, Dictionary<int, List<Card>> remainingHands)
         {
             if (_isLeaving) return;
-            RunGameEndSequenceAsync().Forget();
+            
+            int handsCount = remainingHands?.Count ?? 0;
+            _logger.LogInformation("GameRoomController: HandleGameEnded. handsCount={count}", handsCount);
+            
+            RunGameEndSequenceAsync(remainingHands).Forget();
         }
 
-        private async UniTaskVoid RunGameEndSequenceAsync()
+        private async UniTaskVoid RunGameEndSequenceAsync(Dictionary<int, List<Card>> remainingHands)
         {
             _isGameEndingAnimation = true;
             UpdateStartGameButtonState(); // Hide it
 
+            // Display 'Game Ended' message
+            _gameMessagePresenter?.ShowInfo("Game Ended");
+
             // 1. Reveal any hidden/selected cards in the local hand so the player sees what they had left.
             _localHandView?.ShowHiddenSelectedCards();
             
-            // Note: If we had data on opponent hands, we would reveal them here.
+            // 2. Reveal opponent hands
+            if (_opponentHandRevealer != null && remainingHands != null)
+            {
+                var match = _presenter.CurrentMatch;
+                var localSeatIndex = match != null ? match.LocalSeatIndex : 0;
+                
+                // Hide counters first to reduce clutter
+                HideOpponentHandCounters();
 
-            // 2. Wait 3 seconds
+                foreach (var kvp in remainingHands)
+                {
+                    int seat = kvp.Key;
+                    List<Card> cards = kvp.Value;
+                    if (seat != localSeatIndex)
+                    {
+                        _opponentHandRevealer.RevealHand(seat, localSeatIndex, cards);
+                    }
+                }
+            }
+            else
+            {
+                if (_opponentHandRevealer == null) _logger.LogWarning("RunGameEndSequenceAsync: OpponentHandRevealer is null.");
+                if (remainingHands == null) _logger.LogWarning("RunGameEndSequenceAsync: RemainingHands is null.");
+            }
+
+            // 3. Wait 3 seconds
             await UniTask.Delay(TimeSpan.FromSeconds(3), ignoreTimeScale: true, cancellationToken: this.GetCancellationTokenOnDestroy());
 
-            // 3. Clean up
+            // 4. Clean up
             _boardCardsView?.Clear();
             _localHandView?.Clear();
+            _opponentHandRevealer?.Clear();
             
-            // 4. Reset opponent counters
+            // 5. Reset opponent counters
             HideOpponentHandCounters();
             Array.Clear(_opponentDealCounts, 0, _opponentDealCounts.Length);
 
             _isGameEndingAnimation = false;
             
-            // 5. Allow Start Game if applicable
+            // 6. Allow Start Game if applicable
             UpdateStartGameButtonState();
-            RefreshGameRoomUI(); // Ensure profiles are up to date (e.g. balance changes)
+            RefreshGameRoomUI();
         }
 
         private void HandleGameBoardUpdated(int seat, bool newRound)

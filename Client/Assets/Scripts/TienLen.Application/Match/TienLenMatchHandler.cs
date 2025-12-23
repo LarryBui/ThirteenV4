@@ -76,9 +76,9 @@ namespace TienLen.Application
         public event Action<int, string> GameErrorReceived;
 
         /// <summary>
-        /// Raised when the game ends, providing the finish order (seat indices).
+        /// Raised when the game ends, providing the finish order (seat indices) and remaining hands (seat -> cards).
         /// </summary>
-        public event Action<List<int>> GameEnded;
+        public event Action<List<int>, Dictionary<int, List<Card>>> GameEnded;
 
         public TienLenMatchHandler(
             IMatchNetworkClient networkClient,
@@ -241,11 +241,11 @@ namespace TienLen.Application
             }
         }
 
-        private void HandleGameEnded(List<int> finishOrderSeats)
+        private void HandleGameEnded(List<int> finishOrderSeats, Dictionary<int, List<Card>> remainingHands)
         {
             if (CurrentMatch == null) return;
             CurrentMatch.Phase = "Lobby";
-            GameEnded?.Invoke(finishOrderSeats);
+            GameEnded?.Invoke(finishOrderSeats, remainingHands);
             GameRoomStateUpdated?.Invoke();
         }
 
