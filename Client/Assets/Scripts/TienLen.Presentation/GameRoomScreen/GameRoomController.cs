@@ -159,8 +159,8 @@ namespace TienLen.Presentation.GameRoomScreen
             // Configure it if needed (it might be missing references if added dynamically)
             if (_opponentHandRevealer != null && _cardDealer != null)
             {
-                // We use the CardDealer's prefab for the opponent hands too
-                _opponentHandRevealer.Configure(_cardDealer, _cardDealer.CardPrefab);
+                // Use the local hand card prefab (front face) for revealing opponent hands
+                _opponentHandRevealer.Configure(_cardDealer, _localHandCardPrefab);
             }
         }
 
@@ -225,9 +225,6 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             _isGameEndingAnimation = true;
             UpdateStartGameButtonState(); // Hide it
-
-            // Display 'Game Ended' message
-            _gameMessagePresenter?.ShowInfo("Game Ended");
 
             // 1. Reveal any hidden/selected cards in the local hand so the player sees what they had left.
             _localHandView?.ShowHiddenSelectedCards();
