@@ -1,3 +1,4 @@
+using TienLen.Presentation.GameRoomScreen.Views;
 using VContainer;
 using VContainer.Unity;
 
@@ -7,8 +8,8 @@ namespace TienLen.Presentation.GameRoomScreen
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            // Register GameRoomController component in hierarchy so it gets injected
-            builder.RegisterComponentInHierarchy<GameRoomController>();
+            // Register GameRoomView component in hierarchy so it gets injected
+            builder.RegisterComponentInHierarchy<GameRoomView>();
             // Register CardDealer component in hierarchy so it gets injected
             builder.RegisterComponentInHierarchy<CardDealer>();
 

@@ -8,7 +8,7 @@ namespace TienLen.Presentation.GameRoomScreen
     /// <summary>
     /// Displays transient game messages and fades them out after a delay.
     /// </summary>
-    public sealed class GameMessagePresenter : MonoBehaviour
+    public sealed class GameRoomMessageView : MonoBehaviour
     {
         [Header("References")]
         [SerializeField] private TMP_Text _messageText;

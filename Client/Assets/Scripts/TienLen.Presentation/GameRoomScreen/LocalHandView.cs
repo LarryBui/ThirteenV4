@@ -16,6 +16,14 @@ namespace TienLen.Presentation.GameRoomScreen
     /// </summary>
     public sealed class LocalHandView : MonoBehaviour
     {
+        [Header("Configuration")]
+        [Tooltip("Prefab used to render the card (FrontCardView recommended).")]
+        [SerializeField] private GameObject _cardPrefab;
+        [Tooltip("Anchor used as the center for the hand layout.")]
+        [SerializeField] private RectTransform _handAnchor;
+        [Tooltip("Parent under a Canvas where instantiated cards will render.")]
+        [SerializeField] private Transform _uiParent;
+
         [Header("Layout")]
         [SerializeField] private float _cardSpacing = 60f;
         [SerializeField] private float _revealMoveDuration = 0.15f;
@@ -44,24 +52,9 @@ namespace TienLen.Presentation.GameRoomScreen
         /// </summary>
         public sealed class SelectedCardSnapshot
         {
-            /// <summary>
-            /// Domain card represented by the visual.
-            /// </summary>
             public Card Card { get; }
-
-            /// <summary>
-            /// RectTransform associated with the selected card.
-            /// </summary>
             public RectTransform Rect { get; }
-
-            /// <summary>
-            /// World position captured at snapshot time.
-            /// </summary>
             public Vector3 WorldPosition { get; }
-
-            /// <summary>
-            /// Local scale captured at snapshot time.
-            /// </summary>
             public Vector3 LocalScale { get; }
 
             public SelectedCardSnapshot(Card card, RectTransform rect, Vector3 worldPosition, Vector3 localScale)
@@ -103,8 +96,6 @@ namespace TienLen.Presentation.GameRoomScreen
         /// <summary>
         /// Captures the currently selected cards and their UI transforms in hand order.
         /// </summary>
-        /// <param name="snapshots">Snapshot list of selected cards.</param>
-        /// <returns>True if at least one selected card was captured.</returns>
         public bool TryGetSelectedCardSnapshots(out IReadOnlyList<SelectedCardSnapshot> snapshots)
         {
             if (_handCards.Count == 0)
@@ -187,20 +178,14 @@ namespace TienLen.Presentation.GameRoomScreen
         private IReadOnlyList<Card> _cardsToReveal = Array.Empty<Card>();
         private int _nextRevealIndex;
 
-        private RectTransform _handAnchor;
-        private Transform _uiParent;
-        private GameObject _cardPrefab;
-
         /// <summary>
         /// Immediately resets the hand to display the provided cards without animation.
-        /// Useful for refreshing the state after a play or when reconnecting.
         /// </summary>
         public void SetHand(IReadOnlyList<Card> cards)
         {
             Clear();
             if (cards == null || cards.Count == 0) return;
 
-            // Populate internal lists but do not animate
             for (int i = 0; i < cards.Count; i++)
             {
                 var card = cards[i];
@@ -216,15 +201,14 @@ namespace TienLen.Presentation.GameRoomScreen
 
                 var targetPos = GetTargetWorldPosition(i, cards.Count);
                 cardRect.position = targetPos;
-                cardRect.SetAsLastSibling(); // Ensure draw order
+                cardRect.SetAsLastSibling();
 
                 var entry = new HandCardEntry(card, cardRect, targetPos);
                 ApplyCardLabel(cardObject, card, enableRaycasts: _enableSelection);
 
                 if (_enableSelection)
                 {
-                    var selectionInput = cardObject.GetComponent<HandCardSelectionInput>();
-                    if (selectionInput == null) selectionInput = cardObject.AddComponent<HandCardSelectionInput>();
+                    var selectionInput = cardObject.GetComponent<HandCardSelectionInput>() ?? cardObject.AddComponent<HandCardSelectionInput>();
                     selectionInput.Bind(() => ToggleSelection(entry));
                 }
 
@@ -234,22 +218,8 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
-        /// Configures the UI objects used for rendering.
-        /// </summary>
-        /// <param name="cardPrefab">Prefab to instantiate per card (UI prefab with <see cref="RectTransform"/> recommended).</param>
-        /// <param name="handAnchor">Anchor used as the center for the hand layout.</param>
-        /// <param name="uiParent">Parent under a Canvas where instantiated cards will render.</param>
-        public void Configure(GameObject cardPrefab, RectTransform handAnchor, Transform uiParent)
-        {
-            _cardPrefab = cardPrefab;
-            _handAnchor = handAnchor;
-            _uiParent = uiParent;
-        }
-
-        /// <summary>
         /// Clears any previously rendered cards and primes the view to reveal the provided cards.
         /// </summary>
-        /// <param name="cards">Local player's hand, in the order they should be revealed.</param>
         public void BeginReveal(IReadOnlyList<Card> cards)
         {
             Clear();
@@ -258,16 +228,11 @@ namespace TienLen.Presentation.GameRoomScreen
         }
 
         /// <summary>
-        /// Reveals the next card in the prepared hand by spawning it at <paramref name="fromWorldPosition"/>
-        /// and animating it into its final slot relative to the configured hand anchor.
+        /// Reveals the next card in the prepared hand.
         /// </summary>
-        /// <param name="fromWorldPosition">World position where the deal animation landed.</param>
         public void RevealNextCard(Vector3 fromWorldPosition)
         {
-            if (_cardPrefab == null) return;
-            if (_handAnchor == null) return;
-            if (_uiParent == null) return;
-
+            if (_cardPrefab == null || _handAnchor == null || _uiParent == null) return;
             if (_nextRevealIndex < 0 || _nextRevealIndex >= _cardsToReveal.Count) return;
 
             var cardIndex = _nextRevealIndex;
@@ -294,12 +259,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
             if (_enableSelection)
             {
-                var selectionInput = cardObject.GetComponent<HandCardSelectionInput>();
-                if (selectionInput == null)
-                {
-                    selectionInput = cardObject.AddComponent<HandCardSelectionInput>();
-                }
-
+                var selectionInput = cardObject.GetComponent<HandCardSelectionInput>() ?? cardObject.AddComponent<HandCardSelectionInput>();
                 selectionInput.Bind(() => ToggleSelection(entry));
             }
 
@@ -316,8 +276,7 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             foreach (var rect in _spawnedCardRects)
             {
-                if (rect == null) continue;
-                Destroy(rect.gameObject);
+                if (rect != null) Destroy(rect.gameObject);
             }
 
             _spawnedCardRects.Clear();
@@ -332,7 +291,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private Vector3 GetTargetWorldPosition(int cardIndex, int totalCards)
         {
-            if (totalCards <= 0) return _handAnchor.position;
+            if (totalCards <= 0 || _handAnchor == null) return Vector3.zero;
 
             var offsetFromCenter = cardIndex - ((totalCards - 1) / 2f);
             return _handAnchor.position + (Vector3.right * (offsetFromCenter * _cardSpacing));
@@ -340,9 +299,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void ToggleSelection(HandCardEntry entry)
         {
-            if (entry == null) return;
-            if (!_enableSelection) return;
-            if (entry.Rect == null) return;
+            if (entry == null || !_enableSelection || entry.Rect == null) return;
 
             entry.IsSelected = !entry.IsSelected;
 
@@ -362,19 +319,15 @@ namespace TienLen.Presentation.GameRoomScreen
         private void RefreshSelectedCards()
         {
             _selectedCards.Clear();
-
             foreach (var entry in _handCards)
             {
-                if (entry == null) continue;
-                if (!entry.IsSelected) continue;
-                _selectedCards.Add(entry.Card);
+                if (entry != null && entry.IsSelected) _selectedCards.Add(entry.Card);
             }
         }
 
         private async UniTask AnimateTo(HandCardEntry entry, Vector3 targetWorldPosition, float durationSeconds)
         {
             if (entry == null) return;
-
             var rect = entry.Rect;
             if (rect == null) return;
             if (durationSeconds <= 0f)
@@ -384,7 +337,6 @@ namespace TienLen.Presentation.GameRoomScreen
             }
 
             var token = ++entry.AnimationToken;
-
             var startPosition = rect.position;
             var startTime = Time.time;
 
@@ -403,8 +355,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private static void ApplyCardLabel(GameObject cardObject, Card card, bool enableRaycasts)
         {
-            var image = cardObject.GetComponent<Image>();
-            if (image != null)
+            if (cardObject.TryGetComponent<Image>(out var image))
             {
                 image.raycastTarget = enableRaycasts;
             }
@@ -420,13 +371,11 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 var labelObject = new GameObject("Label", typeof(RectTransform));
                 labelObject.transform.SetParent(cardObject.transform, worldPositionStays: false);
-
                 var labelRect = (RectTransform)labelObject.transform;
                 labelRect.anchorMin = Vector2.zero;
                 labelRect.anchorMax = Vector2.one;
                 labelRect.offsetMin = Vector2.zero;
                 labelRect.offsetMax = Vector2.zero;
-
                 label = labelObject.AddComponent<TextMeshProUGUI>();
                 label.alignment = TextAlignmentOptions.Center;
                 label.enableAutoSizing = true;
@@ -437,12 +386,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
             label.raycastTarget = false;
             label.text = CardTextFormatter.FormatShort(card);
-            label.color = ToSuitColor(card.Suit);
-        }
-
-        private static Color ToSuitColor(Suit suit)
-        {
-            return suit is Suit.Diamonds or Suit.Hearts ? new Color(0.85f, 0.1f, 0.1f, 1f) : new Color(0.1f, 0.1f, 0.1f, 1f);
+            label.color = (card.Suit == Suit.Diamonds || card.Suit == Suit.Hearts) ? new Color(0.85f, 0.1f, 0.1f, 1f) : new Color(0.1f, 0.1f, 0.1f, 1f);
         }
     }
 }

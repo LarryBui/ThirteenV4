@@ -1,0 +1,164 @@
+GameRoom Redesign - Minimal MVP Skeleton (Clean Architecture)
+
+Purpose
+- Provide a minimal, testable skeleton for a new GameRoom scene.
+- Keep Unity UI passive; presenters own state and input logic.
+- Avoid direct domain access from views.
+
+Scope (MVP)
+- Basic room state display (seats, board, hand, actions, log, message).
+- Core actions (start, play, pass, leave).
+- Simple animation intents (deal, play, end-game reveal).
+
+Layering
+- Domain: Match, Player, Card, PlayValidator (unchanged).
+- Application: use-case interfaces and match state stream.
+- Presentation: view interfaces, presenter, view-state DTOs.
+- Infrastructure: Unity/Network adapters implementing interfaces.
+
+Interfaces (C# signatures, minimal)
+
+Application:
+public interface IMatchUseCases
+{
+    UniTask StartGameAsync();
+    UniTask PlayCardsAsync(IReadOnlyList<Card> cards);
+    UniTask PassTurnAsync();
+    UniTask LeaveMatchAsync();
+}
+
+public interface IMatchStateStream : IDisposable
+{
+    event Action MatchSnapshotApplied;
+    event Action<int, bool> BoardUpdated; // seat, newRound
+    event Action<int, IReadOnlyList<Card>> CardsPlayed; // seat, cards
+    event Action<int> TurnPassed; // seat
+    event Action<int, long> TurnTimerUpdated; // seat, seconds
+    event Action<IReadOnlyList<PresenceChange>> PresenceChanged;
+    event Action<List<int>, Dictionary<int, List<Card>>> GameEnded;
+    event Action<int, string> ErrorReceived;
+    Match CurrentMatch { get; } // kept internal to presenter layer
+}
+
+Presentation (Unity-independent):
+public interface IGameRoomView
+{
+    event Action StartRequested;
+    event Action<IReadOnlyList<Card>> PlayRequested;
+    event Action PassRequested;
+    event Action LeaveRequested;
+    event Action<IReadOnlyList<Card>> SelectionChanged;
+
+    void Render(GameRoomViewState state);
+    void AnimateDeal(int totalCards);
+    void AnimatePlay(int seat, IReadOnlyList<Card> cards);
+    void RevealOpponentHands(Dictionary<int, List<Card>> remainingHands);
+    void ClearBoardAndHands();
+}
+
+public interface ISeatMapper
+{
+    int ToLocalIndex(int absoluteSeat, int localSeat);
+}
+
+public interface IGameRoomPresenter : IDisposable
+{
+    void Initialize(IGameRoomView view);
+}
+
+View State DTOs (no Unity types)
+public sealed class GameRoomViewState
+{
+    public string Phase;
+    public SeatViewState[] Seats; // length 4
+    public HandViewState Hand;
+    public BoardViewState Board;
+    public ActionViewState Actions;
+    public TimerViewState Timer;
+    public LogViewState Log;
+    public MessageViewState Message;
+    public bool IsPending;
+}
+
+public sealed class SeatViewState
+{
+    public int SeatIndex;
+    public string DisplayName;
+    public int AvatarIndex;
+    public bool IsOwner;
+    public bool IsTurn;
+    public int CardsRemaining;
+    public bool IsOccupied;
+}
+
+public sealed class HandViewState
+{
+    public IReadOnlyList<Card> Cards;
+    public IReadOnlyList<Card> Selected;
+    public bool CanSelect;
+}
+
+public sealed class BoardViewState
+{
+    public IReadOnlyList<Card> Cards;
+    public string Label;
+    public bool IsNewRound;
+}
+
+public sealed class ActionViewState
+{
+    public bool CanStart;
+    public bool CanPlay;
+    public bool CanPass;
+    public bool CanLeave;
+}
+
+public sealed class TimerViewState
+{
+    public int ActiveSeat;
+    public long SecondsRemaining;
+}
+
+public sealed class LogViewState
+{
+    public IReadOnlyList<string> Entries; // newest first
+}
+
+public sealed class MessageViewState
+{
+    public string Text;
+    public string Severity; // "info", "warning", "error"
+}
+
+Presenter Responsibilities (MVP)
+- Subscribe to IMatchStateStream events and build GameRoomViewState.
+- Map domain state to view state (no Match exposure to view).
+- Validate selections using PlayValidator and gate actions.
+- Track pending actions and surface errors to MessageViewState.
+- Translate seat indices using ISeatMapper for UI order.
+
+View Responsibilities (MVP)
+- Store references to subviews (SeatView, BoardView, HandView, ActionBar, LogView).
+- Render GameRoomViewState only (no business logic).
+- Emit input events to the presenter.
+- Execute animation intents (deal/play/end reveal) on request.
+
+Wiring (Unity)
+- GameRoomLifetimeScope registers:
+  - IMatchUseCases (adapter to TienLenMatchHandler).
+  - IMatchStateStream (adapter to TienLenMatchHandler events).
+  - ISeatMapper (fixed 4-seat mapper).
+  - GameRoomPresenter (scoped).
+  - GameRoomView (scene root MonoBehaviour).
+
+Event Flow (MVP)
+1) Scene load -> Presenter.Initialize(view) -> Render(snapshot).
+2) Player selects cards -> SelectionChanged -> Presenter validates -> Render(actions).
+3) Play clicked -> PlayRequested -> Presenter calls PlayCardsAsync -> set pending -> Render(actions disabled).
+4) CardsPlayed event -> Presenter updates state -> View.AnimatePlay() -> Render().
+5) GameEnded event -> View.RevealOpponentHands() -> delay -> View.ClearBoardAndHands().
+
+Notes
+- Keep Unity-only animations in the View layer.
+- Keep Match access inside Presenter; expose only view-state DTOs.
+- No code changes made; this is the minimal skeleton for approval.
