@@ -43,13 +43,12 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         /// <summary>
         /// Updates the profile data displayed for this seat.
         /// </summary>
-        public void SetProfile(string displayName, int avatarIndex, int seatIndex, bool isOwner)
+        public void SetProfile(string displayName, Sprite avatar, int seatIndex, bool isOwner)
         {
             _seatIndex = seatIndex;
             if (_displayNameText != null) _displayNameText.text = displayName;
             if (_ownerIndicator != null) _ownerIndicator.SetActive(isOwner);
-            
-            // TODO: Map avatarIndex to a Sprite library/atlas
+            if (_avatarImage != null) _avatarImage.sprite = avatar;
             
             SetActive(true);
         }
