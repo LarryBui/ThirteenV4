@@ -1,7 +1,7 @@
 using TienLen.Domain.Enums;
 using TienLen.Domain.ValueObjects;
 
-namespace TienLen.Presentation.GameRoomScreen
+namespace TienLen.Presentation.GameRoomScreen.Utils
 {
     /// <summary>
     /// Formats card values for UI display using rank shorthand and Unicode suit symbols.

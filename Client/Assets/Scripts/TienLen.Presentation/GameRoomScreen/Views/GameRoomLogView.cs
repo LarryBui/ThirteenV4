@@ -3,7 +3,7 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
 
-namespace TienLen.Presentation.GameRoomScreen
+namespace TienLen.Presentation.GameRoomScreen.Views
 {
     /// <summary>
     /// Displays a short rolling log of recent room actions.

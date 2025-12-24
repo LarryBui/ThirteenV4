@@ -5,8 +5,10 @@ using TienLen.Domain.ValueObjects;
 using TienLen.Domain.Enums;
 using TMPro;
 using UnityEngine.UI;
+using TienLen.Presentation.GameRoomScreen.Components;
+using TienLen.Presentation.GameRoomScreen.Utils;
 
-namespace TienLen.Presentation.GameRoomScreen
+namespace TienLen.Presentation.GameRoomScreen.Views
 {
     /// <summary>
     /// Renders opponent cards when the game ends.

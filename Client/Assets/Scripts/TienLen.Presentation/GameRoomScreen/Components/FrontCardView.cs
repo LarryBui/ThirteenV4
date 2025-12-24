@@ -2,8 +2,9 @@ using TMPro;
 using TienLen.Domain.Enums;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
+using TienLen.Presentation.GameRoomScreen.Utils;
 
-namespace TienLen.Presentation.GameRoomScreen
+namespace TienLen.Presentation.GameRoomScreen.Components
 {
     /// <summary>
     /// UI view component for a face-up card prefab.

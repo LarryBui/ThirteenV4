@@ -3,7 +3,8 @@ using Cysharp.Threading.Tasks;
 using TienLen.Domain.ValueObjects;
 using UnityEngine;
 using UnityEngine.UI; // Needed for Layout components if we used them, or general UI
-using TMPro; // For labels
+using TMPro;
+using TienLen.Presentation.GameRoomScreen.Components; // For labels
 
 namespace TienLen.Presentation.GameRoomScreen.Views
 {

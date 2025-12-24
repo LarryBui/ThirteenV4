@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using TienLen.Presentation.GameRoomScreen.Views;
 using UnityEngine;
 using VContainer;
 
-namespace TienLen.Presentation.GameRoomScreen
+namespace TienLen.Presentation.GameRoomScreen.Services
 {
     /// <summary>
     /// Animates the dealing of cards from a deck to player seats.

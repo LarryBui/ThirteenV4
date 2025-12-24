@@ -4,10 +4,12 @@ using Cysharp.Threading.Tasks;
 using TMPro;
 using TienLen.Domain.Enums;
 using TienLen.Domain.ValueObjects;
+using TienLen.Presentation.GameRoomScreen.Components;
+using TienLen.Presentation.GameRoomScreen.Utils;
 using UnityEngine;
 using UnityEngine.UI;
 
-namespace TienLen.Presentation.GameRoomScreen
+namespace TienLen.Presentation.GameRoomScreen.Views
 {
     /// <summary>
     /// Renders the local player's hand as persistent UI cards.
