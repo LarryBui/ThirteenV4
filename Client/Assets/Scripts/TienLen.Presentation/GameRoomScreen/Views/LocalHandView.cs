@@ -295,8 +295,8 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         {
             if (totalCards <= 0 || _handAnchor == null) return Vector3.zero;
 
-            var offsetFromCenter = cardIndex - ((totalCards - 1) / 2f);
-            return _handAnchor.position + (Vector3.right * (offsetFromCenter * _cardSpacing));
+            // Start at the anchor and grow to the right based on card index.
+            return _handAnchor.position + (Vector3.right * (cardIndex * _cardSpacing));
         }
 
         private void ToggleSelection(HandCardEntry entry)
