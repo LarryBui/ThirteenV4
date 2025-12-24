@@ -10,6 +10,7 @@ using TienLen.Presentation.GameRoomScreen.Components;
 using VContainer;
 using Cysharp.Threading.Tasks;
 
+
 namespace TienLen.Presentation.GameRoomScreen.Views
 {
     /// <summary>
@@ -30,14 +31,19 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private CardDealer _cardDealer;
 
         private GameRoomPresenter _presenter;
+        private TienLen.Infrastructure.Config.AvatarRegistry _avatarRegistry;
         private ILogger<GameRoomView> _logger;
         private bool _isLeaving;
         private bool _isAnimationBlocking; // Blocks input during critical sequences
 
         [Inject]
-        public void Construct(GameRoomPresenter presenter, ILogger<GameRoomView> logger)
+        public void Construct(
+            GameRoomPresenter presenter, 
+            TienLen.Infrastructure.Config.AvatarRegistry avatarRegistry,
+            ILogger<GameRoomView> logger)
         {
             _presenter = presenter;
+            _avatarRegistry = avatarRegistry;
             _logger = logger ?? NullLogger<GameRoomView>.Instance;
         }
 
@@ -47,6 +53,12 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             {
                 _logger.LogError("GameRoomView: Presenter not injected.");
                 return;
+            }
+
+            // 0. Configure Sub-Views
+            if (_seatsManager != null && _avatarRegistry != null)
+            {
+                _seatsManager.Configure(_avatarRegistry);
             }
 
             // 1. Wire Up Input (View -> Presenter)

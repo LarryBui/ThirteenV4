@@ -18,7 +18,13 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private PlayerSeatView _northSeat;
         [SerializeField] private PlayerSeatView _westSeat;
 
+        private TienLen.Infrastructure.Config.AvatarRegistry _avatarRegistry;
         private readonly Dictionary<int, PlayerSeatView> _seatIndexToViewMap = new Dictionary<int, PlayerSeatView>();
+
+        public void Configure(TienLen.Infrastructure.Config.AvatarRegistry avatarRegistry)
+        {
+            _avatarRegistry = avatarRegistry;
+        }
 
         /// <summary>
         /// Synchronizes the visual seats with the current match state.
@@ -59,13 +65,15 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
                 if (match.Players != null && match.Players.TryGetValue(userId, out var player))
                 {
-                    view.SetProfile(player.DisplayName, player.AvatarIndex, currentSeatIndex, currentSeatIndex == match.OwnerSeat);
+                    Sprite avatar = _avatarRegistry != null ? _avatarRegistry.GetAvatar(player.AvatarIndex) : null;
+                    view.SetProfile(player.DisplayName, avatar, currentSeatIndex, currentSeatIndex == match.OwnerSeat);
                     view.SetCardCount(player.CardsRemaining);
                 }
                 else
                 {
                     // Fallback for identified but missing player data
-                    view.SetProfile($"Player {userId.Substring(0, Mathf.Min(userId.Length, 4))}", 0, currentSeatIndex, false);
+                    Sprite fallbackAvatar = _avatarRegistry != null ? _avatarRegistry.GetAvatar(0) : null;
+                    view.SetProfile($"Player {userId.Substring(0, Mathf.Min(userId.Length, 4))}", fallbackAvatar, currentSeatIndex, false);
                     view.SetCardCount(0);
                 }
             }

@@ -296,6 +296,7 @@ MonoBehaviour:
   autoRun: 1
   autoInjectGameObjects:
   - {fileID: 0}
+  _avatarRegistry: {fileID: 11400000, guid: c38da596d5061a04fa58dc1bc1746cb0, type: 2}
 --- !u!4 &179092441
 Transform:
   m_ObjectHideFlags: 0

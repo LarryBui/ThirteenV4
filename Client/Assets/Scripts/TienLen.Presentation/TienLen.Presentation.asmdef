@@ -4,6 +4,7 @@
     "references": [
         "TienLen.Domain",
         "TienLen.Application",
+        "TienLen.Infrastructure",
         "VContainer",
         "UniTask",
         "Unity.InputSystem",
