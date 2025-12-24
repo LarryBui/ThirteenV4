@@ -229,6 +229,12 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             var seatView = _seatsManager.GetViewBySeatIndex(seatIndex);
             Vector3 spawnPos = seatView != null ? seatView.CardSourceAnchor.position : Vector3.zero;
 
+            // Decrement counter for non-local players
+            if (seatIndex != (_presenter.CurrentMatch?.LocalSeatIndex ?? -1))
+            {
+                _seatsManager.DecrementSeatCardCount(seatIndex, cards.Count);
+            }
+
             // If local player, maybe we spawn from hand? 
             // _localHandView has the specific card positions.
             // For simplicity, let's use the Seat Anchor for everyone for now.

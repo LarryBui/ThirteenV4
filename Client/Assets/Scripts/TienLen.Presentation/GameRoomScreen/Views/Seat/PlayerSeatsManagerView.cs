@@ -60,14 +60,34 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 if (match.Players != null && match.Players.TryGetValue(userId, out var player))
                 {
                     view.SetProfile(player.DisplayName, player.AvatarIndex, currentSeatIndex, currentSeatIndex == match.OwnerSeat);
-                    // TODO: view.SetBalance(player.Balance);
+                    view.SetCardCount(player.CardsRemaining);
                 }
                 else
                 {
                     // Fallback for identified but missing player data
                     view.SetProfile($"Player {userId.Substring(0, Mathf.Min(userId.Length, 4))}", 0, currentSeatIndex, false);
+                    view.SetCardCount(0);
                 }
             }
+        }
+
+        /// <summary>
+        /// Increments the card count for a specific relative visual index.
+        /// index: 0=South, 1=East, 2=North, 3=West.
+        /// </summary>
+        public void IncrementSeatCardCount(int relativeIndex)
+        {
+            var view = GetViewByRelativeIndex(relativeIndex);
+            view?.IncrementCardCount();
+        }
+
+        /// <summary>
+        /// Decrements the card count for a specific absolute seat index.
+        /// </summary>
+        public void DecrementSeatCardCount(int absoluteSeatIndex, int amount)
+        {
+            var view = GetViewBySeatIndex(absoluteSeatIndex);
+            view?.DecrementCardCount(amount);
         }
 
         public PlayerSeatView GetViewBySeatIndex(int seatIndex)

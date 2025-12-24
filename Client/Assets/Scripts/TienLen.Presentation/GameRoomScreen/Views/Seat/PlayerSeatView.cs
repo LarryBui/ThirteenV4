@@ -29,6 +29,9 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [Tooltip("The point from which cards fly when this player plays.")]
         [SerializeField] private RectTransform _cardSourceAnchor;
 
+        [Header("Sub-Views")]
+        [SerializeField] private OpponentHandCounterView _handCounter;
+
         private int _seatIndex = -1;
         public int SeatIndex => _seatIndex;
         public RectTransform CardSourceAnchor => _cardSourceAnchor != null ? _cardSourceAnchor : (RectTransform)transform;
@@ -56,12 +59,28 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             if (_balanceText != null) _balanceText.text = balance.ToString("N0");
         }
 
+        public void SetCardCount(int count)
+        {
+            _handCounter?.SetCount(count);
+        }
+
+        public void IncrementCardCount()
+        {
+            _handCounter?.Increment();
+        }
+
+        public void DecrementCardCount(int amount)
+        {
+            _handCounter?.Decrement(amount);
+        }
+
         public void ClearProfile()
         {
             _seatIndex = -1;
             if (_displayNameText != null) _displayNameText.text = string.Empty;
             if (_balanceText != null) _balanceText.text = string.Empty;
             if (_ownerIndicator != null) _ownerIndicator.SetActive(false);
+            _handCounter?.SetCount(0);
             StopCountdown();
             SetTurnActive(false);
         }

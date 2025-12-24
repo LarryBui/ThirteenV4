@@ -1043,7 +1043,7 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 1322838984650052823}
-  - component: {fileID: 2657570764091836326}
+  - component: {fileID: 445356018799112999}
   m_Layer: 5
   m_Name: AvatarTemplate
   m_TagString: Untagged
@@ -1076,7 +1076,7 @@ RectTransform:
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 150, y: 200}
   m_Pivot: {x: 0.5, y: 0.5}
---- !u!114 &2657570764091836326
+--- !u!114 &445356018799112999
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -1085,7 +1085,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 9216061137605129075}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 41dd08fd52aaaff42b8dd8e8699b18bf, type: 3}
+  m_Script: {fileID: 11500000, guid: c73ef380eb52df848bf16b9703aba6c3, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   _displayNameText: {fileID: 5107084005626152000}
@@ -1097,3 +1097,4 @@ MonoBehaviour:
   _countdownText: {fileID: 6979569748611344867}
   _countdownProgressImage: {fileID: 5023478714844497054}
   _cardSourceAnchor: {fileID: 5373002264725373770}
+  _handCounter: {fileID: 4998406368145286819, guid: 6ed2027624b644b28eac21bf8bd622a2, type: 3}
