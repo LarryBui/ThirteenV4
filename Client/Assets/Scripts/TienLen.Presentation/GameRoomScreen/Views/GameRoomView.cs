@@ -25,8 +25,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private GameRoomMessageView _messageView;
         [SerializeField] private GameRoomLogView _logView;
         [SerializeField] private OpponentHandRevealer _opponentRevealer;
-
-        [Header("Services")]
         [SerializeField] private CardDealer _cardDealer;
 
         private GameRoomPresenter _presenter;
@@ -70,7 +68,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _presenter.OnCardsPlayed += HandleCardsPlayed;
             _presenter.OnTurnPassed += HandleTurnPassed;
             _presenter.OnBoardUpdated += HandleBoardUpdated;
-            _presenter.OnError += (msg) => _messageView?.ShowError(msg);
+            _presenter.OnError += HandleError;
             _presenter.OnTurnCountdownUpdated += HandleTurnCountdown;
             _presenter.OnPresenceChanged += HandlePresenceChanged;
             _presenter.OnGameEnded += HandleGameEnded;
@@ -88,7 +86,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 _presenter.OnCardsPlayed -= HandleCardsPlayed;
                 _presenter.OnTurnPassed -= HandleTurnPassed;
                 _presenter.OnBoardUpdated -= HandleBoardUpdated;
-                _presenter.OnError -= (msg) => _messageView?.ShowError(msg); // Lambda unsubscribe note: this might leak if not careful, but acceptable for Mono lifecycle
+                _presenter.OnError -= HandleError;
                 _presenter.OnTurnCountdownUpdated -= HandleTurnCountdown;
                 _presenter.OnPresenceChanged -= HandlePresenceChanged;
                 _presenter.OnGameEnded -= HandleGameEnded;
@@ -96,6 +94,11 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         }
 
         // --- Interaction Handlers ---
+
+        private void HandleError(string message)
+        {
+            _messageView?.ShowError(message);
+        }
 
         private void HandlePlayClicked()
         {
