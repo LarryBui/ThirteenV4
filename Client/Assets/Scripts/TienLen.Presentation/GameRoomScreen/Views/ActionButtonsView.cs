@@ -44,10 +44,18 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         private void Awake()
         {
-            _startGameButton?.onClick.AddListener(() => StartGameClicked?.Invoke());
+            _startGameButton?.onClick.AddListener(() => 
+            {
+                Debug.Log("[ActionButtonsView] Start Game button clicked.");
+                StartGameClicked?.Invoke();
+            });
             _playButton?.onClick.AddListener(() => PlayClicked?.Invoke());
             _passButton?.onClick.AddListener(() => PassClicked?.Invoke());
-            _leaveButton?.onClick.AddListener(() => LeaveClicked?.Invoke());
+            _leaveButton?.onClick.AddListener(() => 
+            {
+                Debug.Log("[ActionButtonsView] Leave button clicked.");
+                LeaveClicked?.Invoke();
+            });
         }
 
         public void SetStartButtonVisible(bool visible) => _startGameButton?.gameObject.SetActive(visible);

@@ -50,7 +50,11 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             }
 
             // 1. Wire Up Input (View -> Presenter)
-            _actionButtons.StartGameClicked += () => _presenter.StartGame();
+            _actionButtons.StartGameClicked += () => 
+            {
+                Debug.Log("[GameRoomView] StartGame requested via ActionButtons.");
+                _presenter.StartGame();
+            };
             _actionButtons.PassClicked += () => 
             {
                 _presenter.PassTurn();
@@ -128,11 +132,33 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         private void HandleLeaveClicked()
         {
+            LeaveAsync().Forget();
+        }
+
+        private async UniTaskVoid LeaveAsync()
+        {
+            if (_isLeaving) return;
             _isLeaving = true;
+
             _actionButtons.SetLeaveButtonInteractable(false);
-            _presenter.LeaveMatchAsync().Forget();
-            // Scene unloading logic should be handled by a higher level navigator or here
-            // UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync...
+
+            try
+            {
+                await _presenter.LeaveMatchAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "GameRoomView: Leave failed.");
+            }
+            finally
+            {
+                await UniTask.SwitchToMainThread();
+                var scene = gameObject.scene;
+                if (scene.IsValid() && scene.isLoaded)
+                {
+                    await UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync(scene);
+                }
+            }
         }
 
         private void OnLocalHandSelectionChanged(IReadOnlyList<Card> selection)
