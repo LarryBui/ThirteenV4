@@ -259,7 +259,11 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 var selection = _localHandView?.SelectedCards;
                 bool hasSelection = selection != null && selection.Count > 0;
                 var validation = _presenter.ValidatePlay(selection);
-                _actionButtons.SetPlayButtonInteractable(validation.IsValid);
+
+                // Play button is interactable if selection is valid OR if nothing is selected yet.
+                // It only disables if a selection is made that is actually invalid.
+                bool isPlayInteractable = validation.IsValid || validation.Reason == TienLen.Domain.Services.PlayValidationReason.NoSelection;
+                _actionButtons.SetPlayButtonInteractable(isPlayInteractable);
                 _actionButtons.SetPlayButtonValidationVisual(validation.IsValid || !hasSelection);
 
                 bool hasMove = false;
