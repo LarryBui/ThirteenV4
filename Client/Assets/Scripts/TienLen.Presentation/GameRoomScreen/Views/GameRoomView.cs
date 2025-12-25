@@ -202,13 +202,30 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _seatsManager.RefreshSeats(match, localSeat);
 
             // Board
-            if (match != null) _boardView.SetBoard(match.CurrentBoard);
+            if (match != null)
+            {
+                 if (match.Phase == "Playing")
+                 {
+                     _boardView.SetBoard(match.CurrentBoard);
+                 }
+                 else
+                 {
+                     _boardView.Clear();
+                 }
+            }
 
             // Local Hand
             // Only update if NOT currently animating the deal/sort sequence
-            if (!_isDealing && _presenter.TryGetLocalHand(out var hand))
+            if (!_isDealing)
             {
-                _localHandView?.SetHand(hand);
+                if (match != null && match.Phase == "Playing" && _presenter.TryGetLocalHand(out var hand))
+                {
+                    _localHandView?.SetHand(hand);
+                }
+                else
+                {
+                    _localHandView?.Clear();
+                }
             }
 
             // Buttons
@@ -354,6 +371,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         {
             _isAnimationBlocking = true;
             _actionButtons.SetActionButtonsVisible(false); // Hide inputs
+            _actionButtons.SetStartButtonVisible(false); // Ensure Start is hidden
             _messageView.ShowInfo("Game Ended");
 
             // 1. Reveal Local
@@ -375,7 +393,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
             // 4. Cleanup
             _boardView.Clear();
-            _localHandView?.Clear(); // Or ClearHand() if method name matches
+            _localHandView?.Clear(); 
             _opponentRevealer?.Clear();
             _seatsManager.StopAllCountdowns();
 

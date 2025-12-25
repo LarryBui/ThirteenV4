@@ -46,6 +46,7 @@ namespace TienLen.Presentation.GameRoomScreen.Components
             {
                 _presenter.OnSeatCardCountUpdated += HandleSeatCardCountUpdated;
                 _presenter.OnGameStarted += HandleGameStarted;
+                _presenter.OnGameEnded += HandleGameEnded;
             }
             
             SetAllCounts(0);
@@ -57,6 +58,7 @@ namespace TienLen.Presentation.GameRoomScreen.Components
             {
                 _presenter.OnSeatCardCountUpdated -= HandleSeatCardCountUpdated;
                 _presenter.OnGameStarted -= HandleGameStarted;
+                _presenter.OnGameEnded -= HandleGameEnded;
             }
         }
 
@@ -85,6 +87,11 @@ namespace TienLen.Presentation.GameRoomScreen.Components
         }
 
         private void HandleGameStarted()
+        {
+            SetAllCounts(0);
+        }
+
+        private void HandleGameEnded(System.Collections.Generic.List<int> finishOrder, System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<TienLen.Domain.ValueObjects.Card>> remainingHands)
         {
             SetAllCounts(0);
         }
