@@ -117,9 +117,6 @@ namespace TienLen.Presentation.GameRoomScreen.Services
             {
                 cardRect.position = targetPosition;
                 
-                // Increment visual counter for opponents
-                _seatsManager?.IncrementSeatCardCount(playerIndex);
-
                 CardArrivedAtPlayerAnchor?.Invoke(playerIndex, targetPosition);
                 cardRect.gameObject.SetActive(false);
                 _cardPool.Enqueue(cardRect.gameObject);

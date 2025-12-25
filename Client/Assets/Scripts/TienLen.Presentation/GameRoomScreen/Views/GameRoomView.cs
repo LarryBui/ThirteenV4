@@ -127,6 +127,10 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         private void HandleCardArrived(int relativeIndex, Vector3 position)
         {
             if (_isLeaving) return;
+            
+            // Notify Presenter to update logic/counts
+            _presenter.OnCardDelivered(relativeIndex);
+
             // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
             if (relativeIndex == 0)
             {
@@ -340,12 +344,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             // We need the world position of the player's avatar to spawn the flying cards
             var seatView = _seatsManager.GetViewBySeatIndex(seatIndex);
             Vector3 spawnPos = seatView != null ? seatView.CardSourceAnchor.position : Vector3.zero;
-
-            // Decrement counter for non-local players
-            if (seatIndex != (_presenter.CurrentMatch?.LocalSeatIndex ?? -1))
-            {
-                _seatsManager.DecrementSeatCardCount(seatIndex, cards.Count);
-            }
 
             // If local player, maybe we spawn from hand? 
             // _localHandView has the specific card positions.

@@ -16,7 +16,14 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         public void SetActive(bool active)
         {
-            if (_container != null) _container.SetActive(active);
+            if (_container != null)
+            {
+                _container.SetActive(active);
+            }
+            else
+            {
+                gameObject.SetActive(active);
+            }
         }
 
         public void SetCount(int count)

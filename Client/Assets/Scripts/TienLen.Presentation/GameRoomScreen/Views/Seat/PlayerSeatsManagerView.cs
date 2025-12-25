@@ -67,35 +67,14 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 {
                     Sprite avatar = _avatarRegistry != null ? _avatarRegistry.GetAvatar(player.AvatarIndex) : null;
                     view.SetProfile(player.DisplayName, avatar, currentSeatIndex, currentSeatIndex == match.OwnerSeat);
-                    view.SetCardCount(player.CardsRemaining);
                 }
                 else
                 {
                     // Fallback for identified but missing player data
                     Sprite fallbackAvatar = _avatarRegistry != null ? _avatarRegistry.GetAvatar(0) : null;
                     view.SetProfile($"Player {userId.Substring(0, Mathf.Min(userId.Length, 4))}", fallbackAvatar, currentSeatIndex, false);
-                    view.SetCardCount(0);
                 }
             }
-        }
-
-        /// <summary>
-        /// Increments the card count for a specific relative visual index.
-        /// index: 0=South, 1=East, 2=North, 3=West.
-        /// </summary>
-        public void IncrementSeatCardCount(int relativeIndex)
-        {
-            var view = GetViewByRelativeIndex(relativeIndex);
-            view?.IncrementCardCount();
-        }
-
-        /// <summary>
-        /// Decrements the card count for a specific absolute seat index.
-        /// </summary>
-        public void DecrementSeatCardCount(int absoluteSeatIndex, int amount)
-        {
-            var view = GetViewBySeatIndex(absoluteSeatIndex);
-            view?.DecrementCardCount(amount);
         }
 
         public PlayerSeatView GetViewBySeatIndex(int seatIndex)
