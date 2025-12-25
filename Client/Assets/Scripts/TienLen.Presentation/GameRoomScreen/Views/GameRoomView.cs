@@ -252,9 +252,21 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 _actionButtons.SetPassButtonInteractable(canPass);
                 
                 var selection = _localHandView?.SelectedCards;
+                bool hasSelection = selection != null && selection.Count > 0;
                 var validation = _presenter.ValidatePlay(selection);
                 _actionButtons.SetPlayButtonInteractable(validation.IsValid);
-                _actionButtons.SetPlayButtonValidationVisual(validation.IsValid);
+                _actionButtons.SetPlayButtonValidationVisual(validation.IsValid || !hasSelection);
+
+                bool hasMove = false;
+                if (_presenter.TryGetLocalHand(out var hand))
+                {
+                    hasMove = _presenter.HasPlayableMove(hand);
+                }
+                _actionButtons.SetPassButtonHighlight(!hasMove && canPass);
+            }
+            else
+            {
+                 _actionButtons.SetPassButtonHighlight(false);
             }
         }
 

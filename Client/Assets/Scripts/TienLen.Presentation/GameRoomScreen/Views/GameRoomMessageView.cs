@@ -66,6 +66,8 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             SetMessageVisible(true);
             SetMessageAlpha(1f);
             _lastShownAt = Time.time;
+
+            RequestClear();
         }
 
         private async UniTaskVoid ClearAfterMinimumAsync(int token)
