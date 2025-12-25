@@ -69,24 +69,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         {
             if (_presenter != null && _presenter.TryGetLocalHand(out var hand))
             {
-                // Visual shuffle: Reveal cards in a random order
-                var shuffledHand = new List<Card>(hand);
-                ShuffleList(shuffledHand);
-                BeginReveal(shuffledHand);
-            }
-        }
-
-        private void ShuffleList<T>(IList<T> list)
-        {
-            var rng = new System.Random();
-            int n = list.Count;
-            while (n > 1)
-            {
-                n--;
-                int k = rng.Next(n + 1);
-                T value = list[k];
-                list[k] = list[n];
-                list[n] = value;
+                BeginReveal(hand);
             }
         }
 
@@ -95,24 +78,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             if (seatIndex == 0)
             {
                 RevealNextCard(position);
-                
-                // If all cards dealt (standard 13), trigger sort
-                if (_nextRevealIndex >= _cardsToReveal.Count && _cardsToReveal.Count > 0)
-                {
-                    OnAllCardsReceived().Forget();
-                }
-            }
-        }
-
-        private async UniTaskVoid OnAllCardsReceived()
-        {
-            // Wait for final reveal animation to breathe
-            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-            
-            // Get actual sorted hand from presenter
-            if (_presenter != null && _presenter.TryGetLocalHand(out var hand))
-            {
-                await SortHandAnimation(hand);
             }
         }
 
@@ -232,101 +197,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             }
 
             _hiddenSelectedCards.Clear();
-        }
-
-        /// <summary>
-        /// Reorders the cards visually to match the provided sorted list.
-        /// Performs a "Flip" animation: Rotate 90deg -> Swap positions -> Rotate back 0deg.
-        /// </summary>
-        public async UniTask SortHandAnimation(IReadOnlyList<Card> sortedCards)
-        {
-            if (sortedCards == null || sortedCards.Count != _handCards.Count) return;
-
-            // 1. Flip Out (Rotate to 90 degrees Y)
-            var flipOutTasks = new List<UniTask>();
-            foreach (var entry in _handCards)
-            {
-                if (entry.Rect != null)
-                {
-                    flipOutTasks.Add(AnimateRotation(entry.Rect, Quaternion.Euler(0, 90, 0), 0.2f));
-                }
-            }
-            await UniTask.WhenAll(flipOutTasks);
-
-            // 2. Logic Swap & Reposition
-            // Map existing entries by Card
-            var entryMap = new Dictionary<Card, HandCardEntry>();
-            foreach (var entry in _handCards)
-            {
-                if (entry != null && entry.Card != null)
-                {
-                    entryMap[entry.Card] = entry;
-                }
-            }
-
-            // Rebuild _handCards list in the new order
-            var newOrder = new List<HandCardEntry>();
-            foreach (var card in sortedCards)
-            {
-                if (entryMap.TryGetValue(card, out var entry))
-                {
-                    newOrder.Add(entry);
-                }
-                else
-                {
-                    return; // Abort if mismatch
-                }
-            }
-
-            _handCards.Clear();
-            _handCards.AddRange(newOrder);
-
-            // Snap to new positions while invisible (at 90 degrees)
-            for (int i = 0; i < _handCards.Count; i++)
-            {
-                var entry = _handCards[i];
-                var targetPos = GetTargetWorldPosition(i, _handCards.Count);
-                entry.BaseWorldPosition = targetPos;
-                if (entry.Rect != null)
-                {
-                    entry.Rect.position = targetPos;
-                }
-            }
-
-            // Small delay for visual pacing
-            await UniTask.Delay(TimeSpan.FromSeconds(0.1f));
-
-            // 3. Flip In (Rotate back to 0 degrees Y)
-            var flipInTasks = new List<UniTask>();
-            foreach (var entry in _handCards)
-            {
-                if (entry.Rect != null)
-                {
-                    flipInTasks.Add(AnimateRotation(entry.Rect, Quaternion.identity, 0.2f));
-                }
-            }
-            await UniTask.WhenAll(flipInTasks);
-        }
-
-        private async UniTask AnimateRotation(RectTransform rect, Quaternion targetRotation, float duration)
-        {
-            if (rect == null) return;
-            var startRotation = rect.rotation;
-            var startTime = Time.time;
-
-            while (rect != null && Time.time < startTime + duration)
-            {
-                float t = (Time.time - startTime) / duration;
-                // Use smooth step for nicer easing
-                t = t * t * (3f - 2f * t); 
-                rect.rotation = Quaternion.Lerp(startRotation, targetRotation, t);
-                await UniTask.Yield();
-            }
-
-            if (rect != null)
-            {
-                rect.rotation = targetRotation;
-            }
         }
 
         private sealed class HandCardEntry
