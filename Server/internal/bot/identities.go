@@ -8,18 +8,20 @@ import (
 )
 
 type BotIdentity struct {
-	UserID     string `json:"user_id"`
-	Username   string `json:"username"`
-	Difficulty string `json:"difficulty"` // "good", "smart", "god"
+	UserID      string `json:"user_id"`
+	Username    string `json:"username"`
+	DisplayName string `json:"display_name"`
+	Difficulty  string `json:"difficulty"` // "good", "smart", "god"
 }
 
 var (
-	botIdentities  []BotIdentity
-	botIDMap       map[string]bool
-	botUsernameMap map[string]string
-	botConfigMap   map[string]BotIdentity
-	loadOnce       sync.Once
-	loadErr        error
+	botIdentities     []BotIdentity
+	botIDMap          map[string]bool
+	botUsernameMap    map[string]string
+	botDisplayNameMap map[string]string
+	botConfigMap      map[string]BotIdentity
+	loadOnce          sync.Once
+	loadErr           error
 )
 
 // LoadIdentities loads the bot profiles from the given path.
@@ -38,10 +40,12 @@ func LoadIdentities(path string) error {
 
 		botIDMap = make(map[string]bool)
 		botUsernameMap = make(map[string]string)
+		botDisplayNameMap = make(map[string]string)
 		botConfigMap = make(map[string]BotIdentity)
 		for _, identity := range botIdentities {
 			botIDMap[identity.UserID] = true
 			botUsernameMap[identity.UserID] = identity.Username
+			botDisplayNameMap[identity.UserID] = identity.DisplayName
 			botConfigMap[identity.UserID] = identity
 		}
 	})
@@ -60,6 +64,18 @@ func GetBotUsername(userID string) string {
 		return ""
 	}
 	return botUsernameMap[userID]
+}
+
+// GetBotDisplayName returns the display name for a bot ID, or an empty string if not a bot.
+func GetBotDisplayName(userID string) string {
+	if botDisplayNameMap == nil {
+		return ""
+	}
+	name := botDisplayNameMap[userID]
+	if name == "" {
+		return GetBotUsername(userID)
+	}
+	return name
 }
 
 // GetBotIdentity returns an identity for a bot by index (mod pool size).

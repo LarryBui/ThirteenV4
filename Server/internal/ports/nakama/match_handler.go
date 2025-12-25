@@ -504,7 +504,7 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 		displayName := userId
 		if p, exists := state.Presences[userId]; exists {
 			displayName = p.GetUsername()
-		} else if name := bot.GetBotUsername(userId); name != "" {
+		} else if name := bot.GetBotDisplayName(userId); name != "" {
 			displayName = name
 		}
 

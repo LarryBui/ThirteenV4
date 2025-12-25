@@ -6,7 +6,9 @@ import (
 	"encoding/base64"
 	"encoding/json"
 	"fmt"
+	"math/rand"
 	"strings"
+	"time"
 
 	"github.com/heroiclabs/nakama-common/api"
 	"github.com/heroiclabs/nakama-common/runtime"
@@ -43,6 +45,16 @@ func AfterAuthenticateDevice(ctx context.Context, logger runtime.Logger, db *sql
 		}
 
 		logger.Info("Initializing wallet for new user %s", userID)
+
+		// Generate and set a friendly display name
+		displayName := generateFriendlyName()
+		// Signature: ctx, userID, username, metadata, displayName, timezone, location, langTag, avatarUrl
+		if err := nk.AccountUpdateId(ctx, userID, displayName, nil, displayName, "", "", "", ""); err != nil {
+			logger.Error("AfterAuthenticateDevice: Failed to update account for user %s: %v", userID, err)
+			// Don't return error here, wallet update is more important
+		} else {
+			logger.Info("Assigned friendly name '%s' to user %s", displayName, userID)
+		}
 
 		// Grant 10,000 Gold
 		changes := map[string]int64{
@@ -83,5 +95,32 @@ func extractUserIDFromToken(token string) (string, error) {
 		return "", fmt.Errorf("token claims missing uid")
 	}
 
-	return uid, nil
-}
+		return uid, nil
+
+	}
+
+	
+
+	func generateFriendlyName() string {
+
+		adjectives := []string{"Happy", "Shiny", "Brave", "Clever", "Swift", "Calm", "Mighty", "Witty", "Sly", "Wild"}
+
+		nouns := []string{"Panda", "Tiger", "Eagle", "Dolphin", "Wolf", "Otter", "Falcon", "Bear", "Fox", "Lion"}
+
+	
+
+		rand.Seed(time.Now().UnixNano())
+
+		adj := adjectives[rand.Intn(len(adjectives))]
+
+		noun := nouns[rand.Intn(len(nouns))]
+
+		num := rand.Intn(9000) + 1000
+
+	
+
+		return fmt.Sprintf("%s%s%d", adj, noun, num)
+
+	}
+
+	
