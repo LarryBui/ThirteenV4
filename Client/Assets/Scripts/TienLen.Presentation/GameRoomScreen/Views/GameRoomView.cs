@@ -232,9 +232,10 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         private void RefreshActionButtonsState()
         {
-            if (_isAnimationBlocking)
+            if (_isAnimationBlocking || _isDealing)
             {
                 _actionButtons.SetActionButtonsVisible(false);
+                _actionButtons.SetStartButtonVisible(false);
                 return;
             }
 
@@ -287,6 +288,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             
             _logView?.AddEntry("Game Started");
             _isDealing = true;
+            RefreshActionButtonsState();
 
             // Note: CardDealer and LocalHandView handle their own animations 
             // by listening to OnGameStarted and OnCardArrived.

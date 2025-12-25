@@ -15,6 +15,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
     {
         [Header("UI References")]
         [SerializeField] private GameObject _root;
+        [SerializeField] private GameObject _countdownRoot;
         [SerializeField] private TMP_Text _countdownText;
         [SerializeField] private Image _progressImage;
 
@@ -25,6 +26,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             Stop();
             
             if (_root != null) _root.SetActive(true);
+            if (_countdownRoot != null) _countdownRoot.SetActive(true);
             
             _cts = new CancellationTokenSource();
             RunTimerAsync(duration, _cts.Token).Forget();
@@ -37,6 +39,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _cts = null;
 
             if (_root != null) _root.SetActive(false);
+            if (_countdownRoot != null) _countdownRoot.SetActive(false);
         }
 
         private async UniTaskVoid RunTimerAsync(float duration, CancellationToken token)

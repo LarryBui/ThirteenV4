@@ -26,6 +26,10 @@ namespace TienLen.Presentation.GameRoomScreen
             
                         // Register Hand Counter Manager
                         builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Components.OpponentHandCounterManagerView>();
+
+            // Register Timer Manager
+            builder.RegisterComponentInHierarchy<TurnTimerManagerView>();
+
             // Register Presenter
             builder.Register<GameRoomPresenter>(Lifetime.Scoped);
         }

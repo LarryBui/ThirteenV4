@@ -45,15 +45,18 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             {
                 _presenter.OnCardsPlayed += (seat, cards) => Refresh();
                 _presenter.OnTurnPassed += (seat) => Refresh();
-                _presenter.OnStateUpdated += Refresh;
                 _presenter.OnGameStarted += Refresh;
-                _presenter.OnGameEnded += (winners, hands) => _activeTimer.Stop();
+                _presenter.OnGameEnded += (winners, hands) => 
+                {
+                    _activeTimer.Stop();
+                };
             }
         }
 
         private void Refresh()
         {
             var match = _presenter?.CurrentMatch;
+            
             if (match == null || match.Phase != "Playing" || match.CurrentTurnSeat < 0)
             {
                 _activeTimer?.Stop();
