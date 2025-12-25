@@ -35,6 +35,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         private bool _isLeaving;
         private bool _isDealing; // Tracks deal animation state
         private bool _isAnimationBlocking; // Blocks input during critical sequences
+        private readonly List<Vector3> _pendingLocalPlayOrigins = new List<Vector3>();
 
         [Inject]
         public void Construct(
@@ -138,6 +139,16 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             // If Local Player plays, source is Hand.
             // For now, standard flow: Send Request -> Server OK -> Event CardPlayed -> Animation.
             
+            // Capture positions for animation
+            _pendingLocalPlayOrigins.Clear();
+            if (_localHandView != null && _localHandView.TryGetSelectedCardSnapshots(out var snapshots))
+            {
+                foreach (var snap in snapshots)
+                {
+                    _pendingLocalPlayOrigins.Add(snap.WorldPosition);
+                }
+            }
+
             _presenter.PlayCards(new List<Card>(selected));
             _localHandView?.HideSelectedCards();
         }
@@ -289,14 +300,21 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _logView?.AddEntry($"{name} played {cards.Count} cards.");
 
             // 2. Animate
-            // We need the world position of the player's avatar to spawn the flying cards
-            var seatView = _seatsManager.GetViewBySeatIndex(seatIndex);
-            Vector3 spawnPos = seatView != null ? seatView.CardSourceAnchor.position : Vector3.zero;
-
-            // If local player, maybe we spawn from hand? 
-            // _localHandView has the specific card positions.
-            // For simplicity, let's use the Seat Anchor for everyone for now.
-            _boardView.AnimatePlay(cards, spawnPos);
+            bool isLocal = seatIndex == (_presenter.CurrentMatch?.LocalSeatIndex ?? -1);
+            
+            if (isLocal && _pendingLocalPlayOrigins.Count == cards.Count)
+            {
+                 // Use buffered positions from the hand
+                 _boardView.AnimatePlay(cards, _pendingLocalPlayOrigins);
+                 _pendingLocalPlayOrigins.Clear();
+            }
+            else
+            {
+                // Fallback / Opponent: Use Seat Anchor
+                var seatView = _seatsManager.GetViewBySeatIndex(seatIndex);
+                Vector3 spawnPos = seatView != null ? seatView.CardSourceAnchor.position : Vector3.zero;
+                _boardView.AnimatePlay(cards, spawnPos);
+            }
         }
 
         private void HandleBoardUpdated(int seatIndex, bool newRound)

@@ -59,7 +59,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         /// <param name="fromWorldPos">The world position to spawn the cards at (usually player's avatar).</param>
         public void AnimatePlay(IReadOnlyList<Card> cards, Vector3 fromWorldPos)
         {
-            // 1. Clear existing cards (or fade them out - for now, clear)
+            // 1. Clear existing cards
             Clear();
 
             if (cards == null || cards.Count == 0) return;
@@ -71,7 +71,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 var cardObj = Instantiate(_cardPrefab, _cardContainer);
                 var rt = cardObj.GetComponent<RectTransform>();
                 
-                // Set visual data
                 if (cardObj.TryGetComponent<FrontCardView>(out var view))
                 {
                     view.SetCard(cards[i]);
@@ -85,6 +84,43 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             }
 
             // 3. Calculate target positions and animate
+            AnimateCardsToLayout(newCards).Forget();
+        }
+
+        /// <summary>
+        /// Animates a set of cards flying from specific source positions to the board.
+        /// </summary>
+        public void AnimatePlay(IReadOnlyList<Card> cards, IReadOnlyList<Vector3> startPositions)
+        {
+            Clear();
+
+            if (cards == null || cards.Count == 0) return;
+
+            var newCards = new List<RectTransform>(cards.Count);
+            for (int i = 0; i < cards.Count; i++)
+            {
+                var cardObj = Instantiate(_cardPrefab, _cardContainer);
+                var rt = cardObj.GetComponent<RectTransform>();
+                
+                if (cardObj.TryGetComponent<FrontCardView>(out var view))
+                {
+                    view.SetCard(cards[i]);
+                }
+                
+                // Initial Position: Corresponding start position or first one as fallback
+                if (startPositions != null && i < startPositions.Count)
+                {
+                    rt.position = startPositions[i];
+                }
+                else if (startPositions != null && startPositions.Count > 0)
+                {
+                    rt.position = startPositions[0];
+                }
+                
+                newCards.Add(rt);
+                _activeCards.Add(rt);
+            }
+
             AnimateCardsToLayout(newCards).Forget();
         }
 
