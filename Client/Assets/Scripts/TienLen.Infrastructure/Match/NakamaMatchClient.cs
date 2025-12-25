@@ -175,6 +175,7 @@ namespace TienLen.Infrastructure.Match
 
         public async UniTask SendInGameChatAsync(string message)
         {
+            _logger.LogInformation("Sending in-game chat: {message}", message);
             var request = new Proto.InGameChatRequest { Message = message };
             await SendAsync((long)Proto.OpCode.InGameChat, request.ToByteArray());
         }

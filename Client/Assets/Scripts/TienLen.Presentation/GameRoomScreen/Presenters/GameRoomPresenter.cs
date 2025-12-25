@@ -113,6 +113,7 @@ namespace TienLen.Presentation.GameRoomScreen
 
         private void HandleSttPhraseRecognized(string phrase)
         {
+            UnityEngine.Debug.Log($"[GameRoomPresenter] STT Phrase Recognized: '{phrase}'");
             SendInGameChat(phrase);
         }
 

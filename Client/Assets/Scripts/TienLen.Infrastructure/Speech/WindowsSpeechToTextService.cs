@@ -106,10 +106,12 @@ namespace TienLen.Infrastructure.Speech
             if (_isListening) return;
             try
             {
+                UnityEngine.Debug.Log("[WindowsSTT] Starting continuous transcription...");
                 EnsureRecognizer();
                 _isListening = true;
                 _isContinuous = true;
                 _recognizer.Start();
+                UnityEngine.Debug.Log($"[WindowsSTT] Recognizer started. Status: {_recognizer.Status}");
             }
             catch (Exception ex)
             {
@@ -148,6 +150,7 @@ namespace TienLen.Infrastructure.Speech
 
         private void HandleResult(string text, ConfidenceLevel confidence)
         {
+            UnityEngine.Debug.Log($"[WindowsSTT] HandleResult: '{text}' (Confidence: {confidence})");
             if (_isContinuous)
             {
                 OnPhraseRecognized?.Invoke(text);
@@ -174,6 +177,7 @@ namespace TienLen.Infrastructure.Speech
 
         private void HandleError(string error, int hresult)
         {
+            UnityEngine.Debug.LogError($"[WindowsSTT] Error: {error} (HResult: {hresult})");
             if (hresult == unchecked((int)0x80045509))
             {
                 _isSupported = false;
