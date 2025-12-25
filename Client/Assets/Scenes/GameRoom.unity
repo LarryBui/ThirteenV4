@@ -1798,7 +1798,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _messageText: {fileID: 852066455}
-  _minVisibleSeconds: 2
+  _minVisibleSeconds: 3
   _fadeSeconds: 2
 --- !u!1 &1033631441
 GameObject:

@@ -11,7 +11,6 @@ runtime:
     - "tienlen_bots_enabled=true"
     - "tienlen_bot_min_delay_sec=1"
     - "tienlen_bot_max_delay_sec=3"
-    - "tienlen_bot_auto_fill_delay_sec=10"
     - "tienlen_test_mode=true"
 
 console:
