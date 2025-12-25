@@ -18,12 +18,14 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Register GameRoomView component in hierarchy so it gets injected
             builder.RegisterComponentInHierarchy<GameRoomView>();
-            // Register CardDealer component in hierarchy so it gets injected
-            builder.RegisterComponentInHierarchy<CardDealer>();
+                        // Register CardDealer component in hierarchy so it gets injected
+                        builder.RegisterComponentInHierarchy<CardDealer>();
+                        
+                        // Register Local Hand View
+                        builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Views.LocalHandView>();
             
-            // Register Hand Counter Manager
-            builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Components.OpponentHandCounterManagerView>();
-
+                        // Register Hand Counter Manager
+                        builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Components.OpponentHandCounterManagerView>();
             // Register Presenter
             builder.Register<GameRoomPresenter>(Lifetime.Scoped);
         }

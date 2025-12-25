@@ -13,16 +13,11 @@ namespace TienLen.Presentation.GameRoomScreen.Services
     /// Animates the dealing of cards from a deck to player seats.
     /// Uses PlayerSeatsManagerView to find target positions dynamically.
     /// </summary>
-    public sealed class CardDealer : MonoBehaviour
+    public class CardDealer : MonoBehaviour
     {
+        public const int PlayerCount = 4;
         private const int PoolGrowBatchSize = 4;
-        private const int PlayerCount = 4;
 
-        /// <summary>
-        /// Raised when a dealt card reaches a player anchor.
-        /// playerIndex: 0=South (Local), 1=East, 2=North, 3=West.
-        /// </summary>
-        public event Action<int, Vector3> CardArrivedAtPlayerAnchor;
 
         [Header("References")]
         [SerializeField] private GameObject _cardPrefab;
@@ -45,6 +40,28 @@ namespace TienLen.Presentation.GameRoomScreen.Services
         {
             _logger = logger ?? NullLogger<CardDealer>.Instance;
             _presenter = presenter;
+        }
+
+        private void Start()
+        {
+            if (_presenter != null)
+            {
+                _presenter.OnGameStarted += HandleGameStarted;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_presenter != null)
+            {
+                _presenter.OnGameStarted -= HandleGameStarted;
+            }
+        }
+
+        private void HandleGameStarted()
+        {
+            // Trigger dealing automatically when game starts
+            AnimateDeal(52).Forget();
         }
 
         private void Awake()
@@ -119,12 +136,9 @@ namespace TienLen.Presentation.GameRoomScreen.Services
             {
                 cardRect.position = targetPosition;
                 
-                // Notify logic layer
-                _presenter?.OnCardDelivered(playerIndex);
+                // Notify logic layer & visual layer via Presenter
+                _presenter?.OnCardDelivered(playerIndex, targetPosition);
 
-                // Notify visual layer (e.g. LocalHandView)
-                CardArrivedAtPlayerAnchor?.Invoke(playerIndex, targetPosition);
-                
                 cardRect.gameObject.SetActive(false);
                 _cardPool.Enqueue(cardRect.gameObject);
             }

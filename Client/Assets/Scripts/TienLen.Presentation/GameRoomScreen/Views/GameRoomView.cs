@@ -28,7 +28,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private GameRoomMessageView _messageView;
         [SerializeField] private GameRoomLogView _logView;
         [SerializeField] private OpponentHandRevealer _opponentRevealer;
-        [SerializeField] private CardDealer _cardDealer;
 
         private GameRoomPresenter _presenter;
         private TienLen.Infrastructure.Config.AvatarRegistry _avatarRegistry;
@@ -92,11 +91,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _presenter.OnPresenceChanged += HandlePresenceChanged;
             _presenter.OnGameEnded += HandleGameEnded;
 
-            if (_cardDealer != null)
-            {
-                _cardDealer.CardArrivedAtPlayerAnchor += HandleCardArrived;
-            }
-
             // 3. Initial Refresh
             RefreshAll();
         }
@@ -115,25 +109,9 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 _presenter.OnPresenceChanged -= HandlePresenceChanged;
                 _presenter.OnGameEnded -= HandleGameEnded;
             }
-
-            if (_cardDealer != null)
-            {
-                _cardDealer.CardArrivedAtPlayerAnchor -= HandleCardArrived;
-            }
         }
 
         // --- Interaction Handlers ---
-
-        private void HandleCardArrived(int relativeIndex, Vector3 position)
-        {
-            if (_isLeaving) return;
-            
-            // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
-            if (relativeIndex == 0)
-            {
-                _localHandView?.RevealNextCard(position);
-            }
-        }
 
         private void HandleError(string message)
         {
@@ -273,53 +251,26 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         // --- Event Handlers ---
 
-        private async void HandleGameStarted()
+        private void HandleGameStarted()
         {
             if (_isLeaving) return;
             
             _logView?.AddEntry("Game Started");
             _isDealing = true;
 
-            IReadOnlyList<Card> sortedHand = null;
-
-            // 1. Get the sorted hand (which we will shuffle locally for visual effect)
-            if (_presenter.TryGetLocalHand(out var hand))
-            {
-                sortedHand = hand;
-                var shuffledHand = new List<Card>(hand);
-                ShuffleList(shuffledHand);
-                _localHandView?.BeginReveal(shuffledHand);
-            }
-
-            // 2. Animate Dealing
-            if (_cardDealer != null)
-            {
-                await _cardDealer.AnimateDeal(52);
-            }
-
-            // 3. Animate Sort
-            if (_localHandView != null && sortedHand != null)
-            {
-                await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
-                await _localHandView.SortHandAnimation(sortedHand);
-            }
-
-            _isDealing = false;
-            RefreshAll();
+            // Note: CardDealer and LocalHandView handle their own animations 
+            // by listening to OnGameStarted and OnCardArrived.
+            
+            // We'll reset _isDealing via a delay or wait for state refresh
+            ResetDealingState().Forget();
         }
 
-        private void ShuffleList<T>(IList<T> list)
+        private async UniTaskVoid ResetDealingState()
         {
-            var rng = new System.Random();
-            int n = list.Count;
-            while (n > 1)
-            {
-                n--;
-                int k = rng.Next(n + 1);
-                T value = list[k];
-                list[k] = list[n];
-                list[n] = value;
-            }
+            // Approximate duration of deal + sort
+            await UniTask.Delay(TimeSpan.FromSeconds(5f));
+            _isDealing = false;
+            RefreshAll();
         }
 
         private void HandleTurnPassed(int seatIndex)

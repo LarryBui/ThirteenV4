@@ -8,6 +8,7 @@ using TienLen.Presentation.GameRoomScreen.Components;
 using TienLen.Presentation.GameRoomScreen.Utils;
 using UnityEngine;
 using UnityEngine.UI;
+using VContainer;
 
 namespace TienLen.Presentation.GameRoomScreen.Views
 {
@@ -37,6 +38,83 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private float _selectedYOffset = 30f;
         [Tooltip("Duration (seconds) for select/deselect movement.")]
         [SerializeField] private float _selectionMoveDuration = 0.08f;
+
+        private GameRoomPresenter _presenter;
+
+        [Inject]
+        public void Construct(GameRoomPresenter presenter)
+        {
+            _presenter = presenter;
+        }
+
+        private void Start()
+        {
+            if (_presenter != null)
+            {
+                _presenter.OnCardArrived += HandleCardArrived;
+                _presenter.OnGameStarted += HandleGameStarted;
+            }
+        }
+
+        private void OnDestroy()
+        {
+            if (_presenter != null)
+            {
+                _presenter.OnCardArrived -= HandleCardArrived;
+                _presenter.OnGameStarted -= HandleGameStarted;
+            }
+        }
+
+        private void HandleGameStarted()
+        {
+            if (_presenter != null && _presenter.TryGetLocalHand(out var hand))
+            {
+                // Visual shuffle: Reveal cards in a random order
+                var shuffledHand = new List<Card>(hand);
+                ShuffleList(shuffledHand);
+                BeginReveal(shuffledHand);
+            }
+        }
+
+        private void ShuffleList<T>(IList<T> list)
+        {
+            var rng = new System.Random();
+            int n = list.Count;
+            while (n > 1)
+            {
+                n--;
+                int k = rng.Next(n + 1);
+                T value = list[k];
+                list[k] = list[n];
+                list[n] = value;
+            }
+        }
+
+        private void HandleCardArrived(int seatIndex, Vector3 position)
+        {
+            if (seatIndex == 0)
+            {
+                RevealNextCard(position);
+                
+                // If all cards dealt (standard 13), trigger sort
+                if (_nextRevealIndex >= _cardsToReveal.Count && _cardsToReveal.Count > 0)
+                {
+                    OnAllCardsReceived().Forget();
+                }
+            }
+        }
+
+        private async UniTaskVoid OnAllCardsReceived()
+        {
+            // Wait for final reveal animation to breathe
+            await UniTask.Delay(TimeSpan.FromSeconds(0.5f));
+            
+            // Get actual sorted hand from presenter
+            if (_presenter != null && _presenter.TryGetLocalHand(out var hand))
+            {
+                await SortHandAnimation(hand);
+            }
+        }
 
         /// <summary>
         /// Raised whenever the selected card set changes.

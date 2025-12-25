@@ -29,6 +29,7 @@ namespace TienLen.Presentation.GameRoomScreen
         public event Action OnGameStarted;
         public event Action<List<int>, Dictionary<int, List<Card>>> OnGameEnded;
         public event Action<int, int> OnSeatCardCountUpdated; // seatIndex, newCount
+        public event Action<int, UnityEngine.Vector3> OnCardArrived; // seatIndex, worldPosition
 
         // Expose current match for read-only binding in View
         public Match CurrentMatch => _matchHandler?.CurrentMatch;
@@ -93,54 +94,25 @@ namespace TienLen.Presentation.GameRoomScreen
 
         // --- Actions ---
 
-        public void OnCardDelivered(int seatIndex)
+        public void OnCardDelivered(int seatIndex, UnityEngine.Vector3 position)
         {
              // Currently the match state is read-only from the server perspective.
              // However, for client-side animation feedback (incremental count), we can fire the event locally.
-             // Ideally we should update a local 'ViewModel' or 'SimulationState'.
-             // For now, we will fetch the current count (if valid) and increment it, then fire the update.
              
+             // 1. Notify Visuals (Animation sync)
+             OnCardArrived?.Invoke(seatIndex, position);
+
+             // 2. Notify Logic (Counts)
              var match = CurrentMatch;
              if (match == null || match.Seats == null || seatIndex < 0 || seatIndex >= match.Seats.Length) return;
 
              var userId = match.Seats[seatIndex];
-             // Even if userId is empty (bot or empty seat), if we dealt a card, we increment visual count.
              
              // Check if we have a player object
              if (match.Players != null && match.Players.TryGetValue(userId, out var player))
              {
                   // Increment local cache? 
-                  // Warning: The next server state update will overwrite this.
-                  // But since deal happens at start, server usually sends 13 (or 0 then 13).
-                  // If we are animating 0->13, we are "catching up" to server state or building it.
-                  
-                  // Simplest logic: Fire event with "Mock" increment logic if we don't have mutable state.
-                  // Or better: The Presenter shouldn't manage state that strictly if it's purely visual.
-                  // But the requirement says Presenter raises event.
-                  
-                  // We'll trust the caller knows we are incrementing. 
-                  // We need to know the *current* count to pass *new* count.
-                  // But we don't tracking individual card arrivals here.
-                  
-                  // Wait, if CardDealer calls this 13 times, we need to know it's 1, then 2, then 3.
-                  // So we DO need state here or in the View.
-                  // The CardDealer doesn't know the count.
-                  
-                  // Let's assume the View (Manager) tracks the count?
-                  // No, "gameroompresenter will raise event to notify opponenthandcounter"
-                  
-                  // So Presenter needs to track "ClientSideCardCounts"?
-                  // Or we just pass a signal "Increment" and let View handle the number?
-                  // "Action<int, int> OnSeatCardCountUpdated" implies passing the NEW count.
              }
-             
-             // Since we don't want to add mutable state to the Match object (domain),
-             // We will modify the event to just signal "Increment" or we need a local tracker.
-             // Let's use a local tracker in Presenter for the deal phase?
-             // Or, simpler: Just fire an event "OnCardReceived(seatIndex)" and let the View count?
-             // "gameroompresenter will raise event to notify opponenthandcounter"
-             // If I change the event signature to just `Action<int> OnSeatCardReceived`, it solves the state issue.
-             // But the prompt said `Action<int, int> OnSeatCardCountUpdated` (implied by my plan).
              
              // I will stick to the plan: I will fire OnSeatCardCountUpdated.
              // To do this, I need to track counts.
