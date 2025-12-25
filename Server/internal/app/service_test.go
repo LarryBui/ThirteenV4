@@ -10,7 +10,7 @@ import (
 func TestStartGameDealsHands(t *testing.T) {
 	rng := rand.New(rand.NewSource(42))
 	svc := NewService(rng)
-	
+
 	// Pass player IDs directly to StartGame
 	game, evs, err := svc.StartGame([]string{"u1", "u2"}, -1, 0)
 	if err != nil {
@@ -38,7 +38,7 @@ func TestStartGameDealsHands(t *testing.T) {
 func TestPlayCardsAndEnd(t *testing.T) {
 	rng := rand.New(rand.NewSource(99))
 	svc := NewService(rng)
-	
+
 	game, _, err := svc.StartGame([]string{"u1", "u2"}, -1, 0)
 	if err != nil {
 		t.Fatalf("start game error: %v", err)
@@ -156,7 +156,7 @@ func TestPlayErrors(t *testing.T) {
 	game, _, _ := svc.StartGame(players, -1, 0)
 
 	game.Players["u1"].Hand = []domain.Card{{Suit: 0, Rank: 0}} // 3 Spades
-	game.CurrentTurn = 0 // u1
+	game.CurrentTurn = 0                                        // u1
 
 	// 1. Play out of turn
 	_, err := svc.PlayCards(game, 1, []domain.Card{{Suit: 0, Rank: 0}})
@@ -188,7 +188,7 @@ func TestRoundResetsWhenLastPlayerFinishes(t *testing.T) {
 
 	// Force u1 to have only one card
 	game.Players["u1"].Hand = []domain.Card{{Suit: 3, Rank: 12}} // 2 Hearts
-	game.CurrentTurn = 0 // u1
+	game.CurrentTurn = 0                                         // u1
 
 	// u1 plays their last card and finishes
 	_, err := svc.PlayCards(game, 0, []domain.Card{{Suit: 3, Rank: 12}})
@@ -223,6 +223,72 @@ func TestRoundResetsWhenLastPlayerFinishes(t *testing.T) {
 	}
 }
 
+// TestNextPlayerAfterFinisherAndPasses exercises the seat sequencing when a player finishes.
+// Player 2 plays a pair of "2 pigs" to finish, then players 3 and 1 pass in order.
+// Since player 2 is done, the turn should return to player 3 after the pass chain.
+func TestNextPlayerAfterFinisherAndPasses(t *testing.T) {
+	svc := NewService(nil)
+	players := []string{"p1", "p2", "p3"}
+	game, _, err := svc.StartGame(players, -1, 0)
+	if err != nil {
+		t.Fatalf("start game error: %v", err)
+	}
+
+	game.Players["p1"].Hand = []domain.Card{
+		{Suit: 0, Rank: 5},
+		{Suit: 1, Rank: 6},
+	}
+	game.Players["p2"].Hand = []domain.Card{
+		{Suit: 0, Rank: 12}, // 2 Spades
+		{Suit: 1, Rank: 12}, // 2 Clubs
+	}
+	game.Players["p3"].Hand = []domain.Card{
+		{Suit: 2, Rank: 6},
+		{Suit: 3, Rank: 8},
+	}
+
+	game.CurrentTurn = 1
+
+	// Player 2 plays both 2s and finishes.
+	_, err = svc.PlayCards(game, 1, []domain.Card{
+		{Suit: 0, Rank: 12},
+		{Suit: 1, Rank: 12},
+	})
+	if err != nil {
+		t.Fatalf("player 2 play error: %v", err)
+	}
+	if !game.Players["p2"].Finished {
+		t.Fatalf("player 2 should be finished")
+	}
+	if game.CurrentTurn != 2 {
+		t.Fatalf("expected player 3 to be next immediately after player 2 finishes, got seat %d", game.CurrentTurn)
+	}
+
+	// Player 3 passes, forcing a new round and giving the turn to player 1.
+	_, err = svc.PassTurn(game, 2)
+	if err != nil {
+		t.Fatalf("player 3 pass error: %v", err)
+	}
+	if game.CurrentTurn != 0 {
+		t.Fatalf("expected player 1 after player 3 passes, got seat %d", game.CurrentTurn)
+	}
+	if game.LastPlayedCombination.Type != domain.Invalid {
+		t.Fatalf("expected round reset after player 3 passes")
+	}
+
+	// Player 1 passes, leaving player 3 as the only active seat; current turn should return to player 3.
+	_, err = svc.PassTurn(game, 0)
+	if err != nil {
+		t.Fatalf("player 1 pass error: %v", err)
+	}
+	if game.CurrentTurn != 2 {
+		t.Fatalf("expected player 3 to regain the turn, got seat %d", game.CurrentTurn)
+	}
+	if game.LastPlayedCombination.Type != domain.Invalid {
+		t.Fatalf("expected round reset after player 1 passes")
+	}
+}
+
 func TestTimeoutTurn(t *testing.T) {
 	svc := NewService(nil)
 	players := []string{"u1", "u2"}
@@ -231,9 +297,9 @@ func TestTimeoutTurn(t *testing.T) {
 	// Case 1: New Round (Leader) Timeout -> Play Smallest Card
 	game.LastPlayedCombination = domain.CardCombination{Type: domain.Invalid}
 	game.CurrentTurn = 0 // u1
-	
+
 	// Ensure hand has a known smallest card
-	// 3 Spades (0,0) is smallest. 
+	// 3 Spades (0,0) is smallest.
 	game.Players["u1"].Hand = []domain.Card{
 		{Rank: 12, Suit: 3}, // 2 Hearts (Big)
 		{Rank: 0, Suit: 0},  // 3 Spades (Smallest)
