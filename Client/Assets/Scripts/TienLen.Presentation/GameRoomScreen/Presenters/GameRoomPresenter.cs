@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
+using TienLen.Application.Speech;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.Services;
 using TienLen.Domain.ValueObjects;
@@ -30,15 +31,20 @@ namespace TienLen.Presentation.GameRoomScreen
         public event Action<List<int>, Dictionary<int, List<Card>>> OnGameEnded;
         public event Action<int, int> OnSeatCardCountUpdated; // seatIndex, newCount
         public event Action<int, UnityEngine.Vector3> OnCardArrived; // seatIndex, worldPosition
+        public event Action<int, string> OnInGameChatReceived; // seatIndex, message
 
         // Expose current match for read-only binding in View
         public Match CurrentMatch => _matchHandler?.CurrentMatch;
 
+        private readonly ISpeechToTextService _sttService;
+
         public GameRoomPresenter(
             TienLenMatchHandler matchHandler,
+            ISpeechToTextService sttService,
             ILogger<GameRoomPresenter> logger)
         {
             _matchHandler = matchHandler;
+            _sttService = sttService;
             _logger = logger ?? NullLogger<GameRoomPresenter>.Instance;
 
             Subscribe();
@@ -56,6 +62,12 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.TurnSecondsRemainingUpdated += HandleCountdown;
             _matchHandler.MatchPresenceChanged += HandlePresenceChanged;
             _matchHandler.GameEnded += HandleGameEnded;
+            _matchHandler.InGameChatReceived += HandleInGameChatReceived;
+
+            if (_sttService != null)
+            {
+                _sttService.OnPhraseRecognized += HandleSttPhraseRecognized;
+            }
         }
 
         public void Dispose()
@@ -70,6 +82,13 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.TurnSecondsRemainingUpdated -= HandleCountdown;
             _matchHandler.MatchPresenceChanged -= HandlePresenceChanged;
             _matchHandler.GameEnded -= HandleGameEnded;
+            _matchHandler.InGameChatReceived -= HandleInGameChatReceived;
+
+            if (_sttService != null)
+            {
+                _sttService.OnPhraseRecognized -= HandleSttPhraseRecognized;
+                _sttService.StopTranscribing();
+            }
         }
 
         // --- Event Forwarding ---
@@ -90,9 +109,29 @@ namespace TienLen.Presentation.GameRoomScreen
         private void HandleCountdown(int seat, long seconds) => OnTurnCountdownUpdated?.Invoke(seat, seconds);
         private void HandlePresenceChanged(IReadOnlyList<PresenceChange> changes) => OnPresenceChanged?.Invoke(changes);
         private void HandleGameEnded(List<int> finishOrder, Dictionary<int, List<Card>> remainingHands) => OnGameEnded?.Invoke(finishOrder, remainingHands);
+        private void HandleInGameChatReceived(int seatIndex, string message) => OnInGameChatReceived?.Invoke(seatIndex, message);
+
+        private void HandleSttPhraseRecognized(string phrase)
+        {
+            SendInGameChat(phrase);
+        }
 
 
         // --- Actions ---
+
+        public void SendInGameChat(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return;
+            _matchHandler?.SendInGameChatAsync(message).Forget();
+        }
+
+        public void SetSpeechToTextActive(bool active)
+        {
+            if (_sttService == null) return;
+            if (active) _sttService.StartTranscribing();
+            else _sttService.StopTranscribing();
+        }
+
 
         public void OnCardDelivered(int seatIndex, UnityEngine.Vector3 position)
         {

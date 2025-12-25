@@ -54,6 +54,11 @@ namespace TienLen.Application
         /// </summary>
         event Action<int, string> OnGameError; // code, message
 
+        /// <summary>
+        /// Fired when an in-game chat message is received.
+        /// </summary>
+        event Action<int, string> OnInGameChatReceived; // seatIndex, message
+
 
         // --- Methods for sending match actions to the network ---
         /// <summary>
@@ -85,6 +90,11 @@ namespace TienLen.Application
         /// Sends a request to ask for a new game.
         /// </summary>
         UniTask SendRequestNewGameAsync();
+
+        /// <summary>
+        /// Sends an in-game chat message.
+        /// </summary>
+        UniTask SendInGameChatAsync(string message);
 
         /// <summary>
         /// Initiates matchmaking and returns the found match ID upon success.

@@ -45,6 +45,7 @@ namespace TienLen.Infrastructure.Match
         public event Action<int, string> OnPlayerLeft;
         public event Action<List<int>, Dictionary<int, List<Card>>> OnGameEnded;
         public event Action<int, string> OnGameError;
+        public event Action<int, string> OnInGameChatReceived;
         public event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
         public event Action<string> OnPlayerFinished;
 
@@ -170,6 +171,12 @@ namespace TienLen.Infrastructure.Match
         {
             var request = new Proto.RequestNewGameRequest();
             await SendAsync((long)Proto.OpCode.RequestNewGame, request.ToByteArray());
+        }
+
+        public async UniTask SendInGameChatAsync(string message)
+        {
+            var request = new Proto.InGameChatRequest { Message = message };
+            await SendAsync((long)Proto.OpCode.InGameChat, request.ToByteArray());
         }
 
         private static Proto.Card ToProto(Card card)
@@ -362,6 +369,18 @@ namespace TienLen.Infrastructure.Match
                     catch (Exception e)
                     {
                         _logger.LogWarning(e, "MatchClient: Failed to parse GameErrorEvent. matchId={matchId}", _matchId);
+                    }
+                    break;
+
+                case (long)Proto.OpCode.InGameChat: // 108
+                    try
+                    {
+                        var payload = Proto.InGameChatEvent.Parser.ParseFrom(state.State);
+                        OnInGameChatReceived?.Invoke(payload.SeatIndex, payload.Message);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse InGameChatEvent. matchId={matchId}", _matchId);
                     }
                     break;
             }

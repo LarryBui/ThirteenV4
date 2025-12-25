@@ -30,6 +30,9 @@ namespace TienLen.Presentation.GameRoomScreen
             // Register Timer Manager
             builder.RegisterComponentInHierarchy<TurnTimerManagerView>();
 
+            // Register Voice Chat View
+            builder.RegisterComponentInHierarchy<VoiceChatView>();
+
             // Register Presenter
             builder.Register<GameRoomPresenter>(Lifetime.Scoped);
         }

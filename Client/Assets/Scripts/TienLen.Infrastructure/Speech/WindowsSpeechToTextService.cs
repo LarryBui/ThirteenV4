@@ -25,6 +25,12 @@ namespace TienLen.Infrastructure.Speech
 
         private readonly ILogger<WindowsSpeechToTextService> _logger;
         private bool _isListening;
+        private bool _isContinuous;
+
+        /// <summary>
+        /// Fired when a phrase is finalized during continuous transcription.
+        /// </summary>
+        public event Action<string> OnPhraseRecognized;
 
         /// <summary>
         /// Creates a new Windows speech-to-text service.
@@ -94,6 +100,34 @@ namespace TienLen.Infrastructure.Speech
 #endif
         }
 
+        public void StartTranscribing()
+        {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            if (_isListening) return;
+            try
+            {
+                EnsureRecognizer();
+                _isListening = true;
+                _isContinuous = true;
+                _recognizer.Start();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to start continuous transcription.");
+                _isListening = false;
+            }
+#endif
+        }
+
+        public void StopTranscribing()
+        {
+#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
+            if (!_isListening) return;
+            CleanupCaptureState();
+            _isContinuous = false;
+#endif
+        }
+
         public void Dispose()
         {
 #if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
@@ -114,7 +148,14 @@ namespace TienLen.Infrastructure.Speech
 
         private void HandleResult(string text, ConfidenceLevel confidence)
         {
-            FinishCaptureAsync(isSuccess: true, result: text, failure: null).Forget();
+            if (_isContinuous)
+            {
+                OnPhraseRecognized?.Invoke(text);
+            }
+            else
+            {
+                FinishCaptureAsync(isSuccess: true, result: text, failure: null).Forget();
+            }
         }
 
         private void HandleComplete(DictationCompletionCause cause)

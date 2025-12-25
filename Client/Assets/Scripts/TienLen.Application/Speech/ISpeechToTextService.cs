@@ -23,5 +23,20 @@ namespace TienLen.Application.Speech
         /// </summary>
         /// <param name="cancellationToken">Token used to cancel listening.</param>
         UniTask<string> CaptureOnceAsync(CancellationToken cancellationToken);
+
+        /// <summary>
+        /// Fired when a phrase is finalized during continuous transcription.
+        /// </summary>
+        event System.Action<string> OnPhraseRecognized;
+
+        /// <summary>
+        /// Starts a continuous transcription session.
+        /// </summary>
+        void StartTranscribing();
+
+        /// <summary>
+        /// Stops the current continuous transcription session.
+        /// </summary>
+        void StopTranscribing();
     }
 }

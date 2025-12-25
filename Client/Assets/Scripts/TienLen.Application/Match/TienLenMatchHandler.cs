@@ -80,6 +80,11 @@ namespace TienLen.Application
         /// </summary>
         public event Action<List<int>, Dictionary<int, List<Card>>> GameEnded;
 
+        /// <summary>
+        /// Raised when an in-game chat message is received.
+        /// </summary>
+        public event Action<int, string> InGameChatReceived; // seatIndex, message
+
         public TienLenMatchHandler(
             IMatchNetworkClient networkClient,
             IAuthenticationService authService,
@@ -193,6 +198,12 @@ namespace TienLen.Application
             await _networkClient.SendPlayCardsAsync(cards);
         }
 
+        public async UniTask SendInGameChatAsync(string message)
+        {
+            if (CurrentMatch == null) return;
+            await _networkClient.SendInGameChatAsync(message);
+        }
+
         // --- Event Handling (Network -> Domain) ---
 
         private void SubscribeToNetworkEvents()
@@ -205,6 +216,7 @@ namespace TienLen.Application
             _networkClient.OnGameEnded += HandleGameEnded;
             _networkClient.OnGameError += HandleGameError;
             _networkClient.OnMatchPresenceChanged += HandleMatchPresenceChanged;
+            _networkClient.OnInGameChatReceived += HandleInGameChatReceived;
         }
 
         private void UnsubscribeFromNetworkEvents()
@@ -217,6 +229,12 @@ namespace TienLen.Application
             _networkClient.OnGameEnded -= HandleGameEnded;
             _networkClient.OnGameError -= HandleGameError;
             _networkClient.OnMatchPresenceChanged -= HandleMatchPresenceChanged;
+            _networkClient.OnInGameChatReceived -= HandleInGameChatReceived;
+        }
+
+        private void HandleInGameChatReceived(int seatIndex, string message)
+        {
+            InGameChatReceived?.Invoke(seatIndex, message);
         }
 
         private void HandleTurnPassed(int seat, int nextTurnSeat, bool newRound, long turnSecondsRemaining)

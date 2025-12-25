@@ -1,6 +1,7 @@
 package app
 
 import (
+	"errors"
 	"math/rand"
 	"testing"
 
@@ -32,6 +33,24 @@ func TestStartGameDealsHands(t *testing.T) {
 	}
 	if gameStartedEvents != 2 {
 		t.Fatalf("game started events = %d, want 2", gameStartedEvents)
+	}
+}
+
+func TestStartGameRejectsSinglePlayer(t *testing.T) {
+	svc := NewService(nil)
+
+	_, _, err := svc.StartGame([]string{"u1"}, -1, 0)
+	if !errors.Is(err, ErrTooFewPlayers) {
+		t.Fatalf("start game error = %v, want %v", err, ErrTooFewPlayers)
+	}
+}
+
+func TestStartGameWithDeckRejectsSinglePlayer(t *testing.T) {
+	svc := NewService(nil)
+
+	_, _, err := svc.StartGameWithDeck([]string{"u1"}, -1, 0, domain.NewDeck())
+	if !errors.Is(err, ErrTooFewPlayers) {
+		t.Fatalf("start game with deck error = %v, want %v", err, ErrTooFewPlayers)
 	}
 }
 

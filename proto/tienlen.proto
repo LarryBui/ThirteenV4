@@ -52,6 +52,7 @@ enum OpCode {
   OP_CODE_GAME_ERROR = 105;
   OP_CODE_PIG_CHOPPED = 106;
   OP_CODE_PLAYER_FINISHED = 107;
+  OP_CODE_IN_GAME_CHAT = 108;
 }
 
 // --- Basic Structures ---
@@ -92,6 +93,10 @@ message PlayCardsRequest {
 message PassTurnRequest {}
 
 message RequestNewGameRequest {}
+
+message InGameChatRequest {
+  string message = 1;
+}
 
 // --- Server -> Client Events ---
 
@@ -162,4 +167,9 @@ message PigChoppedEvent {
   repeated Card cards_chopped = 4;
   repeated Card cards_chopping = 5;
   map<string, int64> balance_changes = 6; // UserID -> Gold (+/-)
+}
+
+message InGameChatEvent {
+  int32 seat_index = 1; // 0-based index
+  string message = 2;
 }

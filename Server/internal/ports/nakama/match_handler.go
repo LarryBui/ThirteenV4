@@ -332,6 +332,8 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 			mh.handlePlayCards(ctx, matchState, dispatcher, logger, msg)
 		case int64(pb.OpCode_OP_CODE_PASS_TURN):
 			mh.handlePassTurn(ctx, matchState, dispatcher, logger, msg)
+		case int64(pb.OpCode_OP_CODE_IN_GAME_CHAT):
+			mh.handleInGameChat(ctx, matchState, dispatcher, logger, msg)
 		default:
 			logger.Warn("MatchLoop: Unknown opcode received: %d", msg.GetOpCode())
 		}
@@ -681,6 +683,42 @@ func (mh *matchHandler) handlePassTurn(ctx context.Context, state *MatchState, d
 	for _, ev := range events {
 		mh.broadcastEvent(ctx, state, dispatcher, logger, ev)
 	}
+}
+
+func (mh *matchHandler) handleInGameChat(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, msg runtime.MatchData) {
+	senderID := msg.GetUserId()
+	senderSeat := -1
+	for i, seatUserId := range state.Seats {
+		if seatUserId == senderID {
+			senderSeat = i
+			break
+		}
+	}
+
+	if senderSeat == -1 {
+		logger.Warn("handleInGameChat: User %s not in match.", senderID)
+		return
+	}
+
+	request := &pb.InGameChatRequest{}
+	if err := proto.Unmarshal(msg.GetData(), request); err != nil {
+		logger.Error("handleInGameChat: Failed to unmarshal InGameChatRequest: %v", err)
+		return
+	}
+
+	event := &pb.InGameChatEvent{
+		SeatIndex: int32(senderSeat),
+		Message:   request.GetMessage(),
+	}
+
+	bytes, err := proto.Marshal(event)
+	if err != nil {
+		logger.Error("handleInGameChat: Failed to marshal InGameChatEvent: %v", err)
+		return
+	}
+
+	// Broadcast to everyone
+	dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_IN_GAME_CHAT), bytes, nil, nil, true)
 }
 
 // broadcastEvent handles the conversion and dispatching of app events to Nakama.

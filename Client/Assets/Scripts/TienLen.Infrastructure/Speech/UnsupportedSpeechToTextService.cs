@@ -17,10 +17,13 @@ namespace TienLen.Infrastructure.Speech
         public bool IsListening => false;
 
         /// <inheritdoc />
-        public UniTask<string> CaptureOnceAsync(CancellationToken cancellationToken)
+        public UniTask<string> CaptureOnceAsync(System.Threading.CancellationToken cancellationToken)
         {
-            return UniTask.FromException<string>(
-                new NotSupportedException("Speech-to-text is not supported on this platform."));
+            return UniTask.FromException<string>(new System.NotSupportedException());
         }
+
+        public event System.Action<string> OnPhraseRecognized;
+        public void StartTranscribing() { }
+        public void StopTranscribing() { }
     }
 }
