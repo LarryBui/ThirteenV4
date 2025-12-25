@@ -38,11 +38,13 @@ namespace TienLen.Presentation.GameRoomScreen.Services
 
         private readonly Queue<GameObject> _cardPool = new Queue<GameObject>();
         private ILogger<CardDealer> _logger = NullLogger<CardDealer>.Instance;
+        private GameRoomPresenter _presenter;
 
         [Inject]
-        public void Construct(ILogger<CardDealer> logger)
+        public void Construct(ILogger<CardDealer> logger, GameRoomPresenter presenter)
         {
             _logger = logger ?? NullLogger<CardDealer>.Instance;
+            _presenter = presenter;
         }
 
         private void Awake()
@@ -117,7 +119,12 @@ namespace TienLen.Presentation.GameRoomScreen.Services
             {
                 cardRect.position = targetPosition;
                 
+                // Notify logic layer
+                _presenter?.OnCardDelivered(playerIndex);
+
+                // Notify visual layer (e.g. LocalHandView)
                 CardArrivedAtPlayerAnchor?.Invoke(playerIndex, targetPosition);
+                
                 cardRect.gameObject.SetActive(false);
                 _cardPool.Enqueue(cardRect.gameObject);
             }

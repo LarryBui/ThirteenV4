@@ -128,9 +128,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         {
             if (_isLeaving) return;
             
-            // Notify Presenter to update logic/counts
-            _presenter.OnCardDelivered(relativeIndex);
-
             // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
             if (relativeIndex == 0)
             {
