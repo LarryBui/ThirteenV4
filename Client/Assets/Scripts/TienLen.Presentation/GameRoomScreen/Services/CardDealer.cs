@@ -95,6 +95,9 @@ namespace TienLen.Presentation.GameRoomScreen.Services
                 currentCardIndex++;
                 await UniTask.Delay(TimeSpan.FromSeconds(delayPerCard));
             }
+
+            // Wait for the final card flight to complete before finishing the task.
+            await UniTask.Delay(TimeSpan.FromSeconds(_cardFlightDuration));
         }
 
         private async UniTask AnimateCardMovement(RectTransform cardRect, Vector3 targetPosition, int playerIndex)

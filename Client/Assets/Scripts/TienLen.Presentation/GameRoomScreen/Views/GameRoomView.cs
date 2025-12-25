@@ -34,6 +34,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         private TienLen.Infrastructure.Config.AvatarRegistry _avatarRegistry;
         private ILogger<GameRoomView> _logger;
         private bool _isLeaving;
+        private bool _isDealing; // Tracks deal animation state
         private bool _isAnimationBlocking; // Blocks input during critical sequences
 
         [Inject]
@@ -91,6 +92,11 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _presenter.OnPresenceChanged += HandlePresenceChanged;
             _presenter.OnGameEnded += HandleGameEnded;
 
+            if (_cardDealer != null)
+            {
+                _cardDealer.CardArrivedAtPlayerAnchor += HandleCardArrived;
+            }
+
             // 3. Initial Refresh
             RefreshAll();
         }
@@ -109,9 +115,24 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 _presenter.OnPresenceChanged -= HandlePresenceChanged;
                 _presenter.OnGameEnded -= HandleGameEnded;
             }
+
+            if (_cardDealer != null)
+            {
+                _cardDealer.CardArrivedAtPlayerAnchor -= HandleCardArrived;
+            }
         }
 
         // --- Interaction Handlers ---
+
+        private void HandleCardArrived(int relativeIndex, Vector3 position)
+        {
+            if (_isLeaving) return;
+            // 0=South (local player). Reveal local hand cards when the deal animation reaches South.
+            if (relativeIndex == 0)
+            {
+                _localHandView?.RevealNextCard(position);
+            }
+        }
 
         private void HandleError(string message)
         {
@@ -194,7 +215,8 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             if (match != null) _boardView.SetBoard(match.CurrentBoard);
 
             // Local Hand
-            if (_presenter.TryGetLocalHand(out var hand))
+            // Only update if NOT currently animating the deal/sort sequence
+            if (!_isDealing && _presenter.TryGetLocalHand(out var hand))
             {
                 _localHandView?.SetHand(hand);
             }
@@ -238,12 +260,32 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         // --- Event Handlers ---
 
-        private void HandleGameStarted()
+        private async void HandleGameStarted()
         {
             if (_isLeaving) return;
             
             _logView?.AddEntry("Game Started");
-            _cardDealer?.AnimateDeal(52).Forget();
+            _isDealing = true;
+
+            // 1. Get the sorted hand (which we will shuffle locally for visual effect)
+            if (_presenter.TryGetLocalHand(out var hand))
+            {
+                _localHandView?.BeginReveal(hand);
+            }
+
+            // 2. Animate Dealing
+            if (_cardDealer != null)
+            {
+                await _cardDealer.AnimateDeal(52);
+            }
+
+            // 3. Animate Sort
+            if (_localHandView != null)
+            {
+                await _localHandView.SortHandAnimation();
+            }
+
+            _isDealing = false;
             RefreshAll();
         }
 

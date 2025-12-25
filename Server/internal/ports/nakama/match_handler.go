@@ -162,8 +162,12 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 	if state.BotMaxDelay == 0 {
 		state.BotMaxDelay = 3
 	}
+	defaultAutoFillDelay := 5
+	if cfg := config.GetGameConfig(); cfg != nil && cfg.BotAutoFillDelaySeconds > 0 {
+		defaultAutoFillDelay = cfg.BotAutoFillDelaySeconds
+	}
 	if state.BotAutoFillDelay == 0 {
-		state.BotAutoFillDelay = 5
+		state.BotAutoFillDelay = defaultAutoFillDelay
 	}
 
 	// Initial match label: 4 open seats, lobby state

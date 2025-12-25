@@ -13,10 +13,12 @@ type BetTier struct {
 }
 
 type GameConfig struct {
-	TaxRate            float64   `json:"tax_rate"`
-	DefaultTier        string    `json:"default_tier"`
-	Tiers              []BetTier `json:"tiers"`
+	TaxRate             float64   `json:"tax_rate"`
+	DefaultTier         string    `json:"default_tier"`
+	Tiers               []BetTier `json:"tiers"`
 	TurnDurationSeconds int       `json:"turn_duration_seconds"`
+	// BotAutoFillDelaySeconds configures how many seconds to wait before adding a bot to a solo human lobby.
+	BotAutoFillDelaySeconds int `json:"bot_auto_fill_delay_seconds"`
 }
 
 var (
