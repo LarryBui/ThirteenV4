@@ -1,13 +1,35 @@
 package nakama
 
 import (
+	"bytes"
+	"encoding/json"
 	"testing"
 	"tienlen/internal/bot"
+	"tienlen/internal/config"
+	"tienlen/internal/domain"
 
 	pb "tienlen/proto"
 
+	"github.com/heroiclabs/nakama-common/runtime"
 	"google.golang.org/protobuf/encoding/protojson"
 )
+
+// noopLogger implements runtime.Logger for tests that only need to satisfy the interface.
+type noopLogger struct{}
+
+func (noopLogger) Debug(string, ...interface{}) {}
+func (noopLogger) Info(string, ...interface{})  {}
+func (noopLogger) Warn(string, ...interface{})  {}
+func (noopLogger) Error(string, ...interface{}) {}
+func (noopLogger) WithField(string, interface{}) runtime.Logger {
+	return noopLogger{}
+}
+func (noopLogger) WithFields(map[string]interface{}) runtime.Logger {
+	return noopLogger{}
+}
+func (noopLogger) Fields() map[string]interface{} {
+	return nil
+}
 
 func init() {
 	// Load bot identities for testing.
@@ -126,13 +148,39 @@ func TestMatchLabel_Marshal(t *testing.T) {
 
 	for _, test := range tests {
 		t.Run(test.name, func(t *testing.T) {
-			bytes, err := (&protojson.MarshalOptions{EmitUnpopulated: true}).Marshal(test.label)
+			payload, err := (&protojson.MarshalOptions{EmitUnpopulated: true}).Marshal(test.label)
 			if err != nil {
 				t.Fatalf("Failed to marshal label: %v", err)
 			}
-			if string(bytes) != test.expected {
-				t.Errorf("Got %s, want %s", string(bytes), test.expected)
+			var compact bytes.Buffer
+			if err := json.Compact(&compact, payload); err != nil {
+				t.Fatalf("Failed to compact label JSON: %v", err)
+			}
+			if compact.String() != test.expected {
+				t.Errorf("Got %s, want %s", compact.String(), test.expected)
 			}
 		})
+	}
+}
+
+func TestResetTurnSecondsRemainingWithBonus(t *testing.T) {
+	handler := &matchHandler{}
+	state := &MatchState{
+		Game: &domain.Game{
+			Phase:       domain.PhasePlaying,
+			CurrentTurn: 1,
+		},
+	}
+
+	duration := 16
+	if cfg := config.GetGameConfig(); cfg != nil {
+		duration = cfg.TurnDurationSeconds
+	}
+
+	handler.resetTurnSecondsRemainingWithBonus(state, noopLogger{}, gameStartTurnTimerBonusSeconds)
+
+	want := int64(duration + gameStartTurnTimerBonusSeconds)
+	if state.TurnSecondsRemaining != want {
+		t.Fatalf("TurnSecondsRemaining = %d, want %d", state.TurnSecondsRemaining, want)
 	}
 }

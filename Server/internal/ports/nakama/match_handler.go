@@ -21,25 +21,26 @@ import (
 )
 
 const (
-	MatchLabelKey_OpenSeats = "open" // Key for the open seats in the match label
+	MatchLabelKey_OpenSeats        = "open" // Key for the open seats in the match label
+	gameStartTurnTimerBonusSeconds = 5      // Extra seconds added to the first turn timer to cover card dealing.
 )
 
 // MatchState holds the authoritative runtime state for the Nakama match handler.
 type MatchState struct {
-	Seats             [4]string                   `json:"seats"`           // Array of user IDs, empty string means seat is empty
-	OwnerSeat         int                         `json:"owner_seat"`      // Seat index of the match owner
-	LastWinnerSeat    int                         `json:"last_winner_seat"` // Seat index of the winner of the last game
-	Tick              int64                       `json:"tick"`            // Current tick of the match for turn-based logic
-	Presences         map[string]runtime.Presence `json:"-"`               // Map UserId -> Presence for targeted messaging
-	App               *app.Service                `json:"-"`               // TienLen app service with game logic
-	Game              *domain.Game                `json:"-"`               // Current active game state (nil if in lobby)
-	BotsEnabled          bool                        `json:"bots_enabled"`           // Whether AI players are allowed
-	BotMinDelay          int                         `json:"bot_min_delay"`          // Min seconds a bot waits
-	BotMaxDelay          int                         `json:"bot_max_delay"`          // Max seconds a bot waits
-	BotAutoFillDelay     int                         `json:"bot_auto_fill_delay"`    // Seconds to wait before auto-filling with bots
-	BotWaitUntil         int64                       `json:"bot_wait_until"`         // Tick when the bot should act
+	Seats                [4]string                   `json:"seats"`                   // Array of user IDs, empty string means seat is empty
+	OwnerSeat            int                         `json:"owner_seat"`              // Seat index of the match owner
+	LastWinnerSeat       int                         `json:"last_winner_seat"`        // Seat index of the winner of the last game
+	Tick                 int64                       `json:"tick"`                    // Current tick of the match for turn-based logic
+	Presences            map[string]runtime.Presence `json:"-"`                       // Map UserId -> Presence for targeted messaging
+	App                  *app.Service                `json:"-"`                       // TienLen app service with game logic
+	Game                 *domain.Game                `json:"-"`                       // Current active game state (nil if in lobby)
+	BotsEnabled          bool                        `json:"bots_enabled"`            // Whether AI players are allowed
+	BotMinDelay          int                         `json:"bot_min_delay"`           // Min seconds a bot waits
+	BotMaxDelay          int                         `json:"bot_max_delay"`           // Max seconds a bot waits
+	BotAutoFillDelay     int                         `json:"bot_auto_fill_delay"`     // Seconds to wait before auto-filling with bots
+	BotWaitUntil         int64                       `json:"bot_wait_until"`          // Tick when the bot should act
 	LastSinglePlayerTick int64                       `json:"last_single_player_tick"` // Tick when a single player started waiting
-	TurnSecondsRemaining int64                       `json:"turn_seconds_remaining"` // Seconds remaining before the current turn expires
+	TurnSecondsRemaining int64                       `json:"turn_seconds_remaining"`  // Seconds remaining before the current turn expires
 	Bots                 map[string]*bot.Agent       `json:"-"`                       // Active bot agents
 	Economy              ports.EconomyPort           `json:"-"`                       // Interface to Nakama wallet
 }
@@ -368,6 +369,11 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 }
 
 func (mh *matchHandler) resetTurnSecondsRemaining(state *MatchState, logger runtime.Logger) {
+	mh.resetTurnSecondsRemainingWithBonus(state, logger, 0)
+}
+
+// resetTurnSecondsRemainingWithBonus resets the turn timer and applies a bonus to the current turn.
+func (mh *matchHandler) resetTurnSecondsRemainingWithBonus(state *MatchState, logger runtime.Logger, bonusSeconds int) {
 	if state.Game == nil || state.Game.Phase != domain.PhasePlaying {
 		state.TurnSecondsRemaining = 0
 		return
@@ -378,7 +384,7 @@ func (mh *matchHandler) resetTurnSecondsRemaining(state *MatchState, logger runt
 		duration = cfg.TurnDurationSeconds
 	}
 
-	state.TurnSecondsRemaining = int64(duration)
+	state.TurnSecondsRemaining = int64(duration + bonusSeconds)
 	logger.Debug(
 		"Turn timer reset: Seat %d has %d seconds remaining",
 		state.Game.CurrentTurn,
@@ -390,7 +396,7 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 	if state.Game == nil {
 		humanCount := state.GetHumanPlayerCount()
 		occupiedCount := state.GetOccupiedSeatCount()
-		
+
 		if humanCount == 1 && occupiedCount == 1 {
 			if state.LastSinglePlayerTick == 0 {
 				state.LastSinglePlayerTick = state.Tick
@@ -446,7 +452,7 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 
 			if state.Tick >= state.BotWaitUntil {
 				state.BotWaitUntil = 0 // Reset for next turn
-				
+
 				agent, exists := state.Bots[currentUserID]
 				if !exists {
 					// Fallback if agent missing (shouldn't happen for new bots)
@@ -580,8 +586,8 @@ func (mh *matchHandler) handleStartGame(ctx context.Context, state *MatchState, 
 	// Update match label to reflect playing state
 	mh.updateLabel(state, dispatcher, logger)
 
-	// Start the turn timer
-	mh.resetTurnSecondsRemaining(state, logger)
+	// Start the turn timer with extra buffer for dealing time.
+	mh.resetTurnSecondsRemainingWithBonus(state, logger, gameStartTurnTimerBonusSeconds)
 
 	// Broadcast resulting events
 	for _, ev := range events {
@@ -692,19 +698,19 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 			logger.Info("StartGame: Dealing to %s: %+v", ev.Recipients[0], p.Hand)
 		}
 		payload = &pb.GameStartedEvent{
-			Phase:            pb.GamePhase_PHASE_PLAYING,
-			FirstTurnSeat:    int32(p.FirstTurnSeat),
-			Hand:             toProtoCards(p.Hand),
+			Phase:                pb.GamePhase_PHASE_PLAYING,
+			FirstTurnSeat:        int32(p.FirstTurnSeat),
+			Hand:                 toProtoCards(p.Hand),
 			TurnSecondsRemaining: state.TurnSecondsRemaining,
 		}
 	case app.EventCardPlayed:
 		opCode = int64(pb.OpCode_OP_CODE_CARD_PLAYED)
 		p := ev.Payload.(app.CardPlayedPayload)
 		payload = &pb.CardPlayedEvent{
-			Seat:             int32(p.Seat),
-			Cards:            toProtoCards(p.Cards),
-			NextTurnSeat:     int32(p.NextTurnSeat),
-			NewRound:         p.NewRound,
+			Seat:                 int32(p.Seat),
+			Cards:                toProtoCards(p.Cards),
+			NextTurnSeat:         int32(p.NextTurnSeat),
+			NewRound:             p.NewRound,
 			TurnSecondsRemaining: state.TurnSecondsRemaining,
 		}
 	case app.EventPigChopped:
@@ -745,9 +751,9 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 		opCode = int64(pb.OpCode_OP_CODE_TURN_PASSED)
 		p := ev.Payload.(app.TurnPassedPayload)
 		payload = &pb.TurnPassedEvent{
-			Seat:             int32(p.Seat),
-			NextTurnSeat:     int32(p.NextTurnSeat),
-			NewRound:         p.NewRound,
+			Seat:                 int32(p.Seat),
+			NextTurnSeat:         int32(p.NextTurnSeat),
+			NewRound:             p.NewRound,
 			TurnSecondsRemaining: state.TurnSecondsRemaining,
 		}
 	case app.EventPlayerFinished:
@@ -918,14 +924,14 @@ func (mh *matchHandler) MatchSignal(ctx context.Context, logger runtime.Logger, 
 
 	if signal.Op == "start_with_deck" {
 		logger.Info("MatchSignal: Starting game with rigged deck.")
-		
+
 		// Check standard constraints
 		if matchState.GetOccupiedSeatCount() < app.MinPlayersToStartGame {
 			return state, "not enough players"
 		}
 
 		baseBet := config.GetBaseBet("")
-		
+
 		// Call Service
 		game, events, err := matchState.App.StartGameWithDeck(matchState.Seats[:], matchState.LastWinnerSeat, baseBet, signal.Deck)
 		if err != nil {
@@ -935,12 +941,12 @@ func (mh *matchHandler) MatchSignal(ctx context.Context, logger runtime.Logger, 
 
 		matchState.Game = game
 		mh.updateLabel(matchState, dispatcher, logger)
-		mh.resetTurnSecondsRemaining(matchState, logger)
+		mh.resetTurnSecondsRemainingWithBonus(matchState, logger, gameStartTurnTimerBonusSeconds)
 
 		for _, ev := range events {
 			mh.broadcastEvent(ctx, matchState, dispatcher, logger, ev)
 		}
-		
+
 		return state, "game started"
 	}
 
