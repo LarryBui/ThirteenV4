@@ -89,23 +89,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             view?.SetTurnActive(active);
         }
 
-        public void StartCountdown(int seatIndex, int seconds)
-        {
-            // First stop all other countdowns to be safe
-            StopAllCountdowns();
-            
-            var view = GetViewBySeatIndex(seatIndex);
-            view?.StartCountdown(seconds);
-        }
-
-        public void StopAllCountdowns()
-        {
-            _southSeat?.StopCountdown();
-            _eastSeat?.StopCountdown();
-            _northSeat?.StopCountdown();
-            _westSeat?.StopCountdown();
-        }
-
         public void ClearAllSeats()
         {
             _southSeat?.ClearProfile();

@@ -88,7 +88,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _presenter.OnTurnPassed += HandleTurnPassed;
             _presenter.OnBoardUpdated += HandleBoardUpdated;
             _presenter.OnError += HandleError;
-            _presenter.OnTurnCountdownUpdated += HandleTurnCountdown;
             _presenter.OnPresenceChanged += HandlePresenceChanged;
             _presenter.OnGameEnded += HandleGameEnded;
 
@@ -106,7 +105,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 _presenter.OnTurnPassed -= HandleTurnPassed;
                 _presenter.OnBoardUpdated -= HandleBoardUpdated;
                 _presenter.OnError -= HandleError;
-                _presenter.OnTurnCountdownUpdated -= HandleTurnCountdown;
                 _presenter.OnPresenceChanged -= HandlePresenceChanged;
                 _presenter.OnGameEnded -= HandleGameEnded;
             }
@@ -348,11 +346,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             }
         }
 
-        private void HandleTurnCountdown(int seatIndex, long seconds)
-        {
-            _seatsManager.StartCountdown(seatIndex, (int)seconds);
-        }
-
         private void HandlePresenceChanged(IReadOnlyList<PresenceChange> changes)
         {
             foreach (var c in changes)
@@ -395,7 +388,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _boardView.Clear();
             _localHandView?.Clear(); 
             _opponentRevealer?.Clear();
-            _seatsManager.StopAllCountdowns();
 
             _isAnimationBlocking = false;
             RefreshAll();

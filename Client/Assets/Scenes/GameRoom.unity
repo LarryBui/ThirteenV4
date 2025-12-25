@@ -283,6 +283,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5373002264725373770, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
   m_PrefabInstance: {fileID: 16907757}
   m_PrefabAsset: {fileID: 0}
+--- !u!224 &16907762 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8337655224779845741, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+  m_PrefabInstance: {fileID: 16907757}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &179092439
 GameObject:
   m_ObjectHideFlags: 0
@@ -1506,6 +1511,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5373002264725373770, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
   m_PrefabInstance: {fileID: 778642232}
   m_PrefabAsset: {fileID: 0}
+--- !u!224 &778642237 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8337655224779845741, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+  m_PrefabInstance: {fileID: 778642232}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &820318150
 GameObject:
   m_ObjectHideFlags: 0
@@ -2128,6 +2138,11 @@ RectTransform:
   m_CorrespondingSourceObject: {fileID: 5373002264725373770, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
   m_PrefabInstance: {fileID: 1059197320}
   m_PrefabAsset: {fileID: 0}
+--- !u!224 &1059197325 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8337655224779845741, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+  m_PrefabInstance: {fileID: 1059197320}
+  m_PrefabAsset: {fileID: 0}
 --- !u!1 &1338376522
 GameObject:
   m_ObjectHideFlags: 0
@@ -2606,6 +2621,11 @@ GameObject:
 --- !u!224 &1640944420 stripped
 RectTransform:
   m_CorrespondingSourceObject: {fileID: 5373002264725373770, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+  m_PrefabInstance: {fileID: 1640944416}
+  m_PrefabAsset: {fileID: 0}
+--- !u!224 &1640944421 stripped
+RectTransform:
+  m_CorrespondingSourceObject: {fileID: 8337655224779845741, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
   m_PrefabInstance: {fileID: 1640944416}
   m_PrefabAsset: {fileID: 0}
 --- !u!1 &1649188826
@@ -3152,6 +3172,61 @@ CanvasRenderer:
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 1930963407}
   m_CullTransparentMesh: 1
+--- !u!1 &1938489725
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1938489726}
+  - component: {fileID: 1938489727}
+  m_Layer: 5
+  m_Name: TurnTimerManager
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!224 &1938489726
+RectTransform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1938489725}
+  m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 1943406718}
+  m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+  m_AnchorMin: {x: 0.5, y: 0.5}
+  m_AnchorMax: {x: 0.5, y: 0.5}
+  m_AnchoredPosition: {x: 0, y: 0}
+  m_SizeDelta: {x: 1, y: 1}
+  m_Pivot: {x: 0.5, y: 0.5}
+--- !u!114 &1938489727
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1938489725}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 44988c71599712a47bc000b86a6a6465, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _timerPrefab: {fileID: -4301494559180440843, guid: 6381ecf302d231c4d879bd12760da293, type: 3}
+  _turnDuration: 15
+  _anchors:
+  - {fileID: 16907762}
+  - {fileID: 1640944421}
+  - {fileID: 778642237}
+  - {fileID: 1059197325}
 --- !u!1 &1943406714
 GameObject:
   m_ObjectHideFlags: 0
@@ -3251,6 +3326,7 @@ RectTransform:
   - {fileID: 1338376523}
   - {fileID: 845354201}
   - {fileID: 425071994}
+  - {fileID: 1938489726}
   - {fileID: 1700000001}
   - {fileID: 621749201}
   - {fileID: 852066454}
