@@ -139,7 +139,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             // For now, standard flow: Send Request -> Server OK -> Event CardPlayed -> Animation.
             
             _presenter.PlayCards(new List<Card>(selected));
-            _localHandView?.ClearSelection();
+            _localHandView?.HideSelectedCards();
         }
 
         private void HandleLeaveClicked()
