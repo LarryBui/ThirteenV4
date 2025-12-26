@@ -147,7 +147,7 @@ namespace TienLen.Infrastructure.Services
 
         private void HookSocketEvents(ISocket socket)
         {
-            socket.Closed += reason => _logger.LogWarning("Nakama socket closed. reason={reason}", reason);
+            socket.Closed += () => _logger.LogWarning("Nakama socket closed.");
             socket.ReceivedError += error => _logger.LogError(error, "Nakama socket error.");
         }
 

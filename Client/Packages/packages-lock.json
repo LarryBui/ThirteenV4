@@ -15,13 +15,13 @@
       "hash": "d1c4a1c5c713832cc85a1c72dca62262d72fee82"
     },
     "com.heroiclabs.nakama-unity": {
-      "version": "https://github.com/heroiclabs/nakama-unity.git?path=/Packages/Nakama",
+      "version": "https://github.com/heroiclabs/nakama-unity.git?path=/Packages/Nakama#v3.13.0",
       "depth": 0,
       "source": "git",
       "dependencies": {
         "com.unity.modules.unitywebrequest": "1.0.0"
       },
-      "hash": "ae507e87fc72f3e59e902ac1ed082e92f4de7d42"
+      "hash": "b57e1d982b73f2abd9fbaca9ff042b223f302585"
     },
     "com.unity.2d.sprite": {
       "version": "1.0.0",
