@@ -3294,7 +3294,7 @@ RectTransform:
   m_AnchorMin: {x: 0.5, y: 0.5}
   m_AnchorMax: {x: 0.5, y: 0.5}
   m_AnchoredPosition: {x: 208, y: -60.8}
-  m_SizeDelta: {x: 160, y: 40}
+  m_SizeDelta: {x: 200, y: 40}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!114 &1902135731
 MonoBehaviour:
@@ -3830,7 +3830,7 @@ MonoBehaviour:
     m_HorizontalOverflow: 0
     m_VerticalOverflow: 0
     m_LineSpacing: 1
-  m_Text: Voice Chat
+  m_Text: Voice To Text
 --- !u!222 &2053781512
 CanvasRenderer:
   m_ObjectHideFlags: 0
