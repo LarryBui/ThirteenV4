@@ -23,6 +23,11 @@
 - Application: `internal/app` contains use-cases (join/leave/start, play, pass, reset) and emits domain events.
 - Domain: `internal/domain` holds pure game state and helpers (deck, seats, label, counters) with no Nakama dependencies.
 
+## Authentication & onboarding
+- Device authentication uses the client-provided device ID as-is; do not randomize it server-side.
+- On first creation (`session.Created == true`), the server assigns a friendly display name and grants a welcome gold bonus.
+- Clients should persist a stable device ID (Keychain/Keystore) and set `Create=true` only for first-time sign-in.
+
 ## Build and test (from `Server/`)
 - Tests: `go test ./...`
 ## Docker (from `Server/`)

@@ -27,10 +27,6 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 		logger.Info("Test RPCs registered.")
 	}
 
-	if err := initializer.RegisterBeforeAuthenticateDevice(BeforeAuthenticateDevice); err != nil {
-		return err
-	}
-
 	if err := initializer.RegisterAfterAuthenticateDevice(AfterAuthenticateDevice); err != nil {
 		return err
 	}
