@@ -5,8 +5,6 @@ import (
 	"errors"
 	"math/rand"
 	"testing"
-
-	"tienlen/internal/ports"
 )
 
 type fakeAccountPort struct {
@@ -17,23 +15,33 @@ func (f fakeAccountPort) UpdateProfile(ctx context.Context, userID, username, di
 	return f.updateErr
 }
 
-type fakeEconomyPort struct {
+type fakeWelcomeBonusPort struct {
 	updateErr error
-	updates   []ports.WalletUpdate
+	updates   []welcomeBonusCall
+	granted   bool
 }
 
-func (f *fakeEconomyPort) GetBalance(ctx context.Context, userID string) (int64, error) {
-	return 0, nil
+type welcomeBonusCall struct {
+	userID   string
+	amount   int64
+	metadata map[string]interface{}
 }
 
-func (f *fakeEconomyPort) UpdateBalances(ctx context.Context, updates []ports.WalletUpdate) error {
-	f.updates = updates
-	return f.updateErr
+func (f *fakeWelcomeBonusPort) GrantWelcomeBonusOnce(ctx context.Context, userID string, amount int64, metadata map[string]interface{}) (bool, error) {
+	f.updates = append(f.updates, welcomeBonusCall{
+		userID:   userID,
+		amount:   amount,
+		metadata: metadata,
+	})
+	if f.updateErr != nil {
+		return false, f.updateErr
+	}
+	return f.granted, nil
 }
 
 func TestOnboardNewUser_GrantsWelcomeBonus(t *testing.T) {
-	economy := &fakeEconomyPort{}
-	service := NewService(fakeAccountPort{}, economy, rand.New(rand.NewSource(1)))
+	bonuses := &fakeWelcomeBonusPort{granted: true}
+	service := NewService(fakeAccountPort{}, bonuses, rand.New(rand.NewSource(1)))
 
 	result, err := service.OnboardNewUser(context.Background(), "user-1")
 	if err != nil {
@@ -43,17 +51,20 @@ func TestOnboardNewUser_GrantsWelcomeBonus(t *testing.T) {
 		t.Fatalf("Expected no profile update error, got %v", result.ProfileUpdateErr)
 	}
 
-	if len(economy.updates) != 1 {
-		t.Fatalf("Expected 1 wallet update, got %d", len(economy.updates))
+	if len(bonuses.updates) != 1 {
+		t.Fatalf("Expected 1 welcome bonus call, got %d", len(bonuses.updates))
 	}
-	if economy.updates[0].Amount != defaultWelcomeBonusGold {
-		t.Fatalf("Expected welcome bonus %d, got %d", defaultWelcomeBonusGold, economy.updates[0].Amount)
+	if bonuses.updates[0].amount != defaultWelcomeBonusGold {
+		t.Fatalf("Expected welcome bonus %d, got %d", defaultWelcomeBonusGold, bonuses.updates[0].amount)
+	}
+	if !result.WelcomeBonusGranted {
+		t.Fatal("Expected welcome bonus to be marked as granted")
 	}
 }
 
 func TestOnboardNewUser_AccountUpdateFailureStillGrantsBonus(t *testing.T) {
-	economy := &fakeEconomyPort{}
-	service := NewService(fakeAccountPort{updateErr: errors.New("update failed")}, economy, rand.New(rand.NewSource(1)))
+	bonuses := &fakeWelcomeBonusPort{granted: true}
+	service := NewService(fakeAccountPort{updateErr: errors.New("update failed")}, bonuses, rand.New(rand.NewSource(1)))
 
 	result, err := service.OnboardNewUser(context.Background(), "user-1")
 	if err != nil {
@@ -63,15 +74,31 @@ func TestOnboardNewUser_AccountUpdateFailureStillGrantsBonus(t *testing.T) {
 		t.Fatal("Expected profile update error to be captured")
 	}
 
-	if len(economy.updates) != 1 {
-		t.Fatalf("Expected 1 wallet update, got %d", len(economy.updates))
+	if len(bonuses.updates) != 1 {
+		t.Fatalf("Expected 1 welcome bonus call, got %d", len(bonuses.updates))
+	}
+	if !result.WelcomeBonusGranted {
+		t.Fatal("Expected welcome bonus to be marked as granted")
 	}
 }
 
 func TestOnboardNewUser_WelcomeBonusFailureReturnsError(t *testing.T) {
-	service := NewService(fakeAccountPort{}, &fakeEconomyPort{updateErr: errors.New("wallet failed")}, rand.New(rand.NewSource(1)))
+	service := NewService(fakeAccountPort{}, &fakeWelcomeBonusPort{updateErr: errors.New("wallet failed")}, rand.New(rand.NewSource(1)))
 
 	if _, err := service.OnboardNewUser(context.Background(), "user-1"); err == nil {
 		t.Fatal("Expected error when welcome bonus fails")
+	}
+}
+
+func TestOnboardNewUser_WelcomeBonusAlreadyGranted(t *testing.T) {
+	bonuses := &fakeWelcomeBonusPort{granted: false}
+	service := NewService(fakeAccountPort{}, bonuses, rand.New(rand.NewSource(1)))
+
+	result, err := service.OnboardNewUser(context.Background(), "user-1")
+	if err != nil {
+		t.Fatalf("OnboardNewUser returned error: %v", err)
+	}
+	if result.WelcomeBonusGranted {
+		t.Fatal("Expected welcome bonus to be marked as already granted")
 	}
 }

@@ -26,6 +26,7 @@
 ## Authentication & onboarding
 - Device authentication uses the client-provided device ID as-is; do not randomize it server-side.
 - On first creation (`session.Created == true`), the server assigns a friendly display name and grants a welcome gold bonus.
+- The welcome bonus is idempotent; a storage marker `onboarding/welcome_bonus_v1` prevents double-granting.
 - Clients should persist a stable device ID (Keychain/Keystore) and set `Create=true` only for first-time sign-in.
 
 ## Build and test (from `Server/`)

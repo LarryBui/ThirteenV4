@@ -17,24 +17,26 @@ const (
 type Result struct {
 	// ProfileUpdateErr is set when the profile update failed but onboarding continued.
 	ProfileUpdateErr error
+	// WelcomeBonusGranted indicates whether the welcome bonus was granted.
+	WelcomeBonusGranted bool
 }
 
 // Service handles post-auth onboarding for new users.
 type Service struct {
 	accounts ports.AccountPort
-	economy  ports.EconomyPort
+	bonuses  ports.WelcomeBonusPort
 	rng      *rand.Rand
 }
 
 // NewService constructs an onboarding service with required ports.
-// accounts/economy must be non-nil; rng may be nil to use a time-seeded default.
-func NewService(accounts ports.AccountPort, economy ports.EconomyPort, rng *rand.Rand) *Service {
+// accounts/bonuses must be non-nil; rng may be nil to use a time-seeded default.
+func NewService(accounts ports.AccountPort, bonuses ports.WelcomeBonusPort, rng *rand.Rand) *Service {
 	if rng == nil {
 		rng = rand.New(rand.NewSource(time.Now().UnixNano()))
 	}
 	return &Service{
 		accounts: accounts,
-		economy:  economy,
+		bonuses:  bonuses,
 		rng:      rng,
 	}
 }
@@ -44,7 +46,7 @@ func NewService(accounts ports.AccountPort, economy ports.EconomyPort, rng *rand
 // Returns a Result with any non-fatal issues and an error if the welcome bonus cannot be granted.
 // Side effects: updates account profile and grants a wallet bonus.
 func (s *Service) OnboardNewUser(ctx context.Context, userID string) (Result, error) {
-	if s.accounts == nil || s.economy == nil {
+	if s.accounts == nil || s.bonuses == nil {
 		return Result{}, fmt.Errorf("onboarding service not configured")
 	}
 
@@ -55,19 +57,14 @@ func (s *Service) OnboardNewUser(ctx context.Context, userID string) (Result, er
 		result.ProfileUpdateErr = err
 	}
 
-	updates := []ports.WalletUpdate{
-		{
-			UserID: userID,
-			Amount: defaultWelcomeBonusGold,
-			Metadata: map[string]interface{}{
-				"reason": "welcome_bonus",
-			},
-		},
+	metadata := map[string]interface{}{
+		"reason": "welcome_bonus",
 	}
-
-	if err := s.economy.UpdateBalances(ctx, updates); err != nil {
+	granted, err := s.bonuses.GrantWelcomeBonusOnce(ctx, userID, defaultWelcomeBonusGold, metadata)
+	if err != nil {
 		return result, fmt.Errorf("failed to grant welcome bonus: %w", err)
 	}
+	result.WelcomeBonusGranted = granted
 
 	return result, nil
 }

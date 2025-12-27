@@ -35,10 +35,13 @@ func AfterAuthenticateDevice(ctx context.Context, logger runtime.Logger, db *sql
 
 		logger.Info("Onboarding new user %s", userID)
 
-		service := onboarding.NewService(NewNakamaAccountAdapter(nk), NewNakamaEconomyAdapter(nk), nil)
+		service := onboarding.NewService(NewNakamaAccountAdapter(nk), NewNakamaWelcomeBonusAdapter(nk), nil)
 		result, err := service.OnboardNewUser(ctx, userID)
 		if result.ProfileUpdateErr != nil {
 			logger.Warn("AfterAuthenticateDevice: Failed to update profile for user %s: %v", userID, result.ProfileUpdateErr)
+		}
+		if !result.WelcomeBonusGranted {
+			logger.Info("AfterAuthenticateDevice: Welcome bonus already granted for user %s", userID)
 		}
 		if err != nil {
 			logger.Error("AfterAuthenticateDevice: Onboarding failed for user %s: %v", userID, err)
