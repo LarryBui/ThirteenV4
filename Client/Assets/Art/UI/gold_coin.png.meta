@@ -113,32 +113,10 @@ TextureImporter:
       name: gold_coin_0
       rect:
         serializedVersion: 2
-        x: 178
-        y: 683
-        width: 24
-        height: 8
-      alignment: 0
-      pivot: {x: 0, y: 0}
-      border: {x: 0, y: 0, z: 0, w: 0}
-      customData: 
-      outline: []
-      physicsShape: []
-      tessellationDetail: 0
-      bones: []
-      spriteID: 41e3b1b47f9762e4a97f995a697c8b95
-      internalID: -711194113
-      vertices: []
-      indices: 
-      edges: []
-      weights: []
-    - serializedVersion: 2
-      name: gold_coin_1
-      rect:
-        serializedVersion: 2
         x: 207
-        y: 49
-        width: 758
-        height: 913
+        y: 180
+        width: 642
+        height: 645
       alignment: 0
       pivot: {x: 0, y: 0}
       border: {x: 0, y: 0, z: 0, w: 0}
@@ -147,8 +125,8 @@ TextureImporter:
       physicsShape: []
       tessellationDetail: 0
       bones: []
-      spriteID: 9dd9e71b34b253a44bdb997d105fd566
-      internalID: 2124744051
+      spriteID: 94d7e2fe519cedf4583857d15c34ffe0
+      internalID: -789537884
       vertices: []
       indices: 
       edges: []
@@ -157,7 +135,7 @@ TextureImporter:
     customData: 
     physicsShape: []
     bones: []
-    spriteID: bc8e15e3fac930844875317468b0d8a5
+    spriteID: 7e8f491ef04a12347a9cb7b57f87603d
     internalID: 0
     vertices: []
     indices: 
@@ -167,8 +145,7 @@ TextureImporter:
     spriteCustomMetadata:
       entries: []
     nameFileIdTable:
-      gold_coin_0: -711194113
-      gold_coin_1: 2124744051
+      gold_coin_0: -789537884
   mipmapLimitGroupName: 
   pSDRemoveMatte: 0
   userData: 

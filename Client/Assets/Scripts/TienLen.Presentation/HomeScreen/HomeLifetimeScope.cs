@@ -13,6 +13,7 @@ namespace TienLen.Presentation.HomeScreen
             // and inject its dependencies.
             builder.RegisterComponentInHierarchy<HomeUIController>();
             builder.RegisterComponentInHierarchy<HomeChatController>();
+            builder.RegisterComponentInHierarchy<Views.BalanceView>();
         }
     }
 }
