@@ -33,6 +33,9 @@ namespace TienLen.Presentation.GameRoomScreen
             // Register Voice Chat View
             builder.RegisterComponentInHierarchy<VoiceChatView>();
 
+            // Register Winner Badge Manager
+            builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Views.WinnerBadgeManagerView>();
+
             // Register Presenter
             builder.Register<GameRoomPresenter>(Lifetime.Scoped);
         }

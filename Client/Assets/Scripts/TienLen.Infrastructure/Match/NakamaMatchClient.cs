@@ -47,7 +47,7 @@ namespace TienLen.Infrastructure.Match
         public event Action<int, string> OnGameError;
         public event Action<int, string> OnInGameChatReceived;
         public event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
-        public event Action<string> OnPlayerFinished;
+        public event Action<int, int> OnPlayerFinished;
 
         /// <summary>
         /// Initializes the match client with required services.
@@ -370,6 +370,19 @@ namespace TienLen.Infrastructure.Match
                     catch (Exception e)
                     {
                         _logger.LogWarning(e, "MatchClient: Failed to parse GameErrorEvent. matchId={matchId}", _matchId);
+                    }
+                    break;
+
+                case (long)Proto.OpCode.PlayerFinished: // 107
+                    try
+                    {
+                        var payload = Proto.PlayerFinishedEvent.Parser.ParseFrom(state.State);
+                        _logger.LogInformation("MatchClient: PlayerFinished event received. Seat={seat} Rank={rank}", payload.Seat, payload.Rank);
+                        OnPlayerFinished?.Invoke(payload.Seat, payload.Rank);
+                    }
+                    catch (Exception e)
+                    {
+                        _logger.LogWarning(e, "MatchClient: Failed to parse PlayerFinishedEvent. matchId={matchId}", _matchId);
                     }
                     break;
 

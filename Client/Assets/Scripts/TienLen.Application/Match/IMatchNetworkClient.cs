@@ -50,6 +50,11 @@ namespace TienLen.Application
         event Action<List<int>, Dictionary<int, List<Card>>> OnGameEnded; // finishOrderSeats, remainingHands
 
         /// <summary>
+        /// Fired when a player finishes their hand.
+        /// </summary>
+        event Action<int, int> OnPlayerFinished; // seat, rank
+
+        /// <summary>
         /// Fired when a game error occurs.
         /// </summary>
         event Action<int, string> OnGameError; // code, message

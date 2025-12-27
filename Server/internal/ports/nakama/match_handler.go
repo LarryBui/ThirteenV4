@@ -23,6 +23,7 @@ import (
 const (
 	MatchLabelKey_OpenSeats        = "open" // Key for the open seats in the match label
 	gameStartTurnTimerBonusSeconds = 5      // Extra seconds added to the first turn timer to cover card dealing.
+	lobbyAutoFillBotMax            = 2      // Max bots to auto-fill when a single human is waiting.
 )
 
 // MatchState holds the authoritative runtime state for the Nakama match handler.
@@ -394,7 +395,7 @@ func (mh *matchHandler) resetTurnSecondsRemainingWithBonus(state *MatchState, lo
 }
 
 func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
-	// 1. Auto-fill lobby with a single bot if there's exactly one human player alone after delay
+	// 1. Auto-fill lobby with up to two bots if there's exactly one human player alone after delay
 	if state.Game == nil {
 		humanCount := state.GetHumanPlayerCount()
 		occupiedCount := state.GetOccupiedSeatCount()
@@ -406,7 +407,13 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 			}
 
 			if state.Tick-state.LastSinglePlayerTick >= int64(state.BotAutoFillDelay) {
-				added := false
+				openSeats := state.GetOpenSeatsCount()
+				botsToAdd := lobbyAutoFillBotMax
+				if openSeats < botsToAdd {
+					botsToAdd = openSeats
+				}
+
+				added := 0
 				for i, seat := range state.Seats {
 					if seat == "" {
 						identity := bot.GetBotIdentity(i)
@@ -422,11 +429,13 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 						}
 
 						logger.Info("processBots: Added bot %s (%s) to seat %d", identity.Username, botID, i)
-						added = true
-						break // Only add one bot
+						added++
+						if added >= botsToAdd {
+							break
+						}
 					}
 				}
-				if added {
+				if added > 0 {
 					mh.updateLabel(state, dispatcher, logger)
 					mh.broadcastMatchState(state, dispatcher, logger)
 				}

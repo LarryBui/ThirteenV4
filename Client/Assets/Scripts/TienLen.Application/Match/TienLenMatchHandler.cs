@@ -81,6 +81,11 @@ namespace TienLen.Application
         public event Action<List<int>, Dictionary<int, List<Card>>> GameEnded;
 
         /// <summary>
+        /// Raised when a player finishes their hand.
+        /// </summary>
+        public event Action<int, int> PlayerFinished; // seat, rank
+
+        /// <summary>
         /// Raised when an in-game chat message is received.
         /// </summary>
         public event Action<int, string> InGameChatReceived; // seatIndex, message
@@ -217,6 +222,7 @@ namespace TienLen.Application
             _networkClient.OnGameError += HandleGameError;
             _networkClient.OnMatchPresenceChanged += HandleMatchPresenceChanged;
             _networkClient.OnInGameChatReceived += HandleInGameChatReceived;
+            _networkClient.OnPlayerFinished += HandlePlayerFinished;
         }
 
         private void UnsubscribeFromNetworkEvents()
@@ -230,6 +236,12 @@ namespace TienLen.Application
             _networkClient.OnGameError -= HandleGameError;
             _networkClient.OnMatchPresenceChanged -= HandleMatchPresenceChanged;
             _networkClient.OnInGameChatReceived -= HandleInGameChatReceived;
+            _networkClient.OnPlayerFinished -= HandlePlayerFinished;
+        }
+
+        private void HandlePlayerFinished(int seat, int rank)
+        {
+            PlayerFinished?.Invoke(seat, rank);
         }
 
         private void HandleInGameChatReceived(int seatIndex, string message)

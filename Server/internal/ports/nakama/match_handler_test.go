@@ -2,6 +2,7 @@ package nakama
 
 import (
 	"bytes"
+	"context"
 	"encoding/json"
 	"testing"
 	"tienlen/internal/bot"
@@ -28,6 +29,30 @@ func (noopLogger) WithFields(map[string]interface{}) runtime.Logger {
 	return noopLogger{}
 }
 func (noopLogger) Fields() map[string]interface{} {
+	return nil
+}
+
+// mockDispatcher records match dispatcher calls for assertions.
+type mockDispatcher struct {
+	broadcastCount int
+	labelUpdates   int
+}
+
+func (md *mockDispatcher) BroadcastMessage(opCode int64, data []byte, presences []runtime.Presence, sender runtime.Presence, reliable bool) error {
+	md.broadcastCount++
+	return nil
+}
+
+func (md *mockDispatcher) BroadcastMessageDeferred(opCode int64, data []byte, presences []runtime.Presence, sender runtime.Presence, reliable bool) error {
+	return nil
+}
+
+func (md *mockDispatcher) MatchKick(presences []runtime.Presence) error {
+	return nil
+}
+
+func (md *mockDispatcher) MatchLabelUpdate(label string) error {
+	md.labelUpdates++
 	return nil
 }
 
@@ -182,5 +207,40 @@ func TestResetTurnSecondsRemainingWithBonus(t *testing.T) {
 	want := int64(duration + gameStartTurnTimerBonusSeconds)
 	if state.TurnSecondsRemaining != want {
 		t.Fatalf("TurnSecondsRemaining = %d, want %d", state.TurnSecondsRemaining, want)
+	}
+}
+
+func TestProcessBots_AddsTwoBotsForSoloHuman(t *testing.T) {
+	handler := &matchHandler{}
+	dispatcher := &mockDispatcher{}
+	state := &MatchState{
+		Seats:                [4]string{"user-1", "", "", ""},
+		Presences:            make(map[string]runtime.Presence),
+		Bots:                 make(map[string]*bot.Agent),
+		BotAutoFillDelay:     2,
+		LastSinglePlayerTick: 8,
+		Tick:                 10,
+	}
+
+	handler.processBots(context.Background(), state, dispatcher, noopLogger{})
+
+	botCount := 0
+	for _, seat := range state.Seats {
+		if isBotUserId(seat) {
+			botCount++
+		}
+	}
+
+	if botCount != 2 {
+		t.Fatalf("Expected 2 bots, got %d", botCount)
+	}
+	if state.GetOpenSeatsCount() != 1 {
+		t.Fatalf("Expected 1 open seat after auto-fill, got %d", state.GetOpenSeatsCount())
+	}
+	if state.LastSinglePlayerTick != 0 {
+		t.Fatalf("Expected auto-fill timer reset, got %d", state.LastSinglePlayerTick)
+	}
+	if dispatcher.broadcastCount == 0 || dispatcher.labelUpdates == 0 {
+		t.Fatalf("Expected match state broadcast and label update after auto-fill")
 	}
 }
