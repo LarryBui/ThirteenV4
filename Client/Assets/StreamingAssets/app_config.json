@@ -1,0 +1,6 @@
+{
+  "host": "127.0.0.1",
+  "port": 7350,
+  "scheme": "http",
+  "serverKey": "defaultkey"
+}

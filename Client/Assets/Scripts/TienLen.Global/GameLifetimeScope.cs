@@ -19,12 +19,6 @@ namespace TienLen.Global
 {
     public class GameLifetimeScope : LifetimeScope
     {
-        [Header("Nakama Settings")]
-        [SerializeField] private string scheme = NakamaConfig.DefaultScheme;
-        [SerializeField] private string host = NakamaConfig.DefaultHost;
-        [SerializeField] private int port = NakamaConfig.DefaultPort;
-        [SerializeField] private string serverKey = NakamaConfig.DefaultServerKey;
-
         protected override void Awake()
         {
             base.Awake();
@@ -39,7 +33,9 @@ namespace TienLen.Global
                 deviceId = Guid.NewGuid().ToString();
             }
 
-            var nakamaConfig = new NakamaConfig(deviceId, scheme, host, port, serverKey);
+            // Load Nakama server settings from an external JSON file in StreamingAssets.
+            // This allows changing the Host/Port without recompiling the project.
+            var nakamaConfig = ConfigLoader.Load(deviceId);
             builder.RegisterInstance<ITienLenAppConfig>(nakamaConfig);
 
             // Register Session Context
