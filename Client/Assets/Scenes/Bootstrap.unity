@@ -167,10 +167,6 @@ MonoBehaviour:
     TypeName: 
   autoRun: 1
   autoInjectGameObjects: []
-  scheme: http
-  host: 52.233.85.18
-  port: 7350
-  serverKey: defaultkey
 --- !u!1 &474881285
 GameObject:
   m_ObjectHideFlags: 0
