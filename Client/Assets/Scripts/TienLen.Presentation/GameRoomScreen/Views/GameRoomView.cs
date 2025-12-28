@@ -361,12 +361,12 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             RefreshAll();
         }
 
-        private void HandleGameEnded(List<int> finishOrder, Dictionary<int, List<Card>> remainingHands)
+        private void HandleGameEnded(GameEndedResultDto result)
         {
-            RunGameEndSequence(remainingHands).Forget();
+            RunGameEndSequence(result.RemainingHands).Forget();
         }
 
-        private async UniTaskVoid RunGameEndSequence(Dictionary<int, List<Card>> remainingHands)
+        private async UniTaskVoid RunGameEndSequence(IReadOnlyDictionary<int, List<Card>> remainingHands)
         {
             _isAnimationBlocking = true;
             _actionButtons.SetActionButtonsVisible(false); // Hide inputs

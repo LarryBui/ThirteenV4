@@ -1,6 +1,9 @@
+using System.Collections.Generic;
 using UnityEngine;
 using VContainer;
 using TienLen.Presentation.GameRoomScreen.Views;
+using TienLen.Domain.ValueObjects;
+using TienLen.Application;
 
 namespace TienLen.Presentation.GameRoomScreen.Components
 {
@@ -91,8 +94,10 @@ namespace TienLen.Presentation.GameRoomScreen.Components
             SetAllCounts(0);
         }
 
-        private void HandleGameEnded(System.Collections.Generic.List<int> finishOrder, System.Collections.Generic.Dictionary<int, System.Collections.Generic.List<TienLen.Domain.ValueObjects.Card>> remainingHands)
+        private void HandleGameEnded(GameEndedResultDto result)
         {
+            // Optionally clear counters or show final hands
+            // For now, let's clear them as the game is over
             SetAllCounts(0);
         }
 

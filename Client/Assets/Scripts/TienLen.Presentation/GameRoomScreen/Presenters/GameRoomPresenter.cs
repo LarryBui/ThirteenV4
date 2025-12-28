@@ -28,7 +28,7 @@ namespace TienLen.Presentation.GameRoomScreen
         public event Action<string> OnError;
         public event Action<IReadOnlyList<PresenceChange>> OnPresenceChanged;
         public event Action OnGameStarted;
-        public event Action<List<int>, Dictionary<int, List<Card>>, Dictionary<string, long>> OnGameEnded;
+        public event Action<GameEndedResultDto> OnGameEnded;
         public event Action<int, int> OnPlayerFinished; // seat, rank
         public event Action<int, int> OnSeatCardCountUpdated; // seatIndex, newCount
         public event Action<int, UnityEngine.Vector3> OnCardArrived; // seatIndex, worldPosition
@@ -110,7 +110,10 @@ namespace TienLen.Presentation.GameRoomScreen
         private void HandleTurnPassed(int seat) => OnTurnPassed?.Invoke(seat);
         private void HandleCountdown(int seat, long seconds) => OnTurnCountdownUpdated?.Invoke(seat, seconds);
         private void HandlePresenceChanged(IReadOnlyList<PresenceChange> changes) => OnPresenceChanged?.Invoke(changes);
-        private void HandleGameEnded(List<int> finishOrder, Dictionary<int, List<Card>> remainingHands, Dictionary<string, long> balanceChanges) => OnGameEnded?.Invoke(finishOrder, remainingHands, balanceChanges);
+        private void HandleGameEnded(GameEndedResultDto result)
+        {
+            OnGameEnded?.Invoke(result);
+        }
         private void HandlePlayerFinished(int seat, int rank) => OnPlayerFinished?.Invoke(seat, rank);
         private void HandleInGameChatReceived(int seatIndex, string message) => OnInGameChatReceived?.Invoke(seatIndex, message);
 

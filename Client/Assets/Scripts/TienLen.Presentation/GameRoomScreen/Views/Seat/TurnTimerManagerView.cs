@@ -46,9 +46,11 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 _presenter.OnCardsPlayed += (seat, cards) => Refresh();
                 _presenter.OnTurnPassed += (seat) => Refresh();
                 _presenter.OnGameStarted += Refresh;
-                _presenter.OnGameEnded += (winners, hands) => 
+                
+                // Reset timers when game ends
+                _presenter.OnGameEnded += (result) =>
                 {
-                    _activeTimer.Stop();
+                    _activeTimer?.Stop();
                 };
             }
         }

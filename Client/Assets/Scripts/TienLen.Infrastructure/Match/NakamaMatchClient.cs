@@ -43,7 +43,7 @@ namespace TienLen.Infrastructure.Match
         public event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
         /// <inheritdoc />
         public event Action<int, string> OnPlayerLeft;
-        public event Action<List<int>, Dictionary<int, List<Card>>, Dictionary<string, long>> OnGameEnded;
+        public event Action<GameEndedResultDto> OnGameEnded;
         public event Action<int, string> OnGameError;
         public event Action<int, string> OnInGameChatReceived;
         public event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
@@ -329,6 +329,7 @@ namespace TienLen.Infrastructure.Match
                     try
                     {
                         var payload = Proto.GameEndedEvent.Parser.ParseFrom(state.State);
+                        
                         var finishOrder = new List<int>(payload.FinishOrderSeats);
                         
                         var remainingHands = new Dictionary<int, List<Card>>();
@@ -357,7 +358,8 @@ namespace TienLen.Infrastructure.Match
                             }
                         }
 
-                        OnGameEnded?.Invoke(finishOrder, remainingHands, balanceChanges);
+                        var resultDto = new GameEndedResultDto(finishOrder, remainingHands, balanceChanges);
+                        OnGameEnded?.Invoke(resultDto);
                     }
                     catch (Exception e)
                     {

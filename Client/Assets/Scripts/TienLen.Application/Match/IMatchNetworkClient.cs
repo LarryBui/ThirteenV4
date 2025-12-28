@@ -45,9 +45,9 @@ namespace TienLen.Application
         event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
         
         /// <summary>
-        /// Fired when the game ends.
+        /// Fired when the game ends with a full result payload.
         /// </summary>
-        event Action<List<int>, Dictionary<int, List<Card>>, Dictionary<string, long>> OnGameEnded; // finishOrderSeats, remainingHands, balanceChanges
+        event Action<GameEndedResultDto> OnGameEnded;
 
         /// <summary>
         /// Fired when a player finishes their hand.

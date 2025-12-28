@@ -76,9 +76,14 @@ namespace TienLen.Application
         public event Action<int, string> GameErrorReceived;
 
         /// <summary>
-        /// Raised when the game ends, providing the finish order (seat indices) and remaining hands (seat -> cards).
+        /// Raised when the game ends, providing the full result details.
         /// </summary>
-        public event Action<List<int>, Dictionary<int, List<Card>>, Dictionary<string, long>> GameEnded; // Added balanceChanges
+        public event Action<GameEndedResultDto> GameEnded;
+
+        /// <summary>
+        /// Raised when player balances change (e.g. game settlement).
+        /// </summary>
+        public event Action<Dictionary<string, long>> MatchBalanceChanged;
 
         /// <summary>
         /// Raised when a player finishes their hand.
@@ -254,10 +259,6 @@ namespace TienLen.Application
             if (CurrentMatch == null) return;
             try
             {
-                // TODO: Update Domain Match to use seat index for SkipTurn logic
-                // For now, we need to map seat to user ID if domain still uses UserID,
-                // or update Domain to use Seat.
-                // Assuming we update Domain Match to use SeatIndex as well.
                 CurrentMatch.HandleTurnPassed(seat, nextTurnSeat, newRound);
                 CurrentMatch.TurnSecondsRemaining = turnSecondsRemaining;
                 GameRoomStateUpdated?.Invoke();
@@ -271,18 +272,16 @@ namespace TienLen.Application
             }
         }
 
-        private void HandleGameEnded(List<int> finishOrderSeats, Dictionary<int, List<Card>> remainingHands, Dictionary<string, long> balanceChanges)
+        private void HandleGameEnded(GameEndedResultDto result)
         {
             if (CurrentMatch == null) return;
             CurrentMatch.Phase = "Lobby";
 
-            // Update Session Balance if local player is involved
+            // FORK: 1. Update Session Balance
             var localUserId = _gameSessionContext.Identity.UserId;
-            if (balanceChanges != null && !string.IsNullOrEmpty(localUserId) && balanceChanges.TryGetValue(localUserId, out var change))
+            if (result.BalanceChanges != null && !string.IsNullOrEmpty(localUserId) && result.BalanceChanges.TryGetValue(localUserId, out var change))
             {
                 var newBalance = _gameSessionContext.Identity.Balance + change;
-                // Note: IdentityState is immutable, so we must recreate/set it via SetIdentity
-                // We keep existing properties (DisplayName, Avatar)
                 _gameSessionContext.SetIdentity(
                     _gameSessionContext.Identity.UserId,
                     _gameSessionContext.Identity.DisplayName,
@@ -291,7 +290,15 @@ namespace TienLen.Application
                 );
             }
 
-            GameEnded?.Invoke(finishOrderSeats, remainingHands, balanceChanges);
+            // FORK: 2. Invoke Public Event (DTO payload)
+            GameEnded?.Invoke(result);
+            
+            // FORK: 3. Invoke Economy Event (if needed)
+            if (result.BalanceChanges != null && result.BalanceChanges.Count > 0)
+            {
+                MatchBalanceChanged?.Invoke(new Dictionary<string, long>((Dictionary<string, long>)result.BalanceChanges));
+            }
+
             GameRoomStateUpdated?.Invoke();
         }
 
