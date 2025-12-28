@@ -47,7 +47,7 @@ namespace TienLen.Application
         /// <summary>
         /// Fired when the game ends.
         /// </summary>
-        event Action<List<int>, Dictionary<int, List<Card>>> OnGameEnded; // finishOrderSeats, remainingHands
+        event Action<List<int>, Dictionary<int, List<Card>>, Dictionary<string, long>> OnGameEnded; // finishOrderSeats, remainingHands, balanceChanges
 
         /// <summary>
         /// Fired when a player finishes their hand.

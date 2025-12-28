@@ -43,7 +43,7 @@ namespace TienLen.Infrastructure.Match
         public event Action<MatchStateSnapshotDto> OnPlayerJoinedOP;
         /// <inheritdoc />
         public event Action<int, string> OnPlayerLeft;
-        public event Action<List<int>, Dictionary<int, List<Card>>> OnGameEnded;
+        public event Action<List<int>, Dictionary<int, List<Card>>, Dictionary<string, long>> OnGameEnded;
         public event Action<int, string> OnGameError;
         public event Action<int, string> OnInGameChatReceived;
         public event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
@@ -348,7 +348,16 @@ namespace TienLen.Infrastructure.Match
                             }
                         }
 
-                        OnGameEnded?.Invoke(finishOrder, remainingHands);
+                        var balanceChanges = new Dictionary<string, long>();
+                        if (payload.BalanceChanges != null)
+                        {
+                            foreach (var entry in payload.BalanceChanges)
+                            {
+                                balanceChanges[entry.Key] = entry.Value;
+                            }
+                        }
+
+                        OnGameEnded?.Invoke(finishOrder, remainingHands, balanceChanges);
                     }
                     catch (Exception e)
                     {

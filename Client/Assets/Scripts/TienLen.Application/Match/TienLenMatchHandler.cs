@@ -78,7 +78,7 @@ namespace TienLen.Application
         /// <summary>
         /// Raised when the game ends, providing the finish order (seat indices) and remaining hands (seat -> cards).
         /// </summary>
-        public event Action<List<int>, Dictionary<int, List<Card>>> GameEnded;
+        public event Action<List<int>, Dictionary<int, List<Card>>, Dictionary<string, long>> GameEnded; // Added balanceChanges
 
         /// <summary>
         /// Raised when a player finishes their hand.
@@ -271,11 +271,27 @@ namespace TienLen.Application
             }
         }
 
-        private void HandleGameEnded(List<int> finishOrderSeats, Dictionary<int, List<Card>> remainingHands)
+        private void HandleGameEnded(List<int> finishOrderSeats, Dictionary<int, List<Card>> remainingHands, Dictionary<string, long> balanceChanges)
         {
             if (CurrentMatch == null) return;
             CurrentMatch.Phase = "Lobby";
-            GameEnded?.Invoke(finishOrderSeats, remainingHands);
+
+            // Update Session Balance if local player is involved
+            var localUserId = _gameSessionContext.Identity.UserId;
+            if (balanceChanges != null && !string.IsNullOrEmpty(localUserId) && balanceChanges.TryGetValue(localUserId, out var change))
+            {
+                var newBalance = _gameSessionContext.Identity.Balance + change;
+                // Note: IdentityState is immutable, so we must recreate/set it via SetIdentity
+                // We keep existing properties (DisplayName, Avatar)
+                _gameSessionContext.SetIdentity(
+                    _gameSessionContext.Identity.UserId,
+                    _gameSessionContext.Identity.DisplayName,
+                    _gameSessionContext.Identity.AvatarIndex,
+                    newBalance
+                );
+            }
+
+            GameEnded?.Invoke(finishOrderSeats, remainingHands, balanceChanges);
             GameRoomStateUpdated?.Invoke();
         }
 
@@ -421,6 +437,18 @@ namespace TienLen.Application
                     player.DisplayName = pState.DisplayName;
                     player.AvatarIndex = (int)pState.AvatarIndex;
                     player.Balance = pState.Balance;
+
+                    // Sync local session balance if this is the local player
+                    var localUserId = _gameSessionContext.Identity.UserId;
+                    if (pState.UserId == localUserId)
+                    {
+                         _gameSessionContext.SetIdentity(
+                            _gameSessionContext.Identity.UserId,
+                            _gameSessionContext.Identity.DisplayName,
+                            _gameSessionContext.Identity.AvatarIndex,
+                            pState.Balance // Use authoritative balance from server
+                        );
+                    }
 
                     if (string.IsNullOrWhiteSpace(player.DisplayName))
                     {
