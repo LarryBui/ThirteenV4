@@ -4,6 +4,8 @@ import (
 	"context"
 	"database/sql"
 
+	"tienlen/internal/bot"
+
 	"github.com/heroiclabs/nakama-common/runtime"
 )
 
@@ -33,6 +35,15 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 
 	if err := initializer.RegisterMatch(MatchNameTienLen, NewMatch); err != nil {
 		return err
+	}
+
+	// Initialize Bots
+	if err := bot.LoadIdentities("data/bot_identities.json"); err != nil {
+		logger.Warn("InitModule: Could not load bot identities: %v", err)
+	} else {
+		if err := bot.ProvisionBots(ctx, nk, logger); err != nil {
+			logger.Warn("InitModule: Failed to provision bots: %v", err)
+		}
 	}
 
 	logger.Info("TienLen Go module loaded.")

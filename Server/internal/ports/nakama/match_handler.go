@@ -116,11 +116,6 @@ type matchHandler struct{}
 func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, params map[string]interface{}) (interface{}, int, string) {
 	logger.Info("MatchInit: Initializing match handler.")
 
-	// Load bot identities from data folder
-	if err := bot.LoadIdentities("data/bot_identities.json"); err != nil {
-		logger.Warn("MatchInit: Could not load bot identities: %v", err)
-	}
-
 	// Load game configuration
 	if err := config.LoadGameConfig("data/game_config.json"); err != nil {
 		logger.Warn("MatchInit: Could not load game config: %v", err)
@@ -418,6 +413,11 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 					if seat == "" {
 						identity := bot.GetBotIdentity(i)
 						botID := identity.UserID
+						if botID == "" {
+							logger.Warn("processBots: Bot identity at index %d has no UserID (not provisioned?).", i)
+							continue
+						}
+						
 						state.Seats[i] = botID
 
 						// Create Bot Agent via Factory
@@ -512,42 +512,93 @@ func (mh *matchHandler) broadcastMatchState(ctx context.Context, state *MatchSta
 			continue
 		}
 
-		displayName := userId
-		if p, exists := state.Presences[userId]; exists {
-			displayName = p.GetUsername()
-		} else if name := bot.GetBotDisplayName(userId); name != "" {
-			displayName = name
-		}
+		        displayName := userId
 
-		cardsRemaining := 0
-		if state.Game != nil {
-			for _, p := range state.Game.Players {
-				if p.Seat == i {
-					cardsRemaining = len(p.Hand)
-					break
+				avatarIndex := 0
+
+		
+
+				if p, exists := state.Presences[userId]; exists {
+
+					displayName = p.GetUsername()
+
+					// For humans, we could fetch from account if we wanted, 
+
+					// but for now let's prioritize bots which we have in memory.
+
 				}
-			}
-		}
 
-		balance := int64(0)
-		if !isBotUserId(userId) && state.Economy != nil {
-			var err error
-			balance, err = state.Economy.GetBalance(ctx, userId)
-			if err != nil {
-				logger.Warn("broadcastMatchState: Failed to fetch balance for user %s: %v", userId, err)
-				balance = 0
-			}
-		}
+		
 
-		playerStates = append(playerStates, &pb.PlayerState{
-			UserId:         userId,
-			Seat:           int32(i),
-			IsOwner:        i == state.OwnerSeat,
-			CardsRemaining: int32(cardsRemaining),
-			DisplayName:    displayName,
-			AvatarIndex:    0,
-			Balance:        balance,
-		})
+				if botCfg, isBot := bot.GetBotConfig(userId); isBot {
+
+					displayName = botCfg.DisplayName
+
+					avatarIndex = botCfg.AvatarIndex
+
+				}
+
+		
+
+				cardsRemaining := 0
+
+				if state.Game != nil {
+
+					for _, p := range state.Game.Players {
+
+						if p.Seat == i {
+
+							cardsRemaining = len(p.Hand)
+
+							break
+
+						}
+
+					}
+
+				}
+
+		
+
+				balance := int64(0)
+
+				if !isBotUserId(userId) && state.Economy != nil {
+
+					var err error
+
+					balance, err = state.Economy.GetBalance(ctx, userId)
+
+					if err != nil {
+
+						logger.Warn("broadcastMatchState: Failed to fetch balance for user %s: %v", userId, err)
+
+						balance = 0
+
+					}
+
+				}
+
+		
+
+				playerStates = append(playerStates, &pb.PlayerState{
+
+					UserId:         userId,
+
+					Seat:           int32(i),
+
+					IsOwner:        i == state.OwnerSeat,
+
+					CardsRemaining: int32(cardsRemaining),
+
+					DisplayName:    displayName,
+
+					AvatarIndex:    int32(avatarIndex),
+
+					Balance:        balance,
+
+				})
+
+		
 	}
 
 	snapshot := &pb.MatchStateSnapshot{

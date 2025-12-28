@@ -201,13 +201,7 @@ namespace TienLen.Infrastructure.Match
 
         private int GetAvatarIndex(string userId)
         {
-            return 0;  // Placeholder for avatar selection logic
-            // Simple deterministic avatar selection based on UserId hash
-            // This assumes we have a pool of avatars to pick from (e.g., 0-3 for 4 avatars)
-            // Need to know the total number of available avatars. For now, let's assume 4.
-            // A better solution would be to get this from a configuration or server metadata.
-            int hash = userId.GetHashCode();
-            return Math.Abs(hash % 4); // Example: maps to indices 0, 1, 2, 3
+            return 0; // Reset to 0 as requested
         }
 
         private void HandleMatchState(IMatchState state)
@@ -239,7 +233,7 @@ namespace TienLen.Infrastructure.Match
                                 p.IsOwner,
                                 p.CardsRemaining,
                                 p.DisplayName,
-                                p.AvatarIndex,
+                                0, // Force avatar index to 0
                                 p.Balance));
                         }
 

@@ -1,17 +1,22 @@
 package bot
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"os"
 	"sync"
+
+	"github.com/heroiclabs/nakama-common/runtime"
 )
 
 type BotIdentity struct {
+	DeviceID    string `json:"device_id"`
 	UserID      string `json:"user_id"`
 	Username    string `json:"username"`
 	DisplayName string `json:"display_name"`
-	Difficulty  string `json:"difficulty"` // "good", "smart", "god"
+	Difficulty  string `json:"difficulty"` // "easy", "medium", "hard"
+	AvatarIndex int    `json:"avatar_index"`
 }
 
 var (
@@ -21,6 +26,7 @@ var (
 	botDisplayNameMap map[string]string
 	botConfigMap      map[string]BotIdentity
 	loadOnce          sync.Once
+	provisionOnce     sync.Once
 	loadErr           error
 )
 
@@ -43,13 +49,61 @@ func LoadIdentities(path string) error {
 		botDisplayNameMap = make(map[string]string)
 		botConfigMap = make(map[string]BotIdentity)
 		for _, identity := range botIdentities {
-			botIDMap[identity.UserID] = true
-			botUsernameMap[identity.UserID] = identity.Username
-			botDisplayNameMap[identity.UserID] = identity.DisplayName
-			botConfigMap[identity.UserID] = identity
+			if identity.UserID != "" {
+				mapIdentity(identity)
+			}
 		}
 	})
 	return loadErr
+}
+
+func mapIdentity(identity BotIdentity) {
+	botIDMap[identity.UserID] = true
+	botUsernameMap[identity.UserID] = identity.Username
+	botDisplayNameMap[identity.UserID] = identity.DisplayName
+	botConfigMap[identity.UserID] = identity
+}
+
+// ProvisionBots ensures that bot accounts exist in the Nakama database and have the is_bot metadata.
+func ProvisionBots(ctx context.Context, nk runtime.NakamaModule, logger runtime.Logger) error {
+	var err error
+	provisionOnce.Do(func() {
+		for i := range botIdentities {
+			identity := &botIdentities[i]
+			if identity.DeviceID == "" {
+				continue
+			}
+
+			// Authenticate/Create bot account using the requested username
+			userID, username, _, authErr := nk.AuthenticateDevice(ctx, identity.DeviceID, identity.Username, true)
+			if authErr != nil {
+				logger.Error("ProvisionBots: Failed to authenticate bot %s: %v", identity.Username, authErr)
+				continue
+			}
+
+			identity.UserID = userID
+			identity.Username = username
+
+			// Update Metadata and Profile
+			metadata := map[string]interface{}{
+				"is_bot":       true,
+				"difficulty":   identity.Difficulty,
+				"avatar_index": identity.AvatarIndex,
+			}
+
+			// Set both display name and username in the account update
+			authErr = nk.AccountUpdateId(ctx, userID, identity.Username, metadata, identity.DisplayName, "", "", "", "")
+			if authErr != nil {
+				logger.Warn("ProvisionBots: Failed to update bot account %s: %v", userID, authErr)
+			}
+
+			// Update local maps for runtime lookup
+			mapIdentity(*identity)
+
+			logger.Info("ProvisionBots: Bot %s (%s) is ready. Difficulty: %s", identity.DisplayName, userID, identity.Difficulty)
+		}
+	})
+	return err
 }
 
 // GetBotConfig returns the full identity configuration for a given bot ID.
@@ -82,8 +136,8 @@ func GetBotDisplayName(userID string) string {
 func GetBotIdentity(index int) BotIdentity {
 	if len(botIdentities) == 0 {
 		return BotIdentity{
-			UserID:   fmt.Sprintf("bot-%d", index),
-			Username: fmt.Sprintf("AI Player %d", index),
+			UserID:      fmt.Sprintf("bot-%d", index),
+			DisplayName: fmt.Sprintf("AI Player %d", index),
 		}
 	}
 	return botIdentities[index%len(botIdentities)]
@@ -95,4 +149,13 @@ func IsBot(userID string) bool {
 		return false
 	}
 	return botIDMap[userID]
+}
+
+// GetAllBotIDs returns all provisioned bot UserIDs.
+func GetAllBotIDs() []string {
+	ids := make([]string, 0, len(botIDMap))
+	for id := range botIDMap {
+		ids = append(ids, id)
+	}
+	return ids
 }

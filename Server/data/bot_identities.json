@@ -1,12 +1,12 @@
 [
-  { "user_id": "f7b1e4c0-2f3b-4b1d-9e1a-8c0e2a5d4f1a", "username": "LegendVn", "display_name": "Legend VN", "difficulty": "god" },
-  { "user_id": "e3d2c1b0-1a2b-3c4d-5e6f-7a8b9c0d1e2f", "username": "CardMaster99", "display_name": "Card Master", "difficulty": "smart" },
-  { "user_id": "a1b2c3d4-e5f6-4a5b-8c9d-0e1f2a3b4c5d", "username": "Saigoneer", "display_name": "Saigoneer", "difficulty": "good" },
-  { "user_id": "d5e6f7a8-b9c0-4d1e-2f3a-4b5c6d7e8f9a", "username": "DragonLinh", "display_name": "Dragon Linh", "difficulty": "smart" },
-  { "user_id": "b2c3d4e5-f6a7-4b8c-9d0e-1f2a3b4c5d6e", "username": "Phoenix_Pro", "display_name": "Phoenix Pro", "difficulty": "smart" },
-  { "user_id": "c3d4e5f6-a7b8-4c9d-0e1f-2a3b4c5d6e7f", "username": "BlueStar", "display_name": "Blue Star", "difficulty": "good" },
-  { "user_id": "d4e5f6a7-b8c9-4d0e-1f2a-3b4c5d6e7f8a", "username": "IronFist", "display_name": "Iron Fist", "difficulty": "smart" },
-  { "user_id": "e5f6a7b8-c9d0-4e1f-2a3b-4c5d6e7f8a9b", "username": "Shadow_King", "display_name": "Shadow King", "difficulty": "god" },
-  { "user_id": "f6a7b8c9-d0e1-4f2a-3b4c-5d6e7f8a9b0c", "username": "LuckyCat", "display_name": "Lucky Cat", "difficulty": "good" },
-  { "user_id": "a7b8c9d0-e1f2-4a3b-4c5d-6e7f8a9b0c1d", "username": "ZenMaster", "display_name": "Zen Master", "difficulty": "god" }
+  { "device_id": "bot_device_id_orig_01", "username": "LegendVn", "display_name": "Legend VN", "difficulty": "hard", "avatar_index": 1 },
+  { "device_id": "bot_device_id_orig_02", "username": "CardMaster99", "display_name": "Card Master", "difficulty": "medium", "avatar_index": 2 },
+  { "device_id": "bot_device_id_orig_03", "username": "Saigoneer", "display_name": "Saigoneer", "difficulty": "easy", "avatar_index": 3 },
+  { "device_id": "bot_device_id_orig_04", "username": "DragonLinh", "display_name": "Dragon Linh", "difficulty": "medium", "avatar_index": 4 },
+  { "device_id": "bot_device_id_orig_05", "username": "Phoenix_Pro", "display_name": "Phoenix Pro", "difficulty": "medium", "avatar_index": 5 },
+  { "device_id": "bot_device_id_orig_06", "username": "BlueStar", "display_name": "Blue Star", "difficulty": "easy", "avatar_index": 6 },
+  { "device_id": "bot_device_id_orig_07", "username": "IronFist", "display_name": "Iron Fist", "difficulty": "medium", "avatar_index": 7 },
+  { "device_id": "bot_device_id_orig_08", "username": "Shadow_King", "display_name": "Shadow King", "difficulty": "hard", "avatar_index": 8 },
+  { "device_id": "bot_device_id_orig_09", "username": "LuckyCat", "display_name": "Lucky Cat", "difficulty": "easy", "avatar_index": 9 },
+  { "device_id": "bot_device_id_orig_10", "username": "ZenMaster", "display_name": "Zen Master", "difficulty": "hard", "avatar_index": 10 }
 ]

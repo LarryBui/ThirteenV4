@@ -19,11 +19,11 @@ func NewAgent(botID string) (*Agent, error) {
 	// Map string difficulty to BotLevel enum
 	var level BotLevel
 	switch config.Difficulty {
-	case "god":
+	case "hard", "god":
 		level = BotLevelGod
-	case "good":
+	case "easy", "good":
 		level = BotLevelGood
-	case "smart":
+	case "medium", "smart":
 		level = BotLevelSmart
 	default:
 		level = BotLevelSmart
