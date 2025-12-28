@@ -658,9 +658,14 @@ func (mh *matchHandler) handleStartGame(ctx context.Context, state *MatchState, 
 		return
 	}
 
+	minPlayers := 2
+	if cfg := config.GetGameConfig(); cfg != nil {
+		minPlayers = cfg.MinPlayersToStartGame
+	}
+
 	activeCount := state.GetOccupiedSeatCount()
-	if activeCount < app.MinPlayersToStartGame {
-		logger.Warn("StartGame: Cannot start with %d players. Need at least %d.", activeCount, app.MinPlayersToStartGame)
+	if activeCount < minPlayers {
+		logger.Warn("StartGame: Cannot start with %d players. Need at least %d.", activeCount, minPlayers)
 		return
 	}
 
@@ -1057,7 +1062,11 @@ func (mh *matchHandler) MatchSignal(ctx context.Context, logger runtime.Logger, 
 		logger.Info("MatchSignal: Starting game with rigged deck.")
 
 		// Check standard constraints
-		if matchState.GetOccupiedSeatCount() < app.MinPlayersToStartGame {
+		minPlayers := 2
+		if cfg := config.GetGameConfig(); cfg != nil {
+			minPlayers = cfg.MinPlayersToStartGame
+		}
+		if matchState.GetOccupiedSeatCount() < minPlayers {
 			return state, "not enough players"
 		}
 

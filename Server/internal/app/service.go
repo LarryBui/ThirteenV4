@@ -55,7 +55,12 @@ func (s *Service) StartGame(playerIDs []string, lastWinnerSeat int, baseBet int6
 		seats = append(seats, userID)
 	}
 
-	if len(activePlayers) < MinPlayersToStartGame {
+	minPlayers := 2
+	if cfg := config.GetGameConfig(); cfg != nil {
+		minPlayers = cfg.MinPlayersToStartGame
+	}
+
+	if len(activePlayers) < minPlayers {
 		return nil, nil, ErrTooFewPlayers
 	}
 
@@ -83,7 +88,12 @@ func (s *Service) StartGameWithDeck(playerIDs []string, lastWinnerSeat int, base
 		seats = append(seats, userID)
 	}
 
-	if len(activePlayers) < MinPlayersToStartGame {
+	minPlayers := 2
+	if cfg := config.GetGameConfig(); cfg != nil {
+		minPlayers = cfg.MinPlayersToStartGame
+	}
+
+	if len(activePlayers) < minPlayers {
 		return nil, nil, ErrTooFewPlayers
 	}
 

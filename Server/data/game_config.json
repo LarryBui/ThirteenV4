@@ -3,6 +3,7 @@
   "default_tier": "casual",
   "turn_duration_seconds": 21,
   "bot_auto_fill_delay_seconds": 2,
+  "min_players_to_start_game": 2,
   "tiers": [
     { "id": "casual", "base_bet": 100 },
     { "id": "ranked", "base_bet": 1000 },

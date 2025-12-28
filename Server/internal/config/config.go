@@ -19,6 +19,8 @@ type GameConfig struct {
 	TurnDurationSeconds int       `json:"turn_duration_seconds"`
 	// BotAutoFillDelaySeconds configures how many seconds to wait before adding a bot to a solo human lobby.
 	BotAutoFillDelaySeconds int `json:"bot_auto_fill_delay_seconds"`
+	// MinPlayersToStartGame defines the minimum number of occupied seats required to start a game.
+	MinPlayersToStartGame int `json:"min_players_to_start_game"`
 }
 
 var (
