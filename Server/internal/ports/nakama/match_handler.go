@@ -15,6 +15,7 @@ import (
 	"tienlen/internal/ports"
 	pb "tienlen/proto"
 
+	"github.com/heroiclabs/nakama-common/api"
 	"github.com/heroiclabs/nakama-common/runtime"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
@@ -389,7 +390,13 @@ func (mh *matchHandler) resetTurnSecondsRemainingWithBonus(state *MatchState, lo
 		state.TurnSecondsRemaining)
 }
 
-func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, nk runtime.NakamaModule) {
+// BotBalancer defines the subset of NakamaModule needed for bot balance management.
+type BotBalancer interface {
+	AccountGetId(ctx context.Context, userID string) (*api.Account, error)
+	WalletUpdate(ctx context.Context, userID string, changeset map[string]int64, metadata map[string]interface{}, updateLedger bool) (map[string]int64, map[string]int64, error)
+}
+
+func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, nk BotBalancer) {
 	// 1. Auto-fill lobby with up to two bots if there's exactly one human player alone after delay
 	if state.Game == nil {
 		humanCount := state.GetHumanPlayerCount()

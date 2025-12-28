@@ -13,10 +13,42 @@ import (
 
 	pb "tienlen/proto"
 
+	"github.com/heroiclabs/nakama-common/api"
 	"github.com/heroiclabs/nakama-common/runtime"
 	"google.golang.org/protobuf/encoding/protojson"
 	"google.golang.org/protobuf/proto"
 )
+
+// mockBotBalancer implements BotBalancer for testing.
+type mockBotBalancer struct {
+	accounts map[string]*api.Account
+	wallets  map[string]map[string]int64
+}
+
+func (m *mockBotBalancer) AccountGetId(ctx context.Context, userID string) (*api.Account, error) {
+	if acc, ok := m.accounts[userID]; ok {
+		return acc, nil
+	}
+	// Return a default account with empty wallet if not found, to avoid nil pointers in logic
+	return &api.Account{Wallet: "{}"}, nil
+}
+
+func (m *mockBotBalancer) WalletUpdate(ctx context.Context, userID string, changeset map[string]int64, metadata map[string]interface{}, updateLedger bool) (map[string]int64, map[string]int64, error) {
+	if m.wallets == nil {
+		m.wallets = make(map[string]map[string]int64)
+	}
+	if _, ok := m.wallets[userID]; !ok {
+		m.wallets[userID] = make(map[string]int64)
+	}
+	prev := make(map[string]int64)
+	for k, v := range m.wallets[userID] {
+		prev[k] = v
+	}
+	for k, v := range changeset {
+		m.wallets[userID][k] += v
+	}
+	return prev, m.wallets[userID], nil
+}
 
 // noopLogger implements runtime.Logger for tests that only need to satisfy the interface.
 type noopLogger struct{}
@@ -85,7 +117,7 @@ func (me *mockEconomy) UpdateBalances(ctx context.Context, updates []ports.Walle
 
 func init() {
 	// Load bot identities for testing.
-	if err := bot.LoadIdentities("../../../data/bot_identities.json"); err != nil {
+	if err := bot.LoadIdentities("test_bot_identities.json"); err != nil {
 		panic("Failed to load bot identities for tests: " + err.Error())
 	}
 }
@@ -249,7 +281,10 @@ func TestProcessBots_AddsTwoBotsForSoloHuman(t *testing.T) {
 		Tick:                 10,
 	}
 
-	handler.processBots(context.Background(), state, dispatcher, noopLogger{}, nil)
+	balancer := &mockBotBalancer{
+		accounts: make(map[string]*api.Account),
+	}
+	handler.processBots(context.Background(), state, dispatcher, noopLogger{}, balancer)
 
 	botCount := 0
 	for _, seat := range state.Seats {

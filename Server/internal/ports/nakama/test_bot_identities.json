@@ -1,0 +1,6 @@
+[
+  { "device_id": "bot_device_id_orig_01", "user_id": "bot-user-1", "username": "LegendVn", "display_name": "Legend VN", "difficulty": "hard", "avatar_index": 1 },
+  { "device_id": "bot_device_id_orig_02", "user_id": "bot-user-2", "username": "CardMaster99", "display_name": "Card Master", "difficulty": "medium", "avatar_index": 2 },
+  { "device_id": "bot_device_id_orig_03", "user_id": "bot-user-3", "username": "Saigoneer", "display_name": "Saigoneer", "difficulty": "easy", "avatar_index": 3 },
+  { "device_id": "bot_device_id_orig_04", "user_id": "bot-user-4", "username": "DragonLinh", "display_name": "Dragon Linh", "difficulty": "medium", "avatar_index": 4 }
+]
