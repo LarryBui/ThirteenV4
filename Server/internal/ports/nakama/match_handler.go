@@ -591,21 +591,13 @@ func (mh *matchHandler) broadcastMatchState(ctx context.Context, state *MatchSta
 		
 
 				balance := int64(0)
-
-				if !isBotUserId(userId) && state.Economy != nil {
-
+				if state.Economy != nil {
 					var err error
-
 					balance, err = state.Economy.GetBalance(ctx, userId)
-
 					if err != nil {
-
 						logger.Warn("broadcastMatchState: Failed to fetch balance for user %s: %v", userId, err)
-
 						balance = 0
-
 					}
-
 				}
 
 		

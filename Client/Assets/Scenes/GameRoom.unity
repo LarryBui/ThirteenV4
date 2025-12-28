@@ -207,6 +207,14 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: 2543501615038350651, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2543501615038350651, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+      propertyPath: m_VerticalAlignment
+      value: 512
+      objectReference: {fileID: 0}
     - target: {fileID: 5373002264725373770, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: 300.4
@@ -1627,6 +1635,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.y
       value: -0
       objectReference: {fileID: 0}
+    - target: {fileID: 2543501615038350651, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2657570764091836326, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: _cardSourceAnchor
       value: 
@@ -2249,6 +2261,10 @@ PrefabInstance:
       propertyPath: m_AnchoredPosition.x
       value: -22
       objectReference: {fileID: 0}
+    - target: {fileID: 2543501615038350651, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
+      objectReference: {fileID: 0}
     - target: {fileID: 2657570764091836326, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: _cardSourceAnchor
       value: 
@@ -2805,6 +2821,10 @@ PrefabInstance:
     - target: {fileID: 1540494089470204304, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: m_AnchoredPosition.x
       value: -254.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 2543501615038350651, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
+      propertyPath: m_enableAutoSizing
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 2657570764091836326, guid: e3d1f747ac987544d9aa4859bbf650e9, type: 3}
       propertyPath: _cardSourceAnchor

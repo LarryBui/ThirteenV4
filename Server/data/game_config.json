@@ -1,7 +1,7 @@
 {
   "tax_rate": 0.05,
   "default_tier": "casual",
-  "turn_duration_seconds": 16,
+  "turn_duration_seconds": 21,
   "bot_auto_fill_delay_seconds": 2,
   "tiers": [
     { "id": "casual", "base_bet": 100 },

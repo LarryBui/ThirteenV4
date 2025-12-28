@@ -314,6 +314,7 @@ func TestBroadcastMatchState_IncludesBalances(t *testing.T) {
 	economy := &mockEconomy{
 		balances: map[string]int64{
 			"user-1": 1200,
+			botID:    5000,
 		},
 	}
 	state := &MatchState{
@@ -346,13 +347,13 @@ func TestBroadcastMatchState_IncludesBalances(t *testing.T) {
 	if got := balances["user-1"]; got != 1200 {
 		t.Fatalf("Expected human balance 1200, got %d", got)
 	}
-	if got := balances[botID]; got != 0 {
-		t.Fatalf("Expected bot balance 0, got %d", got)
+	if got := balances[botID]; got != 5000 {
+		t.Fatalf("Expected bot balance 5000, got %d", got)
 	}
 	if economy.calls["user-1"] != 1 {
 		t.Fatalf("Expected balance lookup for human, got %d", economy.calls["user-1"])
 	}
-	if economy.calls[botID] != 0 {
-		t.Fatalf("Expected no balance lookup for bot, got %d", economy.calls[botID])
+	if economy.calls[botID] != 1 {
+		t.Fatalf("Expected balance lookup for bot, got %d", economy.calls[botID])
 	}
 }
