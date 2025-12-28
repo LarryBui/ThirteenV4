@@ -2,6 +2,7 @@ using System;
 using System.Threading;
 using Cysharp.Threading.Tasks;
 using TMPro;
+using TienLen.Application.Formatting;
 using UnityEngine;
 using UnityEngine.UI;
 
@@ -47,7 +48,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         public void SetBalance(long balance)
         {
-            if (_balanceText != null) _balanceText.text = balance.ToString("N0");
+            if (_balanceText != null) _balanceText.text = BalanceFormatter.FormatShort(balance);
         }
 
         public void ClearProfile()

@@ -249,7 +249,7 @@ func TestProcessBots_AddsTwoBotsForSoloHuman(t *testing.T) {
 		Tick:                 10,
 	}
 
-	handler.processBots(context.Background(), state, dispatcher, noopLogger{})
+	handler.processBots(context.Background(), state, dispatcher, noopLogger{}, nil)
 
 	botCount := 0
 	for _, seat := range state.Seats {

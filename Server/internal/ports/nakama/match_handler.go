@@ -360,7 +360,7 @@ func (mh *matchHandler) MatchLoop(ctx context.Context, logger runtime.Logger, db
 
 	// AI Logic
 	if matchState.BotsEnabled {
-		mh.processBots(ctx, matchState, dispatcher, logger)
+		mh.processBots(ctx, matchState, dispatcher, logger, nk)
 	}
 
 	return matchState
@@ -389,7 +389,7 @@ func (mh *matchHandler) resetTurnSecondsRemainingWithBonus(state *MatchState, lo
 		state.TurnSecondsRemaining)
 }
 
-func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
+func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger, nk runtime.NakamaModule) {
 	// 1. Auto-fill lobby with up to two bots if there's exactly one human player alone after delay
 	if state.Game == nil {
 		humanCount := state.GetHumanPlayerCount()
@@ -418,6 +418,29 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 							continue
 						}
 						
+						// Check Bot Balance and Top-up if needed
+						account, err := nk.AccountGetId(ctx, botID)
+						if err != nil {
+							logger.Warn("processBots: Failed to get bot account %s: %v", botID, err)
+						} else {
+							var wallet map[string]int64
+							if err := json.Unmarshal([]byte(account.Wallet), &wallet); err != nil {
+								logger.Warn("processBots: Failed to unmarshal bot wallet %s: %v", botID, err)
+							} else {
+								gold := wallet["gold"] // Assuming "gold" is the currency key
+								if gold < 10000 {
+									// Add 10000 gold
+									changes := map[string]int64{"gold": 10000}
+									metadata := map[string]interface{}{"reason": "bot_topup"}
+									if _, _, err := nk.WalletUpdate(ctx, botID, changes, metadata, true); err != nil {
+										logger.Warn("processBots: Failed to top-up bot %s: %v", botID, err)
+									} else {
+										logger.Info("processBots: Replenished bot %s with 10k gold. New balance likely > %d", botID, gold+10000)
+									}
+								}
+							}
+						}
+
 						state.Seats[i] = botID
 
 						// Create Bot Agent via Factory
