@@ -265,7 +265,7 @@ func (mh *matchHandler) MatchJoin(ctx context.Context, logger runtime.Logger, db
 	mh.updateLabel(matchState, dispatcher, logger)
 
 	// Broadcast the current match state to all presences after join.
-	mh.broadcastMatchState(matchState, dispatcher, logger)
+	mh.broadcastMatchState(ctx, matchState, dispatcher, logger)
 
 	return matchState
 }
@@ -437,7 +437,7 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 				}
 				if added > 0 {
 					mh.updateLabel(state, dispatcher, logger)
-					mh.broadcastMatchState(state, dispatcher, logger)
+					mh.broadcastMatchState(ctx, state, dispatcher, logger)
 				}
 				// Reset timer so it doesn't keep "adding"
 				state.LastSinglePlayerTick = 0
@@ -505,7 +505,7 @@ func (mh *matchHandler) processBots(ctx context.Context, state *MatchState, disp
 	}
 }
 
-func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
+func (mh *matchHandler) broadcastMatchState(ctx context.Context, state *MatchState, dispatcher runtime.MatchDispatcher, logger runtime.Logger) {
 	var playerStates []*pb.PlayerState
 	for i, userId := range state.Seats {
 		if userId == "" {
@@ -529,6 +529,16 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 			}
 		}
 
+		balance := int64(0)
+		if !isBotUserId(userId) && state.Economy != nil {
+			var err error
+			balance, err = state.Economy.GetBalance(ctx, userId)
+			if err != nil {
+				logger.Warn("broadcastMatchState: Failed to fetch balance for user %s: %v", userId, err)
+				balance = 0
+			}
+		}
+
 		playerStates = append(playerStates, &pb.PlayerState{
 			UserId:         userId,
 			Seat:           int32(i),
@@ -536,6 +546,7 @@ func (mh *matchHandler) broadcastMatchState(state *MatchState, dispatcher runtim
 			CardsRemaining: int32(cardsRemaining),
 			DisplayName:    displayName,
 			AvatarIndex:    0,
+			Balance:        balance,
 		})
 	}
 

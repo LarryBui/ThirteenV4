@@ -37,14 +37,22 @@ namespace TienLen.Application
     /// </summary>
     public readonly struct PlayerStateDTO
     {
+        /// <summary>Unique user id for the player.</summary>
         public string UserId { get; }
+        /// <summary>Seat index for the player.</summary>
         public int Seat { get; }
+        /// <summary>Whether the player owns the match.</summary>
         public bool IsOwner { get; }
+        /// <summary>Number of cards remaining in the player's hand.</summary>
         public int CardsRemaining { get; }
+        /// <summary>Display name shown in the UI.</summary>
         public string DisplayName { get; }
+        /// <summary>Avatar index selected for the player.</summary>
         public int AvatarIndex { get; }
+        /// <summary>Public balance reported by the server.</summary>
+        public long Balance { get; }
 
-        public PlayerStateDTO(string userId, int seat, bool isOwner, int cardsRemaining, string displayName, int avatarIndex)
+        public PlayerStateDTO(string userId, int seat, bool isOwner, int cardsRemaining, string displayName, int avatarIndex, long balance)
         {
             UserId = userId;
             Seat = seat;
@@ -52,6 +60,7 @@ namespace TienLen.Application
             CardsRemaining = cardsRemaining;
             DisplayName = displayName;
             AvatarIndex = avatarIndex;
+            Balance = balance;
         }
     }
 }

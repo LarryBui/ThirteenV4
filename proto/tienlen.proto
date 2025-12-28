@@ -74,6 +74,7 @@ message PlayerState {
     int32 cards_remaining = 4; // Public info
     string display_name = 5;
     int32 avatar_index = 6;
+    int64 balance = 7; // Public balance (bots always report 0).
 }
 
 // --- Client -> Server Requests ---

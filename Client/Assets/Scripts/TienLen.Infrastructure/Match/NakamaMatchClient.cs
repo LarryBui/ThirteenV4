@@ -239,7 +239,8 @@ namespace TienLen.Infrastructure.Match
                                 p.IsOwner,
                                 p.CardsRemaining,
                                 p.DisplayName,
-                                p.AvatarIndex));
+                                p.AvatarIndex,
+                                p.Balance));
                         }
 
                         // Updated to use OwnerSeat (int) instead of OwnerId (string)

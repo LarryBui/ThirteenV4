@@ -67,12 +67,14 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 {
                     Sprite avatar = _avatarRegistry != null ? _avatarRegistry.GetAvatar(player.AvatarIndex) : null;
                     view.SetProfile(player.DisplayName, avatar, currentSeatIndex, currentSeatIndex == match.OwnerSeat);
+                    view.SetBalance(player.Balance);
                 }
                 else
                 {
                     // Fallback for identified but missing player data
                     Sprite fallbackAvatar = _avatarRegistry != null ? _avatarRegistry.GetAvatar(0) : null;
                     view.SetProfile($"Player {userId.Substring(0, Mathf.Min(userId.Length, 4))}", fallbackAvatar, currentSeatIndex, false);
+                    view.SetBalance(0);
                 }
             }
         }

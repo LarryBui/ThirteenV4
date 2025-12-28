@@ -398,6 +398,7 @@ type PlayerState struct {
 	CardsRemaining int32                  `protobuf:"varint,4,opt,name=cards_remaining,json=cardsRemaining,proto3" json:"cards_remaining,omitempty"` // Public info
 	DisplayName    string                 `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	AvatarIndex    int32                  `protobuf:"varint,6,opt,name=avatar_index,json=avatarIndex,proto3" json:"avatar_index,omitempty"`
+	Balance        int64                  `protobuf:"varint,7,opt,name=balance,proto3" json:"balance,omitempty"` // Public balance (bots always report 0).
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
@@ -470,6 +471,13 @@ func (x *PlayerState) GetDisplayName() string {
 func (x *PlayerState) GetAvatarIndex() int32 {
 	if x != nil {
 		return x.AvatarIndex
+	}
+	return 0
+}
+
+func (x *PlayerState) GetBalance() int64 {
+	if x != nil {
+		return x.Balance
 	}
 	return 0
 }
@@ -1491,14 +1499,15 @@ const file_proto_tienlen_proto_rawDesc = "" +
 	"\x05state\x18\x02 \x01(\tR\x05state\"R\n" +
 	"\x04Card\x12$\n" +
 	"\x04suit\x18\x01 \x01(\x0e2\x10.tienlen.v1.SuitR\x04suit\x12$\n" +
-	"\x04rank\x18\x02 \x01(\x0e2\x10.tienlen.v1.RankR\x04rank\"\xc4\x01\n" +
+	"\x04rank\x18\x02 \x01(\x0e2\x10.tienlen.v1.RankR\x04rank\"\xde\x01\n" +
 	"\vPlayerState\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
 	"\x04seat\x18\x02 \x01(\x05R\x04seat\x12\x19\n" +
 	"\bis_owner\x18\x03 \x01(\bR\aisOwner\x12'\n" +
 	"\x0fcards_remaining\x18\x04 \x01(\x05R\x0ecardsRemaining\x12!\n" +
 	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\x12!\n" +
-	"\favatar_index\x18\x06 \x01(\x05R\vavatarIndex\"\x12\n" +
+	"\favatar_index\x18\x06 \x01(\x05R\vavatarIndex\x12\x18\n" +
+	"\abalance\x18\a \x01(\x03R\abalance\"\x12\n" +
 	"\x10FindMatchRequest\"\x12\n" +
 	"\x10StartGameRequest\".\n" +
 	"\x11FindMatchResponse\x12\x19\n" +

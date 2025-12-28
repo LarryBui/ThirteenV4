@@ -420,6 +420,7 @@ namespace TienLen.Application
                     player.IsOwner = pState.IsOwner;
                     player.DisplayName = pState.DisplayName;
                     player.AvatarIndex = (int)pState.AvatarIndex;
+                    player.Balance = pState.Balance;
 
                     if (string.IsNullOrWhiteSpace(player.DisplayName))
                     {

@@ -4,15 +4,18 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
+	"errors"
 	"testing"
 	"tienlen/internal/bot"
 	"tienlen/internal/config"
 	"tienlen/internal/domain"
+	"tienlen/internal/ports"
 
 	pb "tienlen/proto"
 
 	"github.com/heroiclabs/nakama-common/runtime"
 	"google.golang.org/protobuf/encoding/protojson"
+	"google.golang.org/protobuf/proto"
 )
 
 // noopLogger implements runtime.Logger for tests that only need to satisfy the interface.
@@ -36,10 +39,14 @@ func (noopLogger) Fields() map[string]interface{} {
 type mockDispatcher struct {
 	broadcastCount int
 	labelUpdates   int
+	lastOpCode     int64
+	lastData       []byte
 }
 
 func (md *mockDispatcher) BroadcastMessage(opCode int64, data []byte, presences []runtime.Presence, sender runtime.Presence, reliable bool) error {
 	md.broadcastCount++
+	md.lastOpCode = opCode
+	md.lastData = append([]byte(nil), data...)
 	return nil
 }
 
@@ -53,6 +60,26 @@ func (md *mockDispatcher) MatchKick(presences []runtime.Presence) error {
 
 func (md *mockDispatcher) MatchLabelUpdate(label string) error {
 	md.labelUpdates++
+	return nil
+}
+
+type mockEconomy struct {
+	balances map[string]int64
+	calls    map[string]int
+}
+
+func (me *mockEconomy) GetBalance(ctx context.Context, userID string) (int64, error) {
+	if me.calls == nil {
+		me.calls = make(map[string]int)
+	}
+	me.calls[userID]++
+	if balance, ok := me.balances[userID]; ok {
+		return balance, nil
+	}
+	return 0, errors.New("balance not found")
+}
+
+func (me *mockEconomy) UpdateBalances(ctx context.Context, updates []ports.WalletUpdate) error {
 	return nil
 }
 
@@ -242,5 +269,55 @@ func TestProcessBots_AddsTwoBotsForSoloHuman(t *testing.T) {
 	}
 	if dispatcher.broadcastCount == 0 || dispatcher.labelUpdates == 0 {
 		t.Fatalf("Expected match state broadcast and label update after auto-fill")
+	}
+}
+
+func TestBroadcastMatchState_IncludesBalances(t *testing.T) {
+	handler := &matchHandler{}
+	dispatcher := &mockDispatcher{}
+	botID := bot.GetBotIdentity(0).UserID
+	economy := &mockEconomy{
+		balances: map[string]int64{
+			"user-1": 1200,
+		},
+	}
+	state := &MatchState{
+		Seats:     [4]string{"user-1", botID, "", ""},
+		OwnerSeat: 0,
+		Tick:      42,
+		Presences: make(map[string]runtime.Presence),
+		Economy:   economy,
+	}
+
+	handler.broadcastMatchState(context.Background(), state, dispatcher, noopLogger{})
+
+	if dispatcher.lastOpCode != int64(pb.OpCode_OP_CODE_PLAYER_JOINED) {
+		t.Fatalf("Expected opcode %d, got %d", pb.OpCode_OP_CODE_PLAYER_JOINED, dispatcher.lastOpCode)
+	}
+	if len(dispatcher.lastData) == 0 {
+		t.Fatalf("Expected snapshot payload to be broadcast")
+	}
+
+	snapshot := &pb.MatchStateSnapshot{}
+	if err := proto.Unmarshal(dispatcher.lastData, snapshot); err != nil {
+		t.Fatalf("Failed to unmarshal snapshot: %v", err)
+	}
+
+	balances := make(map[string]int64)
+	for _, player := range snapshot.Players {
+		balances[player.UserId] = player.Balance
+	}
+
+	if got := balances["user-1"]; got != 1200 {
+		t.Fatalf("Expected human balance 1200, got %d", got)
+	}
+	if got := balances[botID]; got != 0 {
+		t.Fatalf("Expected bot balance 0, got %d", got)
+	}
+	if economy.calls["user-1"] != 1 {
+		t.Fatalf("Expected balance lookup for human, got %d", economy.calls["user-1"])
+	}
+	if economy.calls[botID] != 0 {
+		t.Fatalf("Expected no balance lookup for bot, got %d", economy.calls[botID])
 	}
 }

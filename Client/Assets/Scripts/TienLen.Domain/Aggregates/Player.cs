@@ -8,6 +8,8 @@ namespace TienLen.Domain.Aggregates
         public string UserID { get; set; }
         public string DisplayName { get; set; } // Added for UI display
         public int AvatarIndex { get; set; }   // Added for avatar selection
+        /// <summary>Public balance reported by the server.</summary>
+        public long Balance { get; set; }
         public int Seat { get; set; } // 1-based seat number
         public bool IsOwner { get; set; } // true if match owner
         public int CardsRemaining { get; set; }
