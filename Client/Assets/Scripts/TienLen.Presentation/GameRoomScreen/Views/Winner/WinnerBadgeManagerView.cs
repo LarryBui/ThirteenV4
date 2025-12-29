@@ -36,6 +36,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             Debug.Log("[WinnerBadgeManager] Started and listening for events.");
             _presenter.OnPlayerFinished += HandlePlayerFinished;
             _presenter.OnGameStarted += HandleGameStarted;
+            _presenter.OnGameEnded += HandleGameEnded;
         }
 
         private void OnDestroy()
@@ -44,7 +45,13 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             {
                 _presenter.OnPlayerFinished -= HandlePlayerFinished;
                 _presenter.OnGameStarted -= HandleGameStarted;
+                _presenter.OnGameEnded -= HandleGameEnded;
             }
+        }
+
+        private void HandleGameEnded(TienLen.Application.GameEndedResultDto result)
+        {
+            ClearBadges();
         }
 
         private void HandleGameStarted()
