@@ -1,9 +1,6 @@
 package internal
 
-import (
-	"sort"
-	"tienlen/internal/domain"
-)
+import "tienlen/internal/domain"
 
 const (
 	ScorePig        = 20.0
@@ -50,8 +47,9 @@ func EvaluateHand(hand []domain.Card) float64 {
 	score += float64(count) * ScoreBomb
 
 	// C. Extract Straights
-	cards, count = extractStraights(cards)
-	score += float64(count) * ScoreStraight // Count is num cards in straights
+	var straightStats straightStats
+	cards, straightStats = extractStraights(cards)
+	score += float64(straightStats.Cards) * ScoreStraight // Cards count contributes to score
 	
 	// D. Extract Triples
 	cards, count = extractTriples(cards)
@@ -94,27 +92,6 @@ func EvaluateHand(hand []domain.Card) float64 {
 	// So High Singles (J+) are >= 8.
 	
 	return score
-}
-
-// Helper to remove cards by indices. Indices must be sorted desc to avoid shifting issues?
-// Or just rebuild slice.
-func removeSubset(source []domain.Card, subset []domain.Card) []domain.Card {
-	// Inefficient O(N*M) but N=13
-	rem := make([]domain.Card, 0, len(source))
-	
-	counts := make(map[domain.Card]int)
-	for _, c := range subset {
-		counts[c]++
-	}
-	
-	for _, c := range source {
-		if counts[c] > 0 {
-			counts[c]--
-		} else {
-			rem = append(rem, c)
-		}
-	}
-	return rem
 }
 
 func extractQuads(cards []domain.Card) ([]domain.Card, int) {
@@ -168,66 +145,4 @@ func extractPairs(cards []domain.Card) ([]domain.Card, int) {
 		}
 	}
 	return cards, pairsFound
-}
-
-func extractStraights(cards []domain.Card) ([]domain.Card, int) {
-	// Greedy straight finding: Find longest possible straight starting from lowest card.
-	totalCardsInStraights := 0
-	
-	// Exclude 2s from consideration
-	// (Logic assumes input cards are sorted)
-	
-	for {
-		found := false
-		
-		// Map ranks to cards
-		rankMap := make(map[int32][]domain.Card)
-		var ranks []int
-		for _, c := range cards {
-			if c.Rank == 12 { continue } // Skip 2s
-			if _, ok := rankMap[c.Rank]; !ok {
-				ranks = append(ranks, int(c.Rank))
-			}
-			rankMap[c.Rank] = append(rankMap[c.Rank], c)
-		}
-		sort.Ints(ranks)
-		
-		// Find longest straight sequence
-		bestStart := -1
-		bestLen := 0
-		
-		for i := 0; i < len(ranks); i++ {
-			currLen := 1
-			for j := i + 1; j < len(ranks); j++ {
-				if ranks[j] == ranks[j-1]+1 {
-					currLen++
-				} else {
-					break
-				}
-			}
-			if currLen >= 3 && currLen > bestLen {
-				bestLen = currLen
-				bestStart = i
-			}
-		}
-		
-		if bestLen >= 3 {
-			// Construct straight (pick first card of each rank)
-			straight := make([]domain.Card, 0, bestLen)
-			for k := 0; k < bestLen; k++ {
-				r := int32(ranks[bestStart+k])
-				straight = append(straight, rankMap[r][0])
-			}
-			
-			cards = removeSubset(cards, straight)
-			totalCardsInStraights += bestLen
-			found = true
-		}
-		
-		if !found {
-			break
-		}
-	}
-	
-	return cards, totalCardsInStraights
 }

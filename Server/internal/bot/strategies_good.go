@@ -21,42 +21,26 @@ func (b *GoodBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 		return Move{Pass: true}, nil
 	}
 
-	// 2. Determine constraint (Lead or Respond)
-	lastCombo := game.LastPlayedCombination
-	// If it's a new round (previous round finished or everyone passed), we lead.
-	// Note: game.LastPlayedCombination might be cleared by the app service on new round,
-	// or we check game.LastPlayerToPlaySeat. 
-	// The domain logic usually clears LastPlayedCombination on "New Round".
-	// We rely on LastPlayedCombination.Type == Invalid for Lead.
-
-	// 3. Generate moves
-	validMoves := internal.GetValidMoves(player.Hand, lastCombo)
+	// 2. Generate moves
+	validMoves := internal.GetValidMoves(player.Hand, game.LastPlayedCombination)
 
 	if len(validMoves) == 0 {
 		return Move{Pass: true}, nil
 	}
 
-	// 4. Strategy: "Play Lowest"
-	// Sort moves by the power of their highest card (ascending).
-	// For tie-breaking (e.g. 3-4-5 vs 3-4-5 of diff suits), usually lowest suit wins, 
-	// but standard cardPower handles it.
-	sort.Slice(validMoves, func(i, j int) bool {
-		comboI := domain.IdentifyCombination(validMoves[i].Cards)
-		comboJ := domain.IdentifyCombination(validMoves[j].Cards)
-		
-		// If types are different (only possible on Lead), prefer playing "more cards" to dump hand?
-		// Or play "lowest value".
-		// Good Bot Logic:
-		// If Lead: Play lowest Single, then lowest Pair, etc.
-		// Actually, standard "safe" play is to get rid of lowest card period.
-		// So we compare the lowest card in the combo? Or the highest?
-		// Usually we compare the "Value" of the combo.
-		
-		// If types are different, we need a preference. 
-		// "Good" bot prefers dumping trash (Singles) first? Or just lowest value combo?
-		// Let's stick to "Lowest Value" (CardPower of the highest card in the combo).
-		return comboI.Value < comboJ.Value
+	// 3. Phase-aware scoring with conservative weights.
+	phase := internal.DetectPhase(game)
+	weights := goodBotTuning.ForPhase(phase)
+	threat := internal.DetectThreat(game, seat, goodBotTuning.ThreatThreshold)
+	scored := internal.BuildScoredMoves(player.Hand, validMoves, weights, threat)
+
+	sort.Slice(scored, func(i, j int) bool {
+		if scored[i].Score != scored[j].Score {
+			return scored[i].Score > scored[j].Score
+		}
+		// Prefer the lowest-value combo when scores tie.
+		return scored[i].Combo.Value < scored[j].Combo.Value
 	})
 
-	return Move{Cards: validMoves[0].Cards}, nil
+	return Move{Cards: scored[0].Move.Cards}, nil
 }

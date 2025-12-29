@@ -1,7 +1,8 @@
 # Gemini Project Context - ThirteenV4
 
 ## Rules
-- Always provide a proposal for actions first. Once the proposal is explicitly accepted by the user, permission is granted to automatically execute the planned actions.
+- **Proposal & Execution:** Always provide a proposal for actions first. Once accepted, you may execute the file changes (implementation).
+- **Git Safety:** Approval of a plan *NEVER* includes permission to commit. You must always stop after implementation and ask for specific confirmation to commit.
 - Do not automatically commit or push to GitHub without explicit permission.
 - Add code comments sparingly, focusing on "why" rather than "what".
 - **Testing:** Always run unit tests to verify changes.

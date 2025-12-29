@@ -26,16 +26,8 @@ func (b *GodBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 	// 2. Card Counting & Analysis
 	stats := internal.AnalyzeHand(player.Hand, game.Discards)
 
-	// 3. Determine if we are in Blocker Mode
-	nextPlayerLowCards := false
-	for _, p := range game.Players {
-		if !p.Finished && !p.HasPassed && p.Seat != seat {
-			if len(p.Hand) <= 3 {
-				nextPlayerLowCards = true
-				break
-			}
-		}
-	}
+	// 3. Determine if we are in Blocker Mode (tighter threshold than endgame).
+	blockerMode := internal.DetectThreat(game, seat, godBotTuning.ThreatThreshold)
 
 	// 4. Generate & Score Moves
 	validMoves := internal.GetValidMoves(player.Hand, game.LastPlayedCombination)
@@ -43,85 +35,71 @@ func (b *GodBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 		return Move{Pass: true}, nil
 	}
 
-	currentScore := internal.EvaluateHand(player.Hand)
-	
+	// 5. Phase-aware scoring with god-level adjustments.
+	phase := internal.DetectPhase(game)
+	weights := godBotTuning.ForPhase(phase)
+	scored := internal.BuildScoredMoves(player.Hand, validMoves, weights, blockerMode)
+	currentScore := internal.ScoreHand(player.Hand, weights)
+
 	type scoredMove struct {
-		move  internal.ValidMove
-		delta float64
-		power int32
+		base   internal.ScoredMove
 		isBoss bool
 	}
 
-	var candidates []scoredMove
-	for _, m := range validMoves {
-		remaining := domain.RemoveCards(player.Hand, m.Cards)
-		newScore := internal.EvaluateHand(remaining)
-		
-		delta := newScore - currentScore
-		combo := domain.IdentifyCombination(m.Cards)
-		
-		// Boss Check
+	candidates := make([]scoredMove, 0, len(scored))
+	for _, m := range scored {
 		isBoss := false
-		if combo.Type == domain.Single {
+		if m.Combo.Type == domain.Single && len(m.Move.Cards) == 1 {
 			for _, bc := range stats.BossSingles {
-				if bc == m.Cards[0] {
+				if bc == m.Move.Cards[0] {
 					isBoss = true
 					break
 				}
 			}
 		}
 
-		// --- God Logic: Killer Instinct ---
-		if len(remaining) == 0 {
-			delta += 10000.0
+		if len(m.Remaining) == 0 {
+			m.Score += 10000.0
 		}
 
-		// --- God Logic: Strategic Boss Usage ---
-		// If we have dominance, prefer playing non-boss cards to save power, 
-		// UNLESS we are blocking or finishing.
 		if isBoss {
-			if stats.Dominance > 0.6 && !nextPlayerLowCards && len(player.Hand) > 3 {
-				delta -= 10.0 // Save the boss card for later
+			if stats.Dominance > 0.6 && !blockerMode && len(player.Hand) > 3 {
+				m.Score -= 10.0
 			} else {
-				delta += 20.0 // Seize control
+				m.Score += 20.0
 			}
 		}
 
-		// --- God Logic: Blocker Mode ---
-		if nextPlayerLowCards {
-			if combo.Type == domain.Single && combo.Value < 40 {
-				delta -= 100.0 // Heavy penalty for feeding low cards
+		if blockerMode {
+			if m.Combo.Type == domain.Single && m.Combo.Value < 40 {
+				m.Score -= 100.0
 			}
 			if isBoss {
-				delta += 50.0 // Prefer playing boss to block
+				m.Score += 50.0
 			}
 		}
 
 		candidates = append(candidates, scoredMove{
-			move:   m,
-			delta:  delta,
-			power:  combo.Value,
+			base:   m,
 			isBoss: isBoss,
 		})
 	}
 
-	// 5. Selection
 	sort.Slice(candidates, func(i, j int) bool {
-		if candidates[i].delta != candidates[j].delta {
-			return candidates[i].delta > candidates[j].delta
+		if candidates[i].base.Score != candidates[j].base.Score {
+			return candidates[i].base.Score > candidates[j].base.Score
 		}
-		if nextPlayerLowCards || candidates[i].isBoss {
-			return candidates[i].power > candidates[j].power
+		if blockerMode || candidates[i].isBoss {
+			return candidates[i].base.Combo.Value > candidates[j].base.Combo.Value
 		}
-		return candidates[i].power < candidates[j].power
+		return candidates[i].base.Combo.Value < candidates[j].base.Combo.Value
 	})
 
-	// Pass Logic: Don't pass if we have a "Boss" card that can win the round
 	if game.LastPlayedCombination.Type != domain.Invalid {
-		if candidates[0].delta < -15.0 && !candidates[0].isBoss {
+		if !blockerMode && candidates[0].base.Score < currentScore+godBotTuning.PassThreshold && !candidates[0].isBoss {
 			return Move{Pass: true}, nil
 		}
 	}
 
-	return Move{Cards: candidates[0].move.Cards}, nil
+	return Move{Cards: candidates[0].base.Move.Cards}, nil
 }
