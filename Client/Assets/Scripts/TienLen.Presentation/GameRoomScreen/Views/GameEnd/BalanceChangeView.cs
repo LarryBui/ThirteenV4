@@ -13,7 +13,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private TMP_Text _amountText;
         [SerializeField] private Color _winColor = Color.green;
         [SerializeField] private Color _loseColor = Color.red;
-        [SerializeField] private float _animationDuration = 1.0f;
+        [SerializeField] private float _animationDuration = 1.3f;
 
         public void SetAmount(long amount, Vector2 startOffset)
         {
@@ -54,6 +54,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 yield return null;
             }
             rt.anchoredPosition = endPos;
+            gameObject.SetActive(false);
         }
     }
 }

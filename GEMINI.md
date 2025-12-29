@@ -2,8 +2,7 @@
 
 ## Rules
 - **Proposal & Execution:** Always provide a proposal for actions first. Once accepted, you may execute the file changes (implementation).
-- **Git Safety:** Approval of a plan *NEVER* includes permission to commit. You must always stop after implementation and ask for specific confirmation to commit.
-- Do not automatically commit or push to GitHub without explicit permission.
+- **Git Rule:** NEVER suggest, mention, or perform Git actions unless explicitly commanded. When finished, simply say "Implementation complete."
 - Add code comments sparingly, focusing on "why" rather than "what".
 - **Testing:** Always run unit tests to verify changes.
 - **Deployment:** Always rebuild Nakama (Go) and refresh Docker containers if the changes need to be applied to the running server.
