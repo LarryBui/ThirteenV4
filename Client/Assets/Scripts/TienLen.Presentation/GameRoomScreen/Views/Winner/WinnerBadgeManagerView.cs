@@ -109,6 +109,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             // Visual Logic
             if (rank == 1)
             {
+                Debug.Log($"[WinnerBadgeManager] CALLING ShowFirstPlace for Relative Index {relativeIndex}");
                 badge.ShowFirstPlace();
             }
             else

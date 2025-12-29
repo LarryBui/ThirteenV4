@@ -6,14 +6,35 @@ namespace TienLen.Presentation.GameRoomScreen.Views
     public sealed class WinnerBadgeView : MonoBehaviour
     {
         [Header("References")]
+        // Updated field to GameObject to support legacy prefabs
         [SerializeField] private GameObject _animationRoot;
         [SerializeField] private GameObject _textRoot;
         [SerializeField] private TMP_Text _rankText;
 
         public void ShowFirstPlace()
         {
+            Debug.Log($"[WinnerBadgeView] ShowFirstPlace called on {name}");
             gameObject.SetActive(true);
-            if (_animationRoot != null) _animationRoot.SetActive(true);
+            if (_animationRoot != null) 
+            {
+                _animationRoot.SetActive(true);
+                // Use GetComponentInChildren to find the Animator if it's on a child object (like 'Visuals')
+                var anim = _animationRoot.GetComponentInChildren<Animator>();
+                if (anim != null)
+                {
+                    Debug.Log($"[WinnerBadgeView] Animator found on {anim.gameObject.name}. Playing 'Winner_Badge'...");
+                    anim.enabled = true;
+                    anim.Play("Winner_Badge", 0, 0f);
+                }
+                else
+                {
+                    Debug.LogWarning($"[WinnerBadgeView] No Animator found on {_animationRoot.name}!");
+                }
+            }
+            else
+            {
+                Debug.LogWarning("[WinnerBadgeView] _animationRoot is NULL!");
+            }
             if (_textRoot != null) _textRoot.SetActive(false);
         }
 
