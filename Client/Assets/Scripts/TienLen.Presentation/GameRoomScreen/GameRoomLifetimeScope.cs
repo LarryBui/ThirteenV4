@@ -36,6 +36,9 @@ namespace TienLen.Presentation.GameRoomScreen
             // Register Winner Badge Manager
             builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Views.WinnerBadgeManagerView>();
 
+            // Register Balance Manager
+            builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Views.GameEndBalanceManagerView>();
+
             // Register Presenter
             builder.Register<GameRoomPresenter>(Lifetime.Scoped);
         }
