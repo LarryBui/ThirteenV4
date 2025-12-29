@@ -11,6 +11,9 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private GameObject _textRoot;
         [SerializeField] private TMP_Text _rankText;
 
+        [Header("Settings")]
+        [SerializeField] private string _animationStateName = "Winner_Badge";
+
         public void ShowFirstPlace()
         {
             Debug.Log($"[WinnerBadgeView] ShowFirstPlace called on {name}");
@@ -22,9 +25,9 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 var anim = _animationRoot.GetComponentInChildren<Animator>();
                 if (anim != null)
                 {
-                    Debug.Log($"[WinnerBadgeView] Animator found on {anim.gameObject.name}. Playing 'Winner_Badge'...");
+                    Debug.Log($"[WinnerBadgeView] Animator found on {anim.gameObject.name}. Playing '{_animationStateName}'...");
                     anim.enabled = true;
-                    anim.Play("Winner_Badge", 0, 0f);
+                    anim.Play(_animationStateName, 0, 0f);
                 }
                 else
                 {
