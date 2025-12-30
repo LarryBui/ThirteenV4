@@ -1,0 +1,5 @@
+in home scene, create new button "Create VIP Table"
+once clicked, it'll open a new scene VIPGameRoom
+inside vipgameroom, player can speak into microphone and talk to other players
+on Nakama server, setup Vivox for voice chat (this could be changed to Photon later)
+setup the voice chat feature for vip game room
