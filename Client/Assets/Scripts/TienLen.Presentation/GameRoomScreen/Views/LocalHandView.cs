@@ -338,8 +338,14 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         {
             if (totalCards <= 0 || _handAnchor == null) return Vector3.zero;
 
-            // Start at the anchor and grow to the right based on card index.
-            return _handAnchor.position + (Vector3.right * (cardIndex * _cardSpacing));
+            // Calculate total width of the hand to center it
+            float totalWidth = (totalCards - 1) * _cardSpacing;
+            float startOffset = -totalWidth / 2f;
+            
+            float xPos = startOffset + (cardIndex * _cardSpacing);
+
+            // Use anchor's Right vector to respect rotation
+            return _handAnchor.position + (_handAnchor.right * xPos);
         }
 
         private void ToggleSelection(HandCardEntry entry)

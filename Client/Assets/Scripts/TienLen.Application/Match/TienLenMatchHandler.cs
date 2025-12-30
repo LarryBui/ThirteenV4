@@ -333,7 +333,40 @@ namespace TienLen.Application
         {
             if (CurrentMatch == null) return;
             if (changes == null || changes.Count == 0) return;
+
+            bool stateChanged = false;
+
+            foreach (var change in changes)
+            {
+                // If a player left, we must clear their seat and remove them from the player list
+                if (!change.Joined)
+                {
+                    // 1. Clear Seat
+                    int seatIndex = FindSeatIndex(CurrentMatch.Seats, change.UserId);
+                    if (seatIndex >= 0)
+                    {
+                        CurrentMatch.Seats[seatIndex] = string.Empty;
+                        stateChanged = true;
+                    }
+
+                    // 2. Remove Player Data
+                    if (CurrentMatch.Players.ContainsKey(change.UserId))
+                    {
+                        CurrentMatch.Players.Remove(change.UserId);
+                        stateChanged = true;
+                    }
+
+                    // 3. Fire legacy event for completeness (though UI mainly uses StateUpdated)
+                    PlayerLeft?.Invoke(seatIndex, change.UserId);
+                }
+            }
+
             MatchPresenceChanged?.Invoke(changes);
+            
+            if (stateChanged)
+            {
+                GameRoomStateUpdated?.Invoke();
+            }
         }
 
         private void HandleCardsPlayed(int seat, List<Card> cards, int nextTurnSeat, bool newRound, long turnSecondsRemaining)
