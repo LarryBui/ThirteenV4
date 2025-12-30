@@ -244,7 +244,8 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
             if (!isPlaying)
             {
-                _actionButtons.SetStartButtonVisible(_presenter.CanStartGame());
+                bool canStart = _presenter.CanStartGame();
+                _actionButtons.SetStartButtonVisible(canStart);
                 _actionButtons.SetActionButtonsVisible(false);
                 return;
             }

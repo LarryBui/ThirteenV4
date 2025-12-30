@@ -1,6 +1,7 @@
 using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
@@ -149,6 +150,44 @@ namespace TienLen.Infrastructure.Match
         {
             var request = new Proto.StartGameRequest();
             await SendAsync((long)Proto.OpCode.StartGame, request.ToByteArray());
+        }
+
+        /// <inheritdoc />
+        public async UniTask SendStartGameTestAsync(RiggedDeckRequestDto request)
+        {
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (string.IsNullOrWhiteSpace(request.MatchId)) throw new ArgumentException("Match id is required.", nameof(request));
+            if (Client == null) throw new InvalidOperationException("Nakama client is not available.");
+            if (_authService.Session == null) throw new InvalidOperationException("Nakama session is not available.");
+
+            var payload = new Dictionary<string, object>
+            {
+                ["match_id"] = request.MatchId,
+                ["hands"] = (request.Hands ?? Array.Empty<RiggedHandDto>()).Select(hand => new
+                {
+                    seat = hand.Seat,
+                    cards = (hand.Cards ?? Array.Empty<RiggedCardDto>()).Select(card => new
+                    {
+                        rank = card.Rank,
+                        suit = card.Suit
+                    }).ToList()
+                }).ToList()
+            };
+
+            var handTexts = (request.HandTexts ?? Array.Empty<RiggedHandTextDto>())
+                .Select(hand => new
+                {
+                    seat = hand.Seat,
+                    cards = hand.Cards
+                })
+                .ToList();
+            if (handTexts.Count > 0)
+            {
+                payload["hands_text"] = handTexts;
+            }
+
+            var json = JsonConvert.SerializeObject(payload);
+            await Client.RpcAsync(_authService.Session, "test_start_game", json);
         }
 
         public async UniTask SendPlayCardsAsync(List<Card> cards)

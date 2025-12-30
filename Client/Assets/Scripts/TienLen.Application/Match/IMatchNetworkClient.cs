@@ -82,6 +82,12 @@ namespace TienLen.Application
         UniTask SendStartGameAsync();
 
         /// <summary>
+        /// Sends a request to start a rigged game using a predefined deck.
+        /// </summary>
+        /// <param name="request">Rigged deck payload.</param>
+        UniTask SendStartGameTestAsync(RiggedDeckRequestDto request);
+
+        /// <summary>
         /// Sends a request to play cards in the current turn.
         /// </summary>
         UniTask SendPlayCardsAsync(List<Card> cards);

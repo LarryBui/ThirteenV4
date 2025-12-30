@@ -5,6 +5,7 @@ import (
 	"context"
 	"encoding/json"
 	"errors"
+	"math/rand"
 	"testing"
 	"tienlen/internal/bot"
 	"tienlen/internal/config"
@@ -355,5 +356,131 @@ func TestBroadcastMatchState_IncludesBalances(t *testing.T) {
 	}
 	if economy.calls[botID] != 1 {
 		t.Fatalf("Expected balance lookup for bot, got %d", economy.calls[botID])
+	}
+}
+
+func TestParseRiggedHandTexts_ParsesCards(t *testing.T) {
+	hands, err := parseRiggedHandTexts([]riggedHandText{
+		{Seat: 0, Cards: "3H, 10S, QD"},
+	})
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if len(hands) != 1 {
+		t.Fatalf("Expected 1 hand, got %d", len(hands))
+	}
+	if hands[0].FillAll {
+		t.Fatalf("Expected FillAll false, got true")
+	}
+
+	got := hands[0].Cards
+	if len(got) != 3 {
+		t.Fatalf("Expected 3 cards, got %d", len(got))
+	}
+
+	want := []domain.Card{
+		{Rank: 0, Suit: 3},
+		{Rank: 7, Suit: 0},
+		{Rank: 9, Suit: 2},
+	}
+	for i, card := range want {
+		if got[i] != card {
+			t.Fatalf("Card %d = %+v, want %+v", i, got[i], card)
+		}
+	}
+}
+
+func TestParseRiggedHandTexts_AllToken(t *testing.T) {
+	hands, err := parseRiggedHandTexts([]riggedHandText{
+		{Seat: 1, Cards: "ALL"},
+	})
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+	if len(hands) != 1 {
+		t.Fatalf("Expected 1 hand, got %d", len(hands))
+	}
+	if !hands[0].FillAll {
+		t.Fatalf("Expected FillAll true, got false")
+	}
+	if len(hands[0].Cards) != 0 {
+		t.Fatalf("Expected 0 explicit cards, got %d", len(hands[0].Cards))
+	}
+}
+
+func TestParseRiggedHandTexts_DuplicateCard(t *testing.T) {
+	_, err := parseRiggedHandTexts([]riggedHandText{
+		{Seat: 0, Cards: "3H"},
+		{Seat: 1, Cards: "3H"},
+	})
+	if err == nil {
+		t.Fatalf("Expected error for duplicate card")
+	}
+}
+
+func TestParseRiggedHandTexts_InvalidToken(t *testing.T) {
+	_, err := parseRiggedHandTexts([]riggedHandText{
+		{Seat: 0, Cards: "1H"},
+	})
+	if err == nil {
+		t.Fatalf("Expected error for invalid token")
+	}
+}
+
+func TestBuildRiggedDeck_TextWithoutAll_UsesShuffledFill(t *testing.T) {
+	shuffle := deterministicShuffle(7)
+	shuffled := shuffle(domain.NewDeck())
+	plans := []riggedHandPlan{
+		{Seat: 0, Cards: []domain.Card{{Rank: 0, Suit: 3}}, FillAll: false},
+	}
+	deck, err := buildRiggedDeckWithShuffler(plans, false, shuffle)
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	expected := domain.Card{}
+	for _, card := range shuffled {
+		if card == (domain.Card{Rank: 0, Suit: 3}) {
+			continue
+		}
+		expected = card
+		break
+	}
+
+	if deck[0] != (domain.Card{Rank: 0, Suit: 3}) {
+		t.Fatalf("Expected explicit card first")
+	}
+	if deck[1] != expected {
+		t.Fatalf("Expected shuffled fill %v, got %v", expected, deck[1])
+	}
+}
+
+func TestBuildRiggedDeck_TextWithAll_UsesOrderedFill(t *testing.T) {
+	plans := []riggedHandPlan{
+		{Seat: 0, Cards: []domain.Card{{Rank: 0, Suit: 3}}, FillAll: true},
+	}
+	deck, err := buildRiggedDeckWithShuffler(plans, false, deterministicShuffle(7))
+	if err != nil {
+		t.Fatalf("Expected no error, got %v", err)
+	}
+
+	expected := domain.Card{Rank: 0, Suit: 0}
+	if deck[0] != (domain.Card{Rank: 0, Suit: 3}) {
+		t.Fatalf("Expected explicit card first")
+	}
+	if deck[1] != expected {
+		t.Fatalf("Expected ordered fill %v, got %v", expected, deck[1])
+	}
+}
+
+func deterministicShuffle(seed int64) func([]domain.Card) []domain.Card {
+	return func(deck []domain.Card) []domain.Card {
+		out := make([]domain.Card, len(deck))
+		copy(out, deck)
+		rng := rand.New(rand.NewSource(seed))
+		rng.Shuffle(len(out), func(i, j int) {
+			out[i], out[j] = out[j], out[i]
+		})
+		return out
 	}
 }

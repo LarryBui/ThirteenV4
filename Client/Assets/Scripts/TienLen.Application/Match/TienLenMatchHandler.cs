@@ -194,6 +194,27 @@ namespace TienLen.Application
             // Domain update happens on OnGameStarted event
         }
 
+        /// <summary>
+        /// Starts a rigged game using a predefined deck payload.
+        /// </summary>
+        /// <param name="request">Rigged deck request payload.</param>
+        public async UniTask StartRiggedGameAsync(RiggedDeckRequestDto request)
+        {
+            if (CurrentMatch == null) throw new InvalidOperationException("No active match.");
+            if (request == null) throw new ArgumentNullException(nameof(request));
+            if (!string.Equals(CurrentMatch.Id, request.MatchId, StringComparison.Ordinal))
+            {
+                throw new InvalidOperationException("Rigged deck match id does not match the current match.");
+            }
+
+            if (!RiggedDeckValidator.TryValidate(request, out var error))
+            {
+                throw new ArgumentException(error ?? "Rigged deck request is invalid.", nameof(request));
+            }
+
+            await _networkClient.SendStartGameTestAsync(request);
+        }
+
         public async UniTask PassTurnAsync()
         {
             if (CurrentMatch == null) throw new InvalidOperationException("No active match.");

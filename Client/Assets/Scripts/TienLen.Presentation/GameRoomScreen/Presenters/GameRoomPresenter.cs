@@ -180,6 +180,19 @@ namespace TienLen.Presentation.GameRoomScreen
              _matchHandler?.StartGameAsync().Forget();
         }
 
+        /// <summary>
+        /// Starts a rigged game using the supplied deck payload.
+        /// </summary>
+        /// <param name="request">Rigged deck request payload.</param>
+        public async UniTask StartRiggedGameAsync(RiggedDeckRequestDto request)
+        {
+            ResetClientSideCounts();
+            if (_matchHandler != null)
+            {
+                await _matchHandler.StartRiggedGameAsync(request);
+            }
+        }
+
         public void PlayCards(List<Card> cards)
         {
              _matchHandler?.PlayCardsAsync(cards).Forget();

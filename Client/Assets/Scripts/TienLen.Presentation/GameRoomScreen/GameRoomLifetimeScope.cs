@@ -1,5 +1,6 @@
-using TienLen.Presentation.GameRoomScreen.Views;
+using TienLen.Presentation.GameRoomScreen.DebugTools;
 using TienLen.Presentation.GameRoomScreen.Services;
+using TienLen.Presentation.GameRoomScreen.Views;
 using VContainer;
 using VContainer.Unity;
 
@@ -18,14 +19,14 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Register GameRoomView component in hierarchy so it gets injected
             builder.RegisterComponentInHierarchy<GameRoomView>();
-                        // Register CardDealer component in hierarchy so it gets injected
-                        builder.RegisterComponentInHierarchy<CardDealer>();
-                        
-                        // Register Local Hand View
-                        builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Views.LocalHandView>();
-            
-                        // Register Hand Counter Manager
-                        builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Components.OpponentHandCounterManagerView>();
+            // Register CardDealer component in hierarchy so it gets injected
+            builder.RegisterComponentInHierarchy<CardDealer>();
+
+            // Register Local Hand View
+            builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Views.LocalHandView>();
+
+            // Register Hand Counter Manager
+            builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Components.OpponentHandCounterManagerView>();
 
             // Register Timer Manager
             builder.RegisterComponentInHierarchy<TurnTimerManagerView>();
@@ -38,6 +39,9 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Register Balance Manager
             builder.RegisterComponentInHierarchy<TienLen.Presentation.GameRoomScreen.Views.GameEndBalanceManagerView>();
+
+            // Register Rigged Deck Debug View
+            builder.RegisterComponentInHierarchy<RiggedDeckDebugView>();
 
             // Register Presenter
             builder.Register<GameRoomPresenter>(Lifetime.Scoped);
