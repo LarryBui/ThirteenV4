@@ -28,7 +28,6 @@ namespace TienLen.Presentation.HomeScreen
         [SerializeField] private TMP_InputField inputField;
         [SerializeField] private Button sendButton;
         [SerializeField] private Button micButton;
-        [SerializeField] private TMP_Text statusText;
         [Header("Settings")]
         [SerializeField] private int maxVisibleMessages = 60;
 
@@ -136,7 +135,7 @@ namespace TienLen.Presentation.HomeScreen
 
         private void HandleAuthFailed(string error)
         {
-            SetStatus("Chat unavailable (auth failed).");
+            // Chat unavailable (auth failed).
         }
 
         private async UniTaskVoid ConnectChatAsync()
@@ -145,14 +144,11 @@ namespace TienLen.Presentation.HomeScreen
 
             try
             {
-                SetStatus("Connecting chat...");
                 await _chatHandler.EnsureConnectedAsync();
-                SetStatus(string.Empty);
             }
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "HomeChat: failed to connect.");
-                SetStatus("Chat unavailable.");
             }
         }
 
@@ -278,7 +274,6 @@ namespace TienLen.Presentation.HomeScreen
             catch (Exception ex)
             {
                 _logger.LogWarning(ex, "HomeChat: failed to send message.");
-                SetStatus("Send failed.");
             }
         }
 
@@ -291,13 +286,11 @@ namespace TienLen.Presentation.HomeScreen
         {
             if (_speechService == null || !_speechService.IsSupported)
             {
-                SetStatus("Speech not supported.");
                 return;
             }
 
             if (_chatHandler == null)
             {
-                SetStatus("Chat unavailable.");
                 return;
             }
 
@@ -312,13 +305,23 @@ namespace TienLen.Presentation.HomeScreen
             try
             {
                 SetMicInteractable(false);
-                SetStatus("Listening...");
                 var text = await _speechService.CaptureOnceAsync(_speechTokenSource.Token);
-                SetStatus(string.Empty);
 
-                if (!string.IsNullOrWhiteSpace(text))
+                if (!string.IsNullOrWhiteSpace(text) && inputField != null)
                 {
-                    await _chatHandler.SendMessageAsync(text.Trim());
+                    var speechText = text.Trim();
+                    if (string.IsNullOrWhiteSpace(inputField.text))
+                    {
+                        inputField.text = speechText;
+                    }
+                    else
+                    {
+                        // Append to existing text with a space
+                        inputField.text = $"{inputField.text.TrimEnd()} {speechText}";
+                    }
+                    
+                    // Move caret to end for continued typing
+                    inputField.caretPosition = inputField.text.Length;
                 }
             }
             catch (Exception ex)
@@ -329,9 +332,6 @@ namespace TienLen.Presentation.HomeScreen
                 }
 
                 _logger.LogWarning(ex, "HomeChat: speech capture failed.");
-                SetStatus(_speechService != null && !_speechService.IsSupported
-                    ? "Enable Speech in Windows Settings > Privacy > Speech."
-                    : "Speech failed.");
             }
             finally
             {
@@ -371,12 +371,6 @@ namespace TienLen.Presentation.HomeScreen
             micButton.interactable = interactable && _speechService != null && _speechService.IsSupported;
         }
 
-        private void SetStatus(string message)
-        {
-            if (statusText == null) return;
-            statusText.text = message ?? string.Empty;
-        }
-
         /// <summary>
         /// Validates that required UI references are assigned in the editor.
         /// </summary>
@@ -386,8 +380,7 @@ namespace TienLen.Presentation.HomeScreen
             var hasAllReferences = logText != null
                 && inputField != null
                 && sendButton != null
-                && micButton != null
-                && statusText != null;
+                && micButton != null;
 
             if (hasAllReferences)
             {
