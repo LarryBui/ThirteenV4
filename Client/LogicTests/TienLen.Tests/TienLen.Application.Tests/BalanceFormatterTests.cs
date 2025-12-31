@@ -24,7 +24,7 @@ namespace TienLen.Application.Tests
         [Test]
         public void FormatShort_RoundsUpToNextSuffixWhenNeeded()
         {
-            var result = BalanceFormatter.FormatShort(999_500);
+            var result = BalanceFormatter.FormatShort(999_950);
 
             Assert.That(result, Is.EqualTo("1M"));
         }

@@ -384,6 +384,7 @@ func RpcGetVivoxToken(ctx context.Context, logger runtime.Logger, db *sql.DB, nk
 	}
 
 	type request struct {
+		Action  string `json:"action"`
 		MatchID string `json:"match_id"`
 	}
 	var req request
@@ -395,7 +396,17 @@ func RpcGetVivoxToken(ctx context.Context, logger runtime.Logger, db *sql.DB, nk
 		return "", fmt.Errorf("vivox service not initialized")
 	}
 
-	token, err := vivoxService.GenerateToken(userID, req.MatchID)
+	action := strings.ToLower(strings.TrimSpace(req.Action))
+	if action == "" {
+		action = app.VivoxTokenActionJoin
+	}
+
+	channelName := strings.TrimSpace(req.MatchID)
+	if action == app.VivoxTokenActionJoin && channelName == "" {
+		return "", fmt.Errorf("match_id is required for join tokens")
+	}
+
+	token, err := vivoxService.GenerateToken(userID, action, channelName)
 	if err != nil {
 		return "", fmt.Errorf("failed to generate vivox token: %w", err)
 	}

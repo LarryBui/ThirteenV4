@@ -43,3 +43,9 @@ VIVOX_ISSUER=your-vivox-issuer
 VIVOX_DOMAIN=your-vivox-domain
 ```
 `Server/docker-compose.yml` loads this file when starting Nakama.
+
+## Vivox token RPC
+The client requests Vivox JWTs from the server via `get_vivox_token`:
+- Login token: `{"action":"login"}`
+- Join token: `{"action":"join","match_id":"<match_id>"}`
+Response: `{"token":"<jwt>"}`

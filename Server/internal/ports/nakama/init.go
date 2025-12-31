@@ -25,6 +25,9 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 	if err := initializer.RegisterRpc("find_match", RpcFindMatch); err != nil {
 		return err
 	}
+	if err := initializer.RegisterRpc("get_vivox_token", RpcGetVivoxToken); err != nil {
+		return err
+	}
 
 	// Register test-only RPCs if test mode is enabled
 	if val, ok := env["tienlen_test_mode"]; ok && val == "true" {

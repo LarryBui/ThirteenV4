@@ -1,4 +1,5 @@
 using System;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Nakama;
 using TienLen.Application.Voice;
@@ -22,6 +23,13 @@ namespace TienLen.Infrastructure.Voice
             public string token;
         }
 
+        [Serializable]
+        private class VivoxTokenRequest
+        {
+            public string action;
+            public string match_id;
+        }
+
         public VivoxVoiceChatService(NakamaAuthenticationService authService, VivoxConfig config)
         {
             _authService = authService;
@@ -38,24 +46,95 @@ namespace TienLen.Infrastructure.Voice
 
         private class NakamaTokenProvider : IVivoxTokenProvider
         {
-            private readonly string _token;
-            public NakamaTokenProvider(string token) => _token = token;
-            public System.Threading.Tasks.Task<string> GetTokenAsync(string issuer = null, TimeSpan? expiration = null, string targetUserUri = null, string action = null, string channelUri = null, string fromUserUri = null, string realm = null)
-                => System.Threading.Tasks.Task.FromResult(_token);
+            private readonly ISocket _socket;
+            private readonly string _defaultChannelName;
+
+            public NakamaTokenProvider(ISocket socket, string defaultChannelName)
+            {
+                _socket = socket;
+                _defaultChannelName = defaultChannelName;
+            }
+
+            public async Task<string> GetTokenAsync(string issuer = null, TimeSpan? expiration = null, string targetUserUri = null, string action = null, string channelUri = null, string fromUserUri = null, string realm = null)
+            {
+                if (_socket == null)
+                {
+                    throw new InvalidOperationException("Nakama socket is not available.");
+                }
+
+                var resolvedAction = NormalizeAction(action, channelUri);
+                var channelName = ResolveChannelName(channelUri) ?? _defaultChannelName;
+
+                if (resolvedAction == "join" && string.IsNullOrWhiteSpace(channelName))
+                {
+                    throw new InvalidOperationException("Vivox join requires a channel name.");
+                }
+
+                var request = new VivoxTokenRequest
+                {
+                    action = resolvedAction,
+                    match_id = channelName
+                };
+
+                var rpcResult = await _socket.RpcAsync("get_vivox_token", JsonUtility.ToJson(request));
+                var response = JsonUtility.FromJson<VivoxTokenResponse>(rpcResult.Payload);
+                if (response == null || string.IsNullOrWhiteSpace(response.token))
+                {
+                    throw new InvalidOperationException("Vivox token response was empty.");
+                }
+
+                return response.token;
+            }
+
+            private static string NormalizeAction(string action, string channelUri)
+            {
+                if (!string.IsNullOrWhiteSpace(action))
+                {
+                    return action.Trim().ToLowerInvariant();
+                }
+
+                return string.IsNullOrWhiteSpace(channelUri) ? "login" : "join";
+            }
+
+            private static string ResolveChannelName(string channelUri)
+            {
+                if (string.IsNullOrWhiteSpace(channelUri))
+                {
+                    return null;
+                }
+
+                const string prefix = "sip:confctl-g-";
+                if (!channelUri.StartsWith(prefix, StringComparison.OrdinalIgnoreCase))
+                {
+                    return null;
+                }
+
+                var atIndex = channelUri.IndexOf('@', prefix.Length);
+                if (atIndex <= prefix.Length)
+                {
+                    return null;
+                }
+
+                return channelUri.Substring(prefix.Length, atIndex - prefix.Length);
+            }
         }
 
         public async UniTask JoinChannelAsync(string matchId)
         {
             try
             {
+                if (string.IsNullOrWhiteSpace(matchId))
+                {
+                    throw new ArgumentException("matchId is required.", nameof(matchId));
+                }
+
                 // Ensure initialized
                 await InitializeAsync();
 
-                // 1. Get Token from Nakama
-                var rpcResult = await _authService.Socket.RpcAsync("get_vivox_token", "{\"match_id\":\"" + matchId + "\"}");
-                var token = JsonUtility.FromJson<VivoxTokenResponse>(rpcResult.Payload).token;
+                // Provide token provider before login so Vivox can request login/join tokens.
+                VivoxService.Instance.SetTokenProvider(new NakamaTokenProvider(_authService.Socket, matchId));
 
-                // 2. Login to Vivox (using generic identity, channel token handles auth)
+                // Login to Vivox only when joining a voice-enabled room.
                 if (!VivoxService.Instance.IsLoggedIn)
                 {
                     var loginOptions = new LoginOptions
@@ -66,8 +145,7 @@ namespace TienLen.Infrastructure.Voice
                     await VivoxService.Instance.LoginAsync(loginOptions);
                 }
 
-                // 3. Join Channel
-                VivoxService.Instance.SetTokenProvider(new NakamaTokenProvider(token));
+                // Join Channel
                 await VivoxService.Instance.JoinGroupChannelAsync(matchId, ChatCapability.TextAndAudio);
                 Debug.Log($"[Vivox] Joined channel: {matchId}");
             }

@@ -26,7 +26,6 @@
   <Project Path="Unity.VisualStudio.Editor.csproj" />
   <Project Path="Unity.InputSystem.csproj" />
   <Project Path="PPv2URPConverters.csproj" />
-  <Project Path="TienLen.Domain.Tests.csproj" />
   <Project Path="UniTask.csproj" />
   <Project Path="Unity.Searcher.Editor.csproj" />
   <Project Path="Unity.ProBuilder.Editor.csproj" />
@@ -83,7 +82,6 @@
   <Project Path="Unity.Services.Core.Device.csproj" />
   <Project Path="TienLen.Domain.csproj" />
   <Project Path="Unity.Services.Core.Analytics.csproj" />
-  <Project Path="TienLen.Application.Tests.csproj" />
   <Project Path="NakamaRuntime.csproj" />
   <Project Path="Unity.RenderPipeline.Universal.ShaderLibrary.csproj" />
   <Project Path="UniTask.Editor.csproj" />
