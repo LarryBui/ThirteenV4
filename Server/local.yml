@@ -12,9 +12,6 @@ runtime:
     - "tienlen_bot_min_delay_sec=1"
     - "tienlen_bot_max_delay_sec=3"
     - "tienlen_test_mode=true"
-    - "VIVOX_SECRET=your-vivox-secret"
-    - "VIVOX_ISSUER=your-vivox-issuer"
-    - "VIVOX_DOMAIN=your-vivox-domain"
 
 console:
   port: 7351

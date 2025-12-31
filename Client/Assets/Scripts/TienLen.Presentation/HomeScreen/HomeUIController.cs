@@ -22,8 +22,10 @@ namespace TienLen.Presentation
         [Header("UI References")]
         [SerializeField] private Button playButton;
         [SerializeField] private Button createVipTableButton;
+        [SerializeField] private Button powerUpButton;
         [SerializeField] private Button quitButton;
         [SerializeField] private TMP_Text statusText;
+
         [SerializeField] private GameObject contentRoot; // Mandatory: Used to hide/show the entire Home UI
         
         private IAuthenticationService _authService;
@@ -55,6 +57,7 @@ namespace TienLen.Presentation
         {
             playButton?.onClick.AddListener(HandlePlayClicked);
             createVipTableButton?.onClick.AddListener(HandleCreateVipTableClicked);
+            powerUpButton?.onClick.AddListener(HandlePowerUpClicked);
             quitButton?.onClick.AddListener(HandleQuitClicked);
 
             // Subscribe to authentication events for resilience.
@@ -163,9 +166,18 @@ namespace TienLen.Presentation
             }
         }
 
+        private async void HandlePowerUpClicked()
+        {
+             using (LifetimeScope.EnqueueParent(_currentScope))
+            {
+                await SceneManager.LoadSceneAsync("Daily", LoadSceneMode.Additive);
+            }
+            SetHomeUIVisibility(false);
+        }
+
         private void OnSceneUnloaded(Scene scene)
         {
-            if (scene.name == "GameRoom" || scene.name == "VIPGameRoom")
+            if (scene.name == "GameRoom" || scene.name == "VIPGameRoom" || scene.name == "Daily")
             {
                 SetHomeUIVisibility(true);
                 // Reset status

@@ -1,6 +1,0 @@
-code review the entire project structure in ThirteenV4 folder
-I want to create a new scene Community Service in unity editor for viewing ads and get gold coins
-in this scene, there 3 buttons for each ads. player clicks the button to load the ads
-each time a player view an ads, they have 1000 gold coins
-there are a maximum of 3 ads per day
-Add a button in Home Scene to open Community Service

@@ -34,3 +34,12 @@
 ## Docker (from `Server/`)
 - Build & run: `cd Server; docker compose up -d --build`
 - Logs: `cd Server; docker compose logs -f --tail 100 nakama`
+
+## Vivox credentials (local)
+Create a repo-root `.env` file with:
+```
+VIVOX_SECRET=your-vivox-secret
+VIVOX_ISSUER=your-vivox-issuer
+VIVOX_DOMAIN=your-vivox-domain
+```
+`Server/docker-compose.yml` loads this file when starting Nakama.
