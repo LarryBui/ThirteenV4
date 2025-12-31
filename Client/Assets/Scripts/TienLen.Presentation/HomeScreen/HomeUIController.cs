@@ -126,6 +126,14 @@ namespace TienLen.Presentation
 
         private async void HandleCreateVipTableClicked()
         {
+
+            //todo: this is for testing
+            using (LifetimeScope.EnqueueParent(_currentScope))
+                {
+                    await SceneManager.LoadSceneAsync("VIPGameRoom", LoadSceneMode.Additive);
+                }
+
+                return;
             if (_matchHandler == null)
             {
                 _logger.LogError("Match handler not initialized.");
