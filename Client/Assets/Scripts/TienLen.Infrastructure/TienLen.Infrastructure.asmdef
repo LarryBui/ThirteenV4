@@ -9,7 +9,9 @@
         "Unity.TextMeshPro",
         "UniTask",
         "TienLen.Proto",
-        "ZLogger.Unity"
+        "ZLogger.Unity",
+        "Unity.Services.Core",
+        "Unity.Services.Vivox"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],
