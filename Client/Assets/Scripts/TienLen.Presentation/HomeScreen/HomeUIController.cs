@@ -105,7 +105,8 @@ namespace TienLen.Presentation
 
             try
             {
-                await _matchHandler.FindAndJoinMatchAsync();
+                // 1 = Casual
+                await _matchHandler.FindAndJoinMatchAsync(1);
                 
                 SetMatchmakingState(false, "Match Found!");
                 
@@ -129,14 +130,6 @@ namespace TienLen.Presentation
 
         private async void HandleCreateVipTableClicked()
         {
-
-            //todo: this is for testing
-            using (LifetimeScope.EnqueueParent(_currentScope))
-                {
-                    await SceneManager.LoadSceneAsync("VIPGameRoom", LoadSceneMode.Additive);
-                }
-
-                return;
             if (_matchHandler == null)
             {
                 _logger.LogError("Match handler not initialized.");
@@ -147,7 +140,8 @@ namespace TienLen.Presentation
 
             try
             {
-                await _matchHandler.FindAndJoinMatchAsync();
+                // 2 = VIP
+                await _matchHandler.FindAndJoinMatchAsync(2);
                 
                 SetMatchmakingState(false, "VIP Table Created!");
                 

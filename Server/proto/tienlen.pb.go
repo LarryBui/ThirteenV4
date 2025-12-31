@@ -2,7 +2,7 @@
 // versions:
 // 	protoc-gen-go v1.36.10
 // 	protoc        v6.33.2
-// source: proto/tienlen.proto
+// source: tienlen.proto
 
 package pb
 
@@ -57,11 +57,11 @@ func (x Suit) String() string {
 }
 
 func (Suit) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_tienlen_proto_enumTypes[0].Descriptor()
+	return file_tienlen_proto_enumTypes[0].Descriptor()
 }
 
 func (Suit) Type() protoreflect.EnumType {
-	return &file_proto_tienlen_proto_enumTypes[0]
+	return &file_tienlen_proto_enumTypes[0]
 }
 
 func (x Suit) Number() protoreflect.EnumNumber {
@@ -70,7 +70,7 @@ func (x Suit) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Suit.Descriptor instead.
 func (Suit) EnumDescriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{0}
+	return file_tienlen_proto_rawDescGZIP(), []int{0}
 }
 
 type Rank int32
@@ -136,11 +136,11 @@ func (x Rank) String() string {
 }
 
 func (Rank) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_tienlen_proto_enumTypes[1].Descriptor()
+	return file_tienlen_proto_enumTypes[1].Descriptor()
 }
 
 func (Rank) Type() protoreflect.EnumType {
-	return &file_proto_tienlen_proto_enumTypes[1]
+	return &file_tienlen_proto_enumTypes[1]
 }
 
 func (x Rank) Number() protoreflect.EnumNumber {
@@ -149,7 +149,7 @@ func (x Rank) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use Rank.Descriptor instead.
 func (Rank) EnumDescriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{1}
+	return file_tienlen_proto_rawDescGZIP(), []int{1}
 }
 
 type GamePhase int32
@@ -185,11 +185,11 @@ func (x GamePhase) String() string {
 }
 
 func (GamePhase) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_tienlen_proto_enumTypes[2].Descriptor()
+	return file_tienlen_proto_enumTypes[2].Descriptor()
 }
 
 func (GamePhase) Type() protoreflect.EnumType {
-	return &file_proto_tienlen_proto_enumTypes[2]
+	return &file_tienlen_proto_enumTypes[2]
 }
 
 func (x GamePhase) Number() protoreflect.EnumNumber {
@@ -198,7 +198,59 @@ func (x GamePhase) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use GamePhase.Descriptor instead.
 func (GamePhase) EnumDescriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{2}
+	return file_tienlen_proto_rawDescGZIP(), []int{2}
+}
+
+type MatchType int32
+
+const (
+	MatchType_MATCH_TYPE_UNSPECIFIED MatchType = 0
+	MatchType_MATCH_TYPE_CASUAL      MatchType = 1
+	MatchType_MATCH_TYPE_VIP         MatchType = 2
+	MatchType_MATCH_TYPE_RANKED      MatchType = 3
+)
+
+// Enum value maps for MatchType.
+var (
+	MatchType_name = map[int32]string{
+		0: "MATCH_TYPE_UNSPECIFIED",
+		1: "MATCH_TYPE_CASUAL",
+		2: "MATCH_TYPE_VIP",
+		3: "MATCH_TYPE_RANKED",
+	}
+	MatchType_value = map[string]int32{
+		"MATCH_TYPE_UNSPECIFIED": 0,
+		"MATCH_TYPE_CASUAL":      1,
+		"MATCH_TYPE_VIP":         2,
+		"MATCH_TYPE_RANKED":      3,
+	}
+)
+
+func (x MatchType) Enum() *MatchType {
+	p := new(MatchType)
+	*p = x
+	return p
+}
+
+func (x MatchType) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (MatchType) Descriptor() protoreflect.EnumDescriptor {
+	return file_tienlen_proto_enumTypes[3].Descriptor()
+}
+
+func (MatchType) Type() protoreflect.EnumType {
+	return &file_tienlen_proto_enumTypes[3]
+}
+
+func (x MatchType) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use MatchType.Descriptor instead.
+func (MatchType) EnumDescriptor() ([]byte, []int) {
+	return file_tienlen_proto_rawDescGZIP(), []int{3}
 }
 
 type OpCode int32
@@ -270,11 +322,11 @@ func (x OpCode) String() string {
 }
 
 func (OpCode) Descriptor() protoreflect.EnumDescriptor {
-	return file_proto_tienlen_proto_enumTypes[3].Descriptor()
+	return file_tienlen_proto_enumTypes[4].Descriptor()
 }
 
 func (OpCode) Type() protoreflect.EnumType {
-	return &file_proto_tienlen_proto_enumTypes[3]
+	return &file_tienlen_proto_enumTypes[4]
 }
 
 func (x OpCode) Number() protoreflect.EnumNumber {
@@ -283,20 +335,21 @@ func (x OpCode) Number() protoreflect.EnumNumber {
 
 // Deprecated: Use OpCode.Descriptor instead.
 func (OpCode) EnumDescriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{3}
+	return file_tienlen_proto_rawDescGZIP(), []int{4}
 }
 
 type MatchLabel struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Open          int32                  `protobuf:"varint,1,opt,name=open,proto3" json:"open,omitempty"`
 	State         string                 `protobuf:"bytes,2,opt,name=state,proto3" json:"state,omitempty"`
+	Type          int32                  `protobuf:"varint,3,opt,name=type,proto3" json:"type,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
 
 func (x *MatchLabel) Reset() {
 	*x = MatchLabel{}
-	mi := &file_proto_tienlen_proto_msgTypes[0]
+	mi := &file_tienlen_proto_msgTypes[0]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -308,7 +361,7 @@ func (x *MatchLabel) String() string {
 func (*MatchLabel) ProtoMessage() {}
 
 func (x *MatchLabel) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[0]
+	mi := &file_tienlen_proto_msgTypes[0]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -321,7 +374,7 @@ func (x *MatchLabel) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MatchLabel.ProtoReflect.Descriptor instead.
 func (*MatchLabel) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{0}
+	return file_tienlen_proto_rawDescGZIP(), []int{0}
 }
 
 func (x *MatchLabel) GetOpen() int32 {
@@ -338,6 +391,13 @@ func (x *MatchLabel) GetState() string {
 	return ""
 }
 
+func (x *MatchLabel) GetType() int32 {
+	if x != nil {
+		return x.Type
+	}
+	return 0
+}
+
 type Card struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Suit          Suit                   `protobuf:"varint,1,opt,name=suit,proto3,enum=tienlen.v1.Suit" json:"suit,omitempty"`
@@ -348,7 +408,7 @@ type Card struct {
 
 func (x *Card) Reset() {
 	*x = Card{}
-	mi := &file_proto_tienlen_proto_msgTypes[1]
+	mi := &file_tienlen_proto_msgTypes[1]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -360,7 +420,7 @@ func (x *Card) String() string {
 func (*Card) ProtoMessage() {}
 
 func (x *Card) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[1]
+	mi := &file_tienlen_proto_msgTypes[1]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -373,7 +433,7 @@ func (x *Card) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Card.ProtoReflect.Descriptor instead.
 func (*Card) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{1}
+	return file_tienlen_proto_rawDescGZIP(), []int{1}
 }
 
 func (x *Card) GetSuit() Suit {
@@ -399,13 +459,14 @@ type PlayerState struct {
 	DisplayName    string                 `protobuf:"bytes,5,opt,name=display_name,json=displayName,proto3" json:"display_name,omitempty"`
 	AvatarIndex    int32                  `protobuf:"varint,6,opt,name=avatar_index,json=avatarIndex,proto3" json:"avatar_index,omitempty"`
 	Balance        int64                  `protobuf:"varint,7,opt,name=balance,proto3" json:"balance,omitempty"` // Public balance (bots always report 0).
+	IsVip          bool                   `protobuf:"varint,8,opt,name=is_vip,json=isVip,proto3" json:"is_vip,omitempty"`
 	unknownFields  protoimpl.UnknownFields
 	sizeCache      protoimpl.SizeCache
 }
 
 func (x *PlayerState) Reset() {
 	*x = PlayerState{}
-	mi := &file_proto_tienlen_proto_msgTypes[2]
+	mi := &file_tienlen_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -417,7 +478,7 @@ func (x *PlayerState) String() string {
 func (*PlayerState) ProtoMessage() {}
 
 func (x *PlayerState) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[2]
+	mi := &file_tienlen_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -430,7 +491,7 @@ func (x *PlayerState) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerState.ProtoReflect.Descriptor instead.
 func (*PlayerState) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{2}
+	return file_tienlen_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *PlayerState) GetUserId() string {
@@ -482,6 +543,13 @@ func (x *PlayerState) GetBalance() int64 {
 	return 0
 }
 
+func (x *PlayerState) GetIsVip() bool {
+	if x != nil {
+		return x.IsVip
+	}
+	return false
+}
+
 type FindMatchRequest struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	unknownFields protoimpl.UnknownFields
@@ -490,7 +558,7 @@ type FindMatchRequest struct {
 
 func (x *FindMatchRequest) Reset() {
 	*x = FindMatchRequest{}
-	mi := &file_proto_tienlen_proto_msgTypes[3]
+	mi := &file_tienlen_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -502,7 +570,7 @@ func (x *FindMatchRequest) String() string {
 func (*FindMatchRequest) ProtoMessage() {}
 
 func (x *FindMatchRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[3]
+	mi := &file_tienlen_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -515,7 +583,7 @@ func (x *FindMatchRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindMatchRequest.ProtoReflect.Descriptor instead.
 func (*FindMatchRequest) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{3}
+	return file_tienlen_proto_rawDescGZIP(), []int{3}
 }
 
 type StartGameRequest struct {
@@ -526,7 +594,7 @@ type StartGameRequest struct {
 
 func (x *StartGameRequest) Reset() {
 	*x = StartGameRequest{}
-	mi := &file_proto_tienlen_proto_msgTypes[4]
+	mi := &file_tienlen_proto_msgTypes[4]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -538,7 +606,7 @@ func (x *StartGameRequest) String() string {
 func (*StartGameRequest) ProtoMessage() {}
 
 func (x *StartGameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[4]
+	mi := &file_tienlen_proto_msgTypes[4]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -551,7 +619,7 @@ func (x *StartGameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use StartGameRequest.ProtoReflect.Descriptor instead.
 func (*StartGameRequest) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{4}
+	return file_tienlen_proto_rawDescGZIP(), []int{4}
 }
 
 type FindMatchResponse struct {
@@ -563,7 +631,7 @@ type FindMatchResponse struct {
 
 func (x *FindMatchResponse) Reset() {
 	*x = FindMatchResponse{}
-	mi := &file_proto_tienlen_proto_msgTypes[5]
+	mi := &file_tienlen_proto_msgTypes[5]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -575,7 +643,7 @@ func (x *FindMatchResponse) String() string {
 func (*FindMatchResponse) ProtoMessage() {}
 
 func (x *FindMatchResponse) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[5]
+	mi := &file_tienlen_proto_msgTypes[5]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -588,7 +656,7 @@ func (x *FindMatchResponse) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use FindMatchResponse.ProtoReflect.Descriptor instead.
 func (*FindMatchResponse) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{5}
+	return file_tienlen_proto_rawDescGZIP(), []int{5}
 }
 
 func (x *FindMatchResponse) GetMatchId() string {
@@ -607,7 +675,7 @@ type PlayCardsRequest struct {
 
 func (x *PlayCardsRequest) Reset() {
 	*x = PlayCardsRequest{}
-	mi := &file_proto_tienlen_proto_msgTypes[6]
+	mi := &file_tienlen_proto_msgTypes[6]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -619,7 +687,7 @@ func (x *PlayCardsRequest) String() string {
 func (*PlayCardsRequest) ProtoMessage() {}
 
 func (x *PlayCardsRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[6]
+	mi := &file_tienlen_proto_msgTypes[6]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -632,7 +700,7 @@ func (x *PlayCardsRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayCardsRequest.ProtoReflect.Descriptor instead.
 func (*PlayCardsRequest) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{6}
+	return file_tienlen_proto_rawDescGZIP(), []int{6}
 }
 
 func (x *PlayCardsRequest) GetCards() []*Card {
@@ -650,7 +718,7 @@ type PassTurnRequest struct {
 
 func (x *PassTurnRequest) Reset() {
 	*x = PassTurnRequest{}
-	mi := &file_proto_tienlen_proto_msgTypes[7]
+	mi := &file_tienlen_proto_msgTypes[7]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -662,7 +730,7 @@ func (x *PassTurnRequest) String() string {
 func (*PassTurnRequest) ProtoMessage() {}
 
 func (x *PassTurnRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[7]
+	mi := &file_tienlen_proto_msgTypes[7]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -675,7 +743,7 @@ func (x *PassTurnRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PassTurnRequest.ProtoReflect.Descriptor instead.
 func (*PassTurnRequest) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{7}
+	return file_tienlen_proto_rawDescGZIP(), []int{7}
 }
 
 type RequestNewGameRequest struct {
@@ -686,7 +754,7 @@ type RequestNewGameRequest struct {
 
 func (x *RequestNewGameRequest) Reset() {
 	*x = RequestNewGameRequest{}
-	mi := &file_proto_tienlen_proto_msgTypes[8]
+	mi := &file_tienlen_proto_msgTypes[8]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -698,7 +766,7 @@ func (x *RequestNewGameRequest) String() string {
 func (*RequestNewGameRequest) ProtoMessage() {}
 
 func (x *RequestNewGameRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[8]
+	mi := &file_tienlen_proto_msgTypes[8]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -711,7 +779,7 @@ func (x *RequestNewGameRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use RequestNewGameRequest.ProtoReflect.Descriptor instead.
 func (*RequestNewGameRequest) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{8}
+	return file_tienlen_proto_rawDescGZIP(), []int{8}
 }
 
 type InGameChatRequest struct {
@@ -723,7 +791,7 @@ type InGameChatRequest struct {
 
 func (x *InGameChatRequest) Reset() {
 	*x = InGameChatRequest{}
-	mi := &file_proto_tienlen_proto_msgTypes[9]
+	mi := &file_tienlen_proto_msgTypes[9]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -735,7 +803,7 @@ func (x *InGameChatRequest) String() string {
 func (*InGameChatRequest) ProtoMessage() {}
 
 func (x *InGameChatRequest) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[9]
+	mi := &file_tienlen_proto_msgTypes[9]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -748,7 +816,7 @@ func (x *InGameChatRequest) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InGameChatRequest.ProtoReflect.Descriptor instead.
 func (*InGameChatRequest) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{9}
+	return file_tienlen_proto_rawDescGZIP(), []int{9}
 }
 
 func (x *InGameChatRequest) GetMessage() string {
@@ -767,7 +835,7 @@ type PlayerJoinedEvent struct {
 
 func (x *PlayerJoinedEvent) Reset() {
 	*x = PlayerJoinedEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[10]
+	mi := &file_tienlen_proto_msgTypes[10]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -779,7 +847,7 @@ func (x *PlayerJoinedEvent) String() string {
 func (*PlayerJoinedEvent) ProtoMessage() {}
 
 func (x *PlayerJoinedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[10]
+	mi := &file_tienlen_proto_msgTypes[10]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -792,7 +860,7 @@ func (x *PlayerJoinedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerJoinedEvent.ProtoReflect.Descriptor instead.
 func (*PlayerJoinedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{10}
+	return file_tienlen_proto_rawDescGZIP(), []int{10}
 }
 
 func (x *PlayerJoinedEvent) GetPlayer() *PlayerState {
@@ -812,7 +880,7 @@ type PlayerLeftEvent struct {
 
 func (x *PlayerLeftEvent) Reset() {
 	*x = PlayerLeftEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[11]
+	mi := &file_tienlen_proto_msgTypes[11]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -824,7 +892,7 @@ func (x *PlayerLeftEvent) String() string {
 func (*PlayerLeftEvent) ProtoMessage() {}
 
 func (x *PlayerLeftEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[11]
+	mi := &file_tienlen_proto_msgTypes[11]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -837,7 +905,7 @@ func (x *PlayerLeftEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerLeftEvent.ProtoReflect.Descriptor instead.
 func (*PlayerLeftEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{11}
+	return file_tienlen_proto_rawDescGZIP(), []int{11}
 }
 
 func (x *PlayerLeftEvent) GetSeat() int32 {
@@ -862,13 +930,14 @@ type MatchStateSnapshot struct {
 	Tick                 int64                  `protobuf:"varint,3,opt,name=tick,proto3" json:"tick,omitempty"`
 	Players              []*PlayerState         `protobuf:"bytes,4,rep,name=players,proto3" json:"players,omitempty"`                                                          // Full player details
 	TurnSecondsRemaining int64                  `protobuf:"varint,5,opt,name=turn_seconds_remaining,json=turnSecondsRemaining,proto3" json:"turn_seconds_remaining,omitempty"` // Seconds remaining before the current turn expires
+	Type                 int32                  `protobuf:"varint,6,opt,name=type,proto3" json:"type,omitempty"`
 	unknownFields        protoimpl.UnknownFields
 	sizeCache            protoimpl.SizeCache
 }
 
 func (x *MatchStateSnapshot) Reset() {
 	*x = MatchStateSnapshot{}
-	mi := &file_proto_tienlen_proto_msgTypes[12]
+	mi := &file_tienlen_proto_msgTypes[12]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -880,7 +949,7 @@ func (x *MatchStateSnapshot) String() string {
 func (*MatchStateSnapshot) ProtoMessage() {}
 
 func (x *MatchStateSnapshot) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[12]
+	mi := &file_tienlen_proto_msgTypes[12]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -893,7 +962,7 @@ func (x *MatchStateSnapshot) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use MatchStateSnapshot.ProtoReflect.Descriptor instead.
 func (*MatchStateSnapshot) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{12}
+	return file_tienlen_proto_rawDescGZIP(), []int{12}
 }
 
 func (x *MatchStateSnapshot) GetSeats() []string {
@@ -931,6 +1000,13 @@ func (x *MatchStateSnapshot) GetTurnSecondsRemaining() int64 {
 	return 0
 }
 
+func (x *MatchStateSnapshot) GetType() int32 {
+	if x != nil {
+		return x.Type
+	}
+	return 0
+}
+
 type GameStartedEvent struct {
 	state                protoimpl.MessageState `protogen:"open.v1"`
 	FirstTurnSeat        int32                  `protobuf:"varint,1,opt,name=first_turn_seat,json=firstTurnSeat,proto3" json:"first_turn_seat,omitempty"` // 0-based index
@@ -943,7 +1019,7 @@ type GameStartedEvent struct {
 
 func (x *GameStartedEvent) Reset() {
 	*x = GameStartedEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[13]
+	mi := &file_tienlen_proto_msgTypes[13]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -955,7 +1031,7 @@ func (x *GameStartedEvent) String() string {
 func (*GameStartedEvent) ProtoMessage() {}
 
 func (x *GameStartedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[13]
+	mi := &file_tienlen_proto_msgTypes[13]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -968,7 +1044,7 @@ func (x *GameStartedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameStartedEvent.ProtoReflect.Descriptor instead.
 func (*GameStartedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{13}
+	return file_tienlen_proto_rawDescGZIP(), []int{13}
 }
 
 func (x *GameStartedEvent) GetFirstTurnSeat() int32 {
@@ -1012,7 +1088,7 @@ type CardPlayedEvent struct {
 
 func (x *CardPlayedEvent) Reset() {
 	*x = CardPlayedEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[14]
+	mi := &file_tienlen_proto_msgTypes[14]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1024,7 +1100,7 @@ func (x *CardPlayedEvent) String() string {
 func (*CardPlayedEvent) ProtoMessage() {}
 
 func (x *CardPlayedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[14]
+	mi := &file_tienlen_proto_msgTypes[14]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1037,7 +1113,7 @@ func (x *CardPlayedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CardPlayedEvent.ProtoReflect.Descriptor instead.
 func (*CardPlayedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{14}
+	return file_tienlen_proto_rawDescGZIP(), []int{14}
 }
 
 func (x *CardPlayedEvent) GetSeat() int32 {
@@ -1087,7 +1163,7 @@ type TurnPassedEvent struct {
 
 func (x *TurnPassedEvent) Reset() {
 	*x = TurnPassedEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[15]
+	mi := &file_tienlen_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1099,7 +1175,7 @@ func (x *TurnPassedEvent) String() string {
 func (*TurnPassedEvent) ProtoMessage() {}
 
 func (x *TurnPassedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[15]
+	mi := &file_tienlen_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1112,7 +1188,7 @@ func (x *TurnPassedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use TurnPassedEvent.ProtoReflect.Descriptor instead.
 func (*TurnPassedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{15}
+	return file_tienlen_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *TurnPassedEvent) GetSeat() int32 {
@@ -1152,7 +1228,7 @@ type CardList struct {
 
 func (x *CardList) Reset() {
 	*x = CardList{}
-	mi := &file_proto_tienlen_proto_msgTypes[16]
+	mi := &file_tienlen_proto_msgTypes[16]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1164,7 +1240,7 @@ func (x *CardList) String() string {
 func (*CardList) ProtoMessage() {}
 
 func (x *CardList) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[16]
+	mi := &file_tienlen_proto_msgTypes[16]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1177,7 +1253,7 @@ func (x *CardList) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use CardList.ProtoReflect.Descriptor instead.
 func (*CardList) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{16}
+	return file_tienlen_proto_rawDescGZIP(), []int{16}
 }
 
 func (x *CardList) GetCards() []*Card {
@@ -1198,7 +1274,7 @@ type GameEndedEvent struct {
 
 func (x *GameEndedEvent) Reset() {
 	*x = GameEndedEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[17]
+	mi := &file_tienlen_proto_msgTypes[17]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1210,7 +1286,7 @@ func (x *GameEndedEvent) String() string {
 func (*GameEndedEvent) ProtoMessage() {}
 
 func (x *GameEndedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[17]
+	mi := &file_tienlen_proto_msgTypes[17]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1223,7 +1299,7 @@ func (x *GameEndedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameEndedEvent.ProtoReflect.Descriptor instead.
 func (*GameEndedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{17}
+	return file_tienlen_proto_rawDescGZIP(), []int{17}
 }
 
 func (x *GameEndedEvent) GetFinishOrderSeats() []int32 {
@@ -1257,7 +1333,7 @@ type PlayerFinishedEvent struct {
 
 func (x *PlayerFinishedEvent) Reset() {
 	*x = PlayerFinishedEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[18]
+	mi := &file_tienlen_proto_msgTypes[18]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1269,7 +1345,7 @@ func (x *PlayerFinishedEvent) String() string {
 func (*PlayerFinishedEvent) ProtoMessage() {}
 
 func (x *PlayerFinishedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[18]
+	mi := &file_tienlen_proto_msgTypes[18]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1282,7 +1358,7 @@ func (x *PlayerFinishedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PlayerFinishedEvent.ProtoReflect.Descriptor instead.
 func (*PlayerFinishedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{18}
+	return file_tienlen_proto_rawDescGZIP(), []int{18}
 }
 
 func (x *PlayerFinishedEvent) GetSeat() int32 {
@@ -1309,7 +1385,7 @@ type GameErrorEvent struct {
 
 func (x *GameErrorEvent) Reset() {
 	*x = GameErrorEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[19]
+	mi := &file_tienlen_proto_msgTypes[19]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1321,7 +1397,7 @@ func (x *GameErrorEvent) String() string {
 func (*GameErrorEvent) ProtoMessage() {}
 
 func (x *GameErrorEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[19]
+	mi := &file_tienlen_proto_msgTypes[19]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1334,7 +1410,7 @@ func (x *GameErrorEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use GameErrorEvent.ProtoReflect.Descriptor instead.
 func (*GameErrorEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{19}
+	return file_tienlen_proto_rawDescGZIP(), []int{19}
 }
 
 func (x *GameErrorEvent) GetCode() int32 {
@@ -1365,7 +1441,7 @@ type PigChoppedEvent struct {
 
 func (x *PigChoppedEvent) Reset() {
 	*x = PigChoppedEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[20]
+	mi := &file_tienlen_proto_msgTypes[20]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1377,7 +1453,7 @@ func (x *PigChoppedEvent) String() string {
 func (*PigChoppedEvent) ProtoMessage() {}
 
 func (x *PigChoppedEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[20]
+	mi := &file_tienlen_proto_msgTypes[20]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1390,7 +1466,7 @@ func (x *PigChoppedEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use PigChoppedEvent.ProtoReflect.Descriptor instead.
 func (*PigChoppedEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{20}
+	return file_tienlen_proto_rawDescGZIP(), []int{20}
 }
 
 func (x *PigChoppedEvent) GetSourceSeat() int32 {
@@ -1445,7 +1521,7 @@ type InGameChatEvent struct {
 
 func (x *InGameChatEvent) Reset() {
 	*x = InGameChatEvent{}
-	mi := &file_proto_tienlen_proto_msgTypes[21]
+	mi := &file_tienlen_proto_msgTypes[21]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -1457,7 +1533,7 @@ func (x *InGameChatEvent) String() string {
 func (*InGameChatEvent) ProtoMessage() {}
 
 func (x *InGameChatEvent) ProtoReflect() protoreflect.Message {
-	mi := &file_proto_tienlen_proto_msgTypes[21]
+	mi := &file_tienlen_proto_msgTypes[21]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -1470,7 +1546,7 @@ func (x *InGameChatEvent) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use InGameChatEvent.ProtoReflect.Descriptor instead.
 func (*InGameChatEvent) Descriptor() ([]byte, []int) {
-	return file_proto_tienlen_proto_rawDescGZIP(), []int{21}
+	return file_tienlen_proto_rawDescGZIP(), []int{21}
 }
 
 func (x *InGameChatEvent) GetSeatIndex() int32 {
@@ -1487,19 +1563,20 @@ func (x *InGameChatEvent) GetMessage() string {
 	return ""
 }
 
-var File_proto_tienlen_proto protoreflect.FileDescriptor
+var File_tienlen_proto protoreflect.FileDescriptor
 
-const file_proto_tienlen_proto_rawDesc = "" +
+const file_tienlen_proto_rawDesc = "" +
 	"\n" +
-	"\x13proto/tienlen.proto\x12\n" +
-	"tienlen.v1\"6\n" +
+	"\rtienlen.proto\x12\n" +
+	"tienlen.v1\"J\n" +
 	"\n" +
 	"MatchLabel\x12\x12\n" +
 	"\x04open\x18\x01 \x01(\x05R\x04open\x12\x14\n" +
-	"\x05state\x18\x02 \x01(\tR\x05state\"R\n" +
+	"\x05state\x18\x02 \x01(\tR\x05state\x12\x12\n" +
+	"\x04type\x18\x03 \x01(\x05R\x04type\"R\n" +
 	"\x04Card\x12$\n" +
 	"\x04suit\x18\x01 \x01(\x0e2\x10.tienlen.v1.SuitR\x04suit\x12$\n" +
-	"\x04rank\x18\x02 \x01(\x0e2\x10.tienlen.v1.RankR\x04rank\"\xde\x01\n" +
+	"\x04rank\x18\x02 \x01(\x0e2\x10.tienlen.v1.RankR\x04rank\"\xf5\x01\n" +
 	"\vPlayerState\x12\x17\n" +
 	"\auser_id\x18\x01 \x01(\tR\x06userId\x12\x12\n" +
 	"\x04seat\x18\x02 \x01(\x05R\x04seat\x12\x19\n" +
@@ -1507,7 +1584,8 @@ const file_proto_tienlen_proto_rawDesc = "" +
 	"\x0fcards_remaining\x18\x04 \x01(\x05R\x0ecardsRemaining\x12!\n" +
 	"\fdisplay_name\x18\x05 \x01(\tR\vdisplayName\x12!\n" +
 	"\favatar_index\x18\x06 \x01(\x05R\vavatarIndex\x12\x18\n" +
-	"\abalance\x18\a \x01(\x03R\abalance\"\x12\n" +
+	"\abalance\x18\a \x01(\x03R\abalance\x12\x15\n" +
+	"\x06is_vip\x18\b \x01(\bR\x05isVip\"\x12\n" +
 	"\x10FindMatchRequest\"\x12\n" +
 	"\x10StartGameRequest\".\n" +
 	"\x11FindMatchResponse\x12\x19\n" +
@@ -1522,14 +1600,15 @@ const file_proto_tienlen_proto_rawDesc = "" +
 	"\x06player\x18\x01 \x01(\v2\x17.tienlen.v1.PlayerStateR\x06player\">\n" +
 	"\x0fPlayerLeftEvent\x12\x12\n" +
 	"\x04seat\x18\x01 \x01(\x05R\x04seat\x12\x17\n" +
-	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xc6\x01\n" +
+	"\auser_id\x18\x02 \x01(\tR\x06userId\"\xda\x01\n" +
 	"\x12MatchStateSnapshot\x12\x14\n" +
 	"\x05seats\x18\x01 \x03(\tR\x05seats\x12\x1d\n" +
 	"\n" +
 	"owner_seat\x18\x02 \x01(\x05R\townerSeat\x12\x12\n" +
 	"\x04tick\x18\x03 \x01(\x03R\x04tick\x121\n" +
 	"\aplayers\x18\x04 \x03(\v2\x17.tienlen.v1.PlayerStateR\aplayers\x124\n" +
-	"\x16turn_seconds_remaining\x18\x05 \x01(\x03R\x14turnSecondsRemaining\"\xc3\x01\n" +
+	"\x16turn_seconds_remaining\x18\x05 \x01(\x03R\x14turnSecondsRemaining\x12\x12\n" +
+	"\x04type\x18\x06 \x01(\x05R\x04type\"\xc3\x01\n" +
 	"\x10GameStartedEvent\x12&\n" +
 	"\x0ffirst_turn_seat\x18\x01 \x01(\x05R\rfirstTurnSeat\x12+\n" +
 	"\x05phase\x18\x02 \x01(\x0e2\x15.tienlen.v1.GamePhaseR\x05phase\x12$\n" +
@@ -1608,7 +1687,12 @@ const file_proto_tienlen_proto_rawDesc = "" +
 	"\tGamePhase\x12\x11\n" +
 	"\rPHASE_WAITING\x10\x00\x12\x11\n" +
 	"\rPHASE_PLAYING\x10\x01\x12\x12\n" +
-	"\x0ePHASE_FINISHED\x10\x02*\x86\x03\n" +
+	"\x0ePHASE_FINISHED\x10\x02*i\n" +
+	"\tMatchType\x12\x1a\n" +
+	"\x16MATCH_TYPE_UNSPECIFIED\x10\x00\x12\x15\n" +
+	"\x11MATCH_TYPE_CASUAL\x10\x01\x12\x12\n" +
+	"\x0eMATCH_TYPE_VIP\x10\x02\x12\x15\n" +
+	"\x11MATCH_TYPE_RANKED\x10\x03*\x86\x03\n" +
 	"\x06OpCode\x12\x17\n" +
 	"\x13OP_CODE_UNSPECIFIED\x10\x00\x12\x16\n" +
 	"\x12OP_CODE_START_GAME\x10\x01\x12\x16\n" +
@@ -1627,66 +1711,67 @@ const file_proto_tienlen_proto_rawDesc = "" +
 	"\x14OP_CODE_IN_GAME_CHAT\x10lB\x12Z\x10tienlen/proto;pbb\x06proto3"
 
 var (
-	file_proto_tienlen_proto_rawDescOnce sync.Once
-	file_proto_tienlen_proto_rawDescData []byte
+	file_tienlen_proto_rawDescOnce sync.Once
+	file_tienlen_proto_rawDescData []byte
 )
 
-func file_proto_tienlen_proto_rawDescGZIP() []byte {
-	file_proto_tienlen_proto_rawDescOnce.Do(func() {
-		file_proto_tienlen_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_proto_tienlen_proto_rawDesc), len(file_proto_tienlen_proto_rawDesc)))
+func file_tienlen_proto_rawDescGZIP() []byte {
+	file_tienlen_proto_rawDescOnce.Do(func() {
+		file_tienlen_proto_rawDescData = protoimpl.X.CompressGZIP(unsafe.Slice(unsafe.StringData(file_tienlen_proto_rawDesc), len(file_tienlen_proto_rawDesc)))
 	})
-	return file_proto_tienlen_proto_rawDescData
+	return file_tienlen_proto_rawDescData
 }
 
-var file_proto_tienlen_proto_enumTypes = make([]protoimpl.EnumInfo, 4)
-var file_proto_tienlen_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
-var file_proto_tienlen_proto_goTypes = []any{
+var file_tienlen_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_tienlen_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
+var file_tienlen_proto_goTypes = []any{
 	(Suit)(0),                     // 0: tienlen.v1.Suit
 	(Rank)(0),                     // 1: tienlen.v1.Rank
 	(GamePhase)(0),                // 2: tienlen.v1.GamePhase
-	(OpCode)(0),                   // 3: tienlen.v1.OpCode
-	(*MatchLabel)(nil),            // 4: tienlen.v1.MatchLabel
-	(*Card)(nil),                  // 5: tienlen.v1.Card
-	(*PlayerState)(nil),           // 6: tienlen.v1.PlayerState
-	(*FindMatchRequest)(nil),      // 7: tienlen.v1.FindMatchRequest
-	(*StartGameRequest)(nil),      // 8: tienlen.v1.StartGameRequest
-	(*FindMatchResponse)(nil),     // 9: tienlen.v1.FindMatchResponse
-	(*PlayCardsRequest)(nil),      // 10: tienlen.v1.PlayCardsRequest
-	(*PassTurnRequest)(nil),       // 11: tienlen.v1.PassTurnRequest
-	(*RequestNewGameRequest)(nil), // 12: tienlen.v1.RequestNewGameRequest
-	(*InGameChatRequest)(nil),     // 13: tienlen.v1.InGameChatRequest
-	(*PlayerJoinedEvent)(nil),     // 14: tienlen.v1.PlayerJoinedEvent
-	(*PlayerLeftEvent)(nil),       // 15: tienlen.v1.PlayerLeftEvent
-	(*MatchStateSnapshot)(nil),    // 16: tienlen.v1.MatchStateSnapshot
-	(*GameStartedEvent)(nil),      // 17: tienlen.v1.GameStartedEvent
-	(*CardPlayedEvent)(nil),       // 18: tienlen.v1.CardPlayedEvent
-	(*TurnPassedEvent)(nil),       // 19: tienlen.v1.TurnPassedEvent
-	(*CardList)(nil),              // 20: tienlen.v1.CardList
-	(*GameEndedEvent)(nil),        // 21: tienlen.v1.GameEndedEvent
-	(*PlayerFinishedEvent)(nil),   // 22: tienlen.v1.PlayerFinishedEvent
-	(*GameErrorEvent)(nil),        // 23: tienlen.v1.GameErrorEvent
-	(*PigChoppedEvent)(nil),       // 24: tienlen.v1.PigChoppedEvent
-	(*InGameChatEvent)(nil),       // 25: tienlen.v1.InGameChatEvent
-	nil,                           // 26: tienlen.v1.GameEndedEvent.BalanceChangesEntry
-	nil,                           // 27: tienlen.v1.GameEndedEvent.RemainingHandsEntry
-	nil,                           // 28: tienlen.v1.PigChoppedEvent.BalanceChangesEntry
+	(MatchType)(0),                // 3: tienlen.v1.MatchType
+	(OpCode)(0),                   // 4: tienlen.v1.OpCode
+	(*MatchLabel)(nil),            // 5: tienlen.v1.MatchLabel
+	(*Card)(nil),                  // 6: tienlen.v1.Card
+	(*PlayerState)(nil),           // 7: tienlen.v1.PlayerState
+	(*FindMatchRequest)(nil),      // 8: tienlen.v1.FindMatchRequest
+	(*StartGameRequest)(nil),      // 9: tienlen.v1.StartGameRequest
+	(*FindMatchResponse)(nil),     // 10: tienlen.v1.FindMatchResponse
+	(*PlayCardsRequest)(nil),      // 11: tienlen.v1.PlayCardsRequest
+	(*PassTurnRequest)(nil),       // 12: tienlen.v1.PassTurnRequest
+	(*RequestNewGameRequest)(nil), // 13: tienlen.v1.RequestNewGameRequest
+	(*InGameChatRequest)(nil),     // 14: tienlen.v1.InGameChatRequest
+	(*PlayerJoinedEvent)(nil),     // 15: tienlen.v1.PlayerJoinedEvent
+	(*PlayerLeftEvent)(nil),       // 16: tienlen.v1.PlayerLeftEvent
+	(*MatchStateSnapshot)(nil),    // 17: tienlen.v1.MatchStateSnapshot
+	(*GameStartedEvent)(nil),      // 18: tienlen.v1.GameStartedEvent
+	(*CardPlayedEvent)(nil),       // 19: tienlen.v1.CardPlayedEvent
+	(*TurnPassedEvent)(nil),       // 20: tienlen.v1.TurnPassedEvent
+	(*CardList)(nil),              // 21: tienlen.v1.CardList
+	(*GameEndedEvent)(nil),        // 22: tienlen.v1.GameEndedEvent
+	(*PlayerFinishedEvent)(nil),   // 23: tienlen.v1.PlayerFinishedEvent
+	(*GameErrorEvent)(nil),        // 24: tienlen.v1.GameErrorEvent
+	(*PigChoppedEvent)(nil),       // 25: tienlen.v1.PigChoppedEvent
+	(*InGameChatEvent)(nil),       // 26: tienlen.v1.InGameChatEvent
+	nil,                           // 27: tienlen.v1.GameEndedEvent.BalanceChangesEntry
+	nil,                           // 28: tienlen.v1.GameEndedEvent.RemainingHandsEntry
+	nil,                           // 29: tienlen.v1.PigChoppedEvent.BalanceChangesEntry
 }
-var file_proto_tienlen_proto_depIdxs = []int32{
+var file_tienlen_proto_depIdxs = []int32{
 	0,  // 0: tienlen.v1.Card.suit:type_name -> tienlen.v1.Suit
 	1,  // 1: tienlen.v1.Card.rank:type_name -> tienlen.v1.Rank
-	5,  // 2: tienlen.v1.PlayCardsRequest.cards:type_name -> tienlen.v1.Card
-	6,  // 3: tienlen.v1.PlayerJoinedEvent.player:type_name -> tienlen.v1.PlayerState
-	6,  // 4: tienlen.v1.MatchStateSnapshot.players:type_name -> tienlen.v1.PlayerState
+	6,  // 2: tienlen.v1.PlayCardsRequest.cards:type_name -> tienlen.v1.Card
+	7,  // 3: tienlen.v1.PlayerJoinedEvent.player:type_name -> tienlen.v1.PlayerState
+	7,  // 4: tienlen.v1.MatchStateSnapshot.players:type_name -> tienlen.v1.PlayerState
 	2,  // 5: tienlen.v1.GameStartedEvent.phase:type_name -> tienlen.v1.GamePhase
-	5,  // 6: tienlen.v1.GameStartedEvent.hand:type_name -> tienlen.v1.Card
-	5,  // 7: tienlen.v1.CardPlayedEvent.cards:type_name -> tienlen.v1.Card
-	5,  // 8: tienlen.v1.CardList.cards:type_name -> tienlen.v1.Card
-	26, // 9: tienlen.v1.GameEndedEvent.balance_changes:type_name -> tienlen.v1.GameEndedEvent.BalanceChangesEntry
-	27, // 10: tienlen.v1.GameEndedEvent.remaining_hands:type_name -> tienlen.v1.GameEndedEvent.RemainingHandsEntry
-	5,  // 11: tienlen.v1.PigChoppedEvent.cards_chopped:type_name -> tienlen.v1.Card
-	5,  // 12: tienlen.v1.PigChoppedEvent.cards_chopping:type_name -> tienlen.v1.Card
-	28, // 13: tienlen.v1.PigChoppedEvent.balance_changes:type_name -> tienlen.v1.PigChoppedEvent.BalanceChangesEntry
-	20, // 14: tienlen.v1.GameEndedEvent.RemainingHandsEntry.value:type_name -> tienlen.v1.CardList
+	6,  // 6: tienlen.v1.GameStartedEvent.hand:type_name -> tienlen.v1.Card
+	6,  // 7: tienlen.v1.CardPlayedEvent.cards:type_name -> tienlen.v1.Card
+	6,  // 8: tienlen.v1.CardList.cards:type_name -> tienlen.v1.Card
+	27, // 9: tienlen.v1.GameEndedEvent.balance_changes:type_name -> tienlen.v1.GameEndedEvent.BalanceChangesEntry
+	28, // 10: tienlen.v1.GameEndedEvent.remaining_hands:type_name -> tienlen.v1.GameEndedEvent.RemainingHandsEntry
+	6,  // 11: tienlen.v1.PigChoppedEvent.cards_chopped:type_name -> tienlen.v1.Card
+	6,  // 12: tienlen.v1.PigChoppedEvent.cards_chopping:type_name -> tienlen.v1.Card
+	29, // 13: tienlen.v1.PigChoppedEvent.balance_changes:type_name -> tienlen.v1.PigChoppedEvent.BalanceChangesEntry
+	21, // 14: tienlen.v1.GameEndedEvent.RemainingHandsEntry.value:type_name -> tienlen.v1.CardList
 	15, // [15:15] is the sub-list for method output_type
 	15, // [15:15] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
@@ -1694,27 +1779,27 @@ var file_proto_tienlen_proto_depIdxs = []int32{
 	0,  // [0:15] is the sub-list for field type_name
 }
 
-func init() { file_proto_tienlen_proto_init() }
-func file_proto_tienlen_proto_init() {
-	if File_proto_tienlen_proto != nil {
+func init() { file_tienlen_proto_init() }
+func file_tienlen_proto_init() {
+	if File_tienlen_proto != nil {
 		return
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
-			RawDescriptor: unsafe.Slice(unsafe.StringData(file_proto_tienlen_proto_rawDesc), len(file_proto_tienlen_proto_rawDesc)),
-			NumEnums:      4,
+			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tienlen_proto_rawDesc), len(file_tienlen_proto_rawDesc)),
+			NumEnums:      5,
 			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   0,
 		},
-		GoTypes:           file_proto_tienlen_proto_goTypes,
-		DependencyIndexes: file_proto_tienlen_proto_depIdxs,
-		EnumInfos:         file_proto_tienlen_proto_enumTypes,
-		MessageInfos:      file_proto_tienlen_proto_msgTypes,
+		GoTypes:           file_tienlen_proto_goTypes,
+		DependencyIndexes: file_tienlen_proto_depIdxs,
+		EnumInfos:         file_tienlen_proto_enumTypes,
+		MessageInfos:      file_tienlen_proto_msgTypes,
 	}.Build()
-	File_proto_tienlen_proto = out.File
-	file_proto_tienlen_proto_goTypes = nil
-	file_proto_tienlen_proto_depIdxs = nil
+	File_tienlen_proto = out.File
+	file_tienlen_proto_goTypes = nil
+	file_tienlen_proto_depIdxs = nil
 }

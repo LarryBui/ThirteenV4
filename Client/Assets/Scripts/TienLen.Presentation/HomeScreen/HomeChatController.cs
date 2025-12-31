@@ -8,6 +8,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
 using TienLen.Application.Chat;
 using TienLen.Application.Speech;
+using TienLen.Application.Session;
 using TMPro;
 using UnityEngine;
 #if ENABLE_INPUT_SYSTEM
@@ -34,6 +35,7 @@ namespace TienLen.Presentation.HomeScreen
         private IAuthenticationService _authService;
         private GlobalChatHandler _chatHandler;
         private ISpeechToTextService _speechService;
+        private IGameSessionContext _gameSessionContext;
         private ILogger<HomeChatController> _logger;
 
         private readonly List<string> _messageLines = new();
@@ -52,11 +54,13 @@ namespace TienLen.Presentation.HomeScreen
             IAuthenticationService authService,
             GlobalChatHandler chatHandler,
             ISpeechToTextService speechService,
+            IGameSessionContext gameSessionContext,
             ILogger<HomeChatController> logger)
         {
             _authService = authService;
             _chatHandler = chatHandler;
             _speechService = speechService;
+            _gameSessionContext = gameSessionContext;
             _logger = logger ?? NullLogger<HomeChatController>.Instance;
         }
 
@@ -284,7 +288,7 @@ namespace TienLen.Presentation.HomeScreen
 
         private async UniTaskVoid CaptureSpeechAsync()
         {
-            if (_speechService == null || !_speechService.IsSupported)
+            if (!IsSpeechAllowed())
             {
                 return;
             }
@@ -362,13 +366,23 @@ namespace TienLen.Presentation.HomeScreen
         private void RefreshMicState()
         {
             if (micButton == null) return;
-            micButton.interactable = _speechService != null && _speechService.IsSupported;
+            micButton.interactable = IsSpeechAllowed();
         }
 
         private void SetMicInteractable(bool interactable)
         {
             if (micButton == null) return;
-            micButton.interactable = interactable && _speechService != null && _speechService.IsSupported;
+            micButton.interactable = interactable && IsSpeechAllowed();
+        }
+
+        private bool IsSpeechAllowed()
+        {
+            if (_speechService == null || !_speechService.IsSupported)
+            {
+                return false;
+            }
+
+            return _gameSessionContext != null && _gameSessionContext.CurrentMatch.IsInMatch;
         }
 
         /// <summary>

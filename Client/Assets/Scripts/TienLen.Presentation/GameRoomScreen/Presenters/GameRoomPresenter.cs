@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
 using TienLen.Application.Speech;
+using TienLen.Application.Voice;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.Services;
 using TienLen.Domain.ValueObjects;
@@ -18,6 +19,7 @@ namespace TienLen.Presentation.GameRoomScreen
     public class GameRoomPresenter : IDisposable
     {
         private readonly TienLenMatchHandler _matchHandler;
+        private readonly VoiceChatHandler _voiceChatHandler;
         private readonly ILogger<GameRoomPresenter> _logger;
 
         public event Action OnStateUpdated;
@@ -42,10 +44,12 @@ namespace TienLen.Presentation.GameRoomScreen
         public GameRoomPresenter(
             TienLenMatchHandler matchHandler,
             ISpeechToTextService sttService,
+            VoiceChatHandler voiceChatHandler,
             ILogger<GameRoomPresenter> logger)
         {
             _matchHandler = matchHandler;
             _sttService = sttService;
+            _voiceChatHandler = voiceChatHandler;
             _logger = logger ?? NullLogger<GameRoomPresenter>.Instance;
 
             Subscribe();
@@ -70,6 +74,8 @@ namespace TienLen.Presentation.GameRoomScreen
             {
                 _sttService.OnPhraseRecognized += HandleSttPhraseRecognized;
             }
+
+            EnsureVoiceChatJoined();
         }
 
         public void Dispose()
@@ -91,10 +97,17 @@ namespace TienLen.Presentation.GameRoomScreen
                 _sttService.OnPhraseRecognized -= HandleSttPhraseRecognized;
                 _sttService.StopTranscribing();
             }
+
+            _voiceChatHandler?.LeaveGameRoomAsync().Forget(ex =>
+                _logger.LogWarning(ex, "Failed to leave voice chat."));
         }
 
         // --- Event Forwarding ---
-        private void HandleStateUpdated() => OnStateUpdated?.Invoke();
+        private void HandleStateUpdated()
+        {
+            EnsureVoiceChatJoined();
+            OnStateUpdated?.Invoke();
+        }
         private void HandleGameStarted() => OnGameStarted?.Invoke();
         private void HandleBoardUpdated(int seat, bool newRound) => OnBoardUpdated?.Invoke(seat, newRound);
         private void HandleError(int code, string msg) => OnError?.Invoke(msg);
@@ -137,6 +150,23 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_sttService == null) return;
             if (active) _sttService.StartTranscribing();
             else _sttService.StopTranscribing();
+        }
+
+        private void EnsureVoiceChatJoined()
+        {
+            if (_voiceChatHandler == null)
+            {
+                return;
+            }
+
+            var match = CurrentMatch;
+            if (match == null || match.LocalSeatIndex < 0 || string.IsNullOrWhiteSpace(match.Id))
+            {
+                return;
+            }
+
+            _voiceChatHandler.EnsureGameRoomJoinedAsync(match.Id).Forget(ex =>
+                _logger.LogWarning(ex, "Failed to join voice chat."));
         }
 
 

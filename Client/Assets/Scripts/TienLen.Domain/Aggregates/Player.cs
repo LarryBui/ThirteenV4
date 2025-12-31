@@ -10,6 +10,8 @@ namespace TienLen.Domain.Aggregates
         public int AvatarIndex { get; set; }   // Added for avatar selection
         /// <summary>Public balance reported by the server.</summary>
         public long Balance { get; set; }
+        /// <summary>VIP status reported by the server.</summary>
+        public bool IsVip { get; set; }
         public int Seat { get; set; } // 1-based seat number
         public bool IsOwner { get; set; } // true if match owner
         public int CardsRemaining { get; set; }

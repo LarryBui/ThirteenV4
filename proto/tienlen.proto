@@ -35,6 +35,13 @@ enum GamePhase {
   PHASE_FINISHED = 2;
 }
 
+enum MatchType {
+  MATCH_TYPE_UNSPECIFIED = 0;
+  MATCH_TYPE_CASUAL = 1;
+  MATCH_TYPE_VIP = 2;
+  MATCH_TYPE_RANKED = 3;
+}
+
 enum OpCode {
   OP_CODE_UNSPECIFIED = 0;
   OP_CODE_START_GAME = 1;
@@ -60,6 +67,7 @@ enum OpCode {
 message MatchLabel {
   int32 open = 1 [json_name = "open"];
   string state = 2 [json_name = "state"];
+  int32 type = 3 [json_name = "type"];
 }
 
 message Card {
@@ -75,6 +83,7 @@ message PlayerState {
     string display_name = 5;
     int32 avatar_index = 6;
     int64 balance = 7; // Public balance (bots always report 0).
+    bool is_vip = 8;
 }
 
 // --- Client -> Server Requests ---
@@ -117,6 +126,7 @@ message MatchStateSnapshot {
   int64 tick = 3;
   repeated PlayerState players = 4; // Full player details
   int64 turn_seconds_remaining = 5; // Seconds remaining before the current turn expires
+  int32 type = 6;
 }
 
 message GameStartedEvent {

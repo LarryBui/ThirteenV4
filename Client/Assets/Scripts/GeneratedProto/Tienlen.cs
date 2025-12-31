@@ -24,74 +24,78 @@ namespace Tienlen.V1 {
     static TienlenReflection() {
       byte[] descriptorData = global::System.Convert.FromBase64String(
           string.Concat(
-            "ChNwcm90by90aWVubGVuLnByb3RvEgp0aWVubGVuLnYxIjYKCk1hdGNoTGFi",
-            "ZWwSEgoEb3BlbhgBIAEoBVIEb3BlbhIUCgVzdGF0ZRgCIAEoCVIFc3RhdGUi",
-            "RgoEQ2FyZBIeCgRzdWl0GAEgASgOMhAudGllbmxlbi52MS5TdWl0Eh4KBHJh",
-            "bmsYAiABKA4yEC50aWVubGVuLnYxLlJhbmsilAEKC1BsYXllclN0YXRlEg8K",
-            "B3VzZXJfaWQYASABKAkSDAoEc2VhdBgCIAEoBRIQCghpc19vd25lchgDIAEo",
-            "CBIXCg9jYXJkc19yZW1haW5pbmcYBCABKAUSFAoMZGlzcGxheV9uYW1lGAUg",
-            "ASgJEhQKDGF2YXRhcl9pbmRleBgGIAEoBRIPCgdiYWxhbmNlGAcgASgDIhIK",
-            "EEZpbmRNYXRjaFJlcXVlc3QiEgoQU3RhcnRHYW1lUmVxdWVzdCIlChFGaW5k",
-            "TWF0Y2hSZXNwb25zZRIQCghtYXRjaF9pZBgBIAEoCSIzChBQbGF5Q2FyZHNS",
-            "ZXF1ZXN0Eh8KBWNhcmRzGAEgAygLMhAudGllbmxlbi52MS5DYXJkIhEKD1Bh",
-            "c3NUdXJuUmVxdWVzdCIXChVSZXF1ZXN0TmV3R2FtZVJlcXVlc3QiJAoRSW5H",
-            "YW1lQ2hhdFJlcXVlc3QSDwoHbWVzc2FnZRgBIAEoCSI8ChFQbGF5ZXJKb2lu",
-            "ZWRFdmVudBInCgZwbGF5ZXIYASABKAsyFy50aWVubGVuLnYxLlBsYXllclN0",
-            "YXRlIjAKD1BsYXllckxlZnRFdmVudBIMCgRzZWF0GAEgASgFEg8KB3VzZXJf",
-            "aWQYAiABKAkijwEKEk1hdGNoU3RhdGVTbmFwc2hvdBINCgVzZWF0cxgBIAMo",
-            "CRISCgpvd25lcl9zZWF0GAIgASgFEgwKBHRpY2sYAyABKAMSKAoHcGxheWVy",
-            "cxgEIAMoCzIXLnRpZW5sZW4udjEuUGxheWVyU3RhdGUSHgoWdHVybl9zZWNv",
-            "bmRzX3JlbWFpbmluZxgFIAEoAyKRAQoQR2FtZVN0YXJ0ZWRFdmVudBIXCg9m",
-            "aXJzdF90dXJuX3NlYXQYASABKAUSJAoFcGhhc2UYAiABKA4yFS50aWVubGVu",
-            "LnYxLkdhbWVQaGFzZRIeCgRoYW5kGAMgAygLMhAudGllbmxlbi52MS5DYXJk",
-            "Eh4KFnR1cm5fc2Vjb25kc19yZW1haW5pbmcYBCABKAMiiwEKD0NhcmRQbGF5",
-            "ZWRFdmVudBIMCgRzZWF0GAEgASgFEh8KBWNhcmRzGAIgAygLMhAudGllbmxl",
-            "bi52MS5DYXJkEhYKDm5leHRfdHVybl9zZWF0GAMgASgFEhEKCW5ld19yb3Vu",
-            "ZBgEIAEoCBIeChZ0dXJuX3NlY29uZHNfcmVtYWluaW5nGAUgASgDImoKD1R1",
-            "cm5QYXNzZWRFdmVudBIMCgRzZWF0GAEgASgFEhYKDm5leHRfdHVybl9zZWF0",
-            "GAIgASgFEhEKCW5ld19yb3VuZBgDIAEoCBIeChZ0dXJuX3NlY29uZHNfcmVt",
-            "YWluaW5nGAQgASgDIisKCENhcmRMaXN0Eh8KBWNhcmRzGAEgAygLMhAudGll",
-            "bmxlbi52MS5DYXJkIsICCg5HYW1lRW5kZWRFdmVudBIaChJmaW5pc2hfb3Jk",
-            "ZXJfc2VhdHMYASADKAUSRwoPYmFsYW5jZV9jaGFuZ2VzGAIgAygLMi4udGll",
-            "bmxlbi52MS5HYW1lRW5kZWRFdmVudC5CYWxhbmNlQ2hhbmdlc0VudHJ5EkcK",
-            "D3JlbWFpbmluZ19oYW5kcxgDIAMoCzIuLnRpZW5sZW4udjEuR2FtZUVuZGVk",
-            "RXZlbnQuUmVtYWluaW5nSGFuZHNFbnRyeRo1ChNCYWxhbmNlQ2hhbmdlc0Vu",
-            "dHJ5EgsKA2tleRgBIAEoCRINCgV2YWx1ZRgCIAEoAzoCOAEaSwoTUmVtYWlu",
-            "aW5nSGFuZHNFbnRyeRILCgNrZXkYASABKAUSIwoFdmFsdWUYAiABKAsyFC50",
-            "aWVubGVuLnYxLkNhcmRMaXN0OgI4ASIxChNQbGF5ZXJGaW5pc2hlZEV2ZW50",
-            "EgwKBHNlYXQYASABKAUSDAoEcmFuaxgCIAEoBSIvCg5HYW1lRXJyb3JFdmVu",
-            "dBIMCgRjb2RlGAEgASgFEg8KB21lc3NhZ2UYAiABKAkiogIKD1BpZ0Nob3Bw",
-            "ZWRFdmVudBITCgtzb3VyY2Vfc2VhdBgBIAEoBRITCgt0YXJnZXRfc2VhdBgC",
-            "IAEoBRIRCgljaG9wX3R5cGUYAyABKAkSJwoNY2FyZHNfY2hvcHBlZBgEIAMo",
-            "CzIQLnRpZW5sZW4udjEuQ2FyZBIoCg5jYXJkc19jaG9wcGluZxgFIAMoCzIQ",
-            "LnRpZW5sZW4udjEuQ2FyZBJICg9iYWxhbmNlX2NoYW5nZXMYBiADKAsyLy50",
-            "aWVubGVuLnYxLlBpZ0Nob3BwZWRFdmVudC5CYWxhbmNlQ2hhbmdlc0VudHJ5",
-            "GjUKE0JhbGFuY2VDaGFuZ2VzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVl",
-            "GAIgASgDOgI4ASI2Cg9JbkdhbWVDaGF0RXZlbnQSEgoKc2VhdF9pbmRleBgB",
-            "IAEoBRIPCgdtZXNzYWdlGAIgASgJKksKBFN1aXQSDwoLU1VJVF9TUEFERVMQ",
-            "ABIOCgpTVUlUX0NMVUJTEAESEQoNU1VJVF9ESUFNT05EUxACEg8KC1NVSVRf",
-            "SEVBUlRTEAMqyQEKBFJhbmsSDgoKUkFOS19USFJFRRAAEg0KCVJBTktfRk9V",
-            "UhABEg0KCVJBTktfRklWRRACEgwKCFJBTktfU0lYEAMSDgoKUkFOS19TRVZF",
-            "ThAEEg4KClJBTktfRUlHSFQQBRINCglSQU5LX05JTkUQBhIMCghSQU5LX1RF",
-            "ThAHEg0KCVJBTktfSkFDSxAIEg4KClJBTktfUVVFRU4QCRINCglSQU5LX0tJ",
-            "TkcQChIMCghSQU5LX0FDRRALEgwKCFJBTktfVFdPEAwqRQoJR2FtZVBoYXNl",
-            "EhEKDVBIQVNFX1dBSVRJTkcQABIRCg1QSEFTRV9QTEFZSU5HEAESEgoOUEhB",
-            "U0VfRklOSVNIRUQQAiqGAwoGT3BDb2RlEhcKE09QX0NPREVfVU5TUEVDSUZJ",
-            "RUQQABIWChJPUF9DT0RFX1NUQVJUX0dBTUUQARIWChJPUF9DT0RFX1BMQVlf",
-            "Q0FSRFMQAhIVChFPUF9DT0RFX1BBU1NfVFVSThADEhwKGE9QX0NPREVfUkVR",
-            "VUVTVF9ORVdfR0FNRRAEEhkKFU9QX0NPREVfUExBWUVSX0pPSU5FRBAyEhcK",
-            "E09QX0NPREVfUExBWUVSX0xFRlQQMxIYChRPUF9DT0RFX0dBTUVfU1RBUlRF",
-            "RBBkEhcKE09QX0NPREVfQ0FSRF9QTEFZRUQQZhIXChNPUF9DT0RFX1RVUk5f",
-            "UEFTU0VEEGcSFgoST1BfQ09ERV9HQU1FX0VOREVEEGgSFgoST1BfQ09ERV9H",
-            "QU1FX0VSUk9SEGkSFwoTT1BfQ09ERV9QSUdfQ0hPUFBFRBBqEhsKF09QX0NP",
-            "REVfUExBWUVSX0ZJTklTSEVEEGsSGAoUT1BfQ09ERV9JTl9HQU1FX0NIQVQQ",
-            "bEISWhB0aWVubGVuL3Byb3RvO3BiYgZwcm90bzM="));
+            "ChNwcm90by90aWVubGVuLnByb3RvEgp0aWVubGVuLnYxIkoKCk1hdGNoTGFi",
+            "ZWwSEgoEb3BlbhgBIAEoBVIEb3BlbhIUCgVzdGF0ZRgCIAEoCVIFc3RhdGUS",
+            "EgoEdHlwZRgDIAEoBVIEdHlwZSJGCgRDYXJkEh4KBHN1aXQYASABKA4yEC50",
+            "aWVubGVuLnYxLlN1aXQSHgoEcmFuaxgCIAEoDjIQLnRpZW5sZW4udjEuUmFu",
+            "ayKkAQoLUGxheWVyU3RhdGUSDwoHdXNlcl9pZBgBIAEoCRIMCgRzZWF0GAIg",
+            "ASgFEhAKCGlzX293bmVyGAMgASgIEhcKD2NhcmRzX3JlbWFpbmluZxgEIAEo",
+            "BRIUCgxkaXNwbGF5X25hbWUYBSABKAkSFAoMYXZhdGFyX2luZGV4GAYgASgF",
+            "Eg8KB2JhbGFuY2UYByABKAMSDgoGaXNfdmlwGAggASgIIhIKEEZpbmRNYXRj",
+            "aFJlcXVlc3QiEgoQU3RhcnRHYW1lUmVxdWVzdCIlChFGaW5kTWF0Y2hSZXNw",
+            "b25zZRIQCghtYXRjaF9pZBgBIAEoCSIzChBQbGF5Q2FyZHNSZXF1ZXN0Eh8K",
+            "BWNhcmRzGAEgAygLMhAudGllbmxlbi52MS5DYXJkIhEKD1Bhc3NUdXJuUmVx",
+            "dWVzdCIXChVSZXF1ZXN0TmV3R2FtZVJlcXVlc3QiJAoRSW5HYW1lQ2hhdFJl",
+            "cXVlc3QSDwoHbWVzc2FnZRgBIAEoCSI8ChFQbGF5ZXJKb2luZWRFdmVudBIn",
+            "CgZwbGF5ZXIYASABKAsyFy50aWVubGVuLnYxLlBsYXllclN0YXRlIjAKD1Bs",
+            "YXllckxlZnRFdmVudBIMCgRzZWF0GAEgASgFEg8KB3VzZXJfaWQYAiABKAki",
+            "nQEKEk1hdGNoU3RhdGVTbmFwc2hvdBINCgVzZWF0cxgBIAMoCRISCgpvd25l",
+            "cl9zZWF0GAIgASgFEgwKBHRpY2sYAyABKAMSKAoHcGxheWVycxgEIAMoCzIX",
+            "LnRpZW5sZW4udjEuUGxheWVyU3RhdGUSHgoWdHVybl9zZWNvbmRzX3JlbWFp",
+            "bmluZxgFIAEoAxIMCgR0eXBlGAYgASgFIpEBChBHYW1lU3RhcnRlZEV2ZW50",
+            "EhcKD2ZpcnN0X3R1cm5fc2VhdBgBIAEoBRIkCgVwaGFzZRgCIAEoDjIVLnRp",
+            "ZW5sZW4udjEuR2FtZVBoYXNlEh4KBGhhbmQYAyADKAsyEC50aWVubGVuLnYx",
+            "LkNhcmQSHgoWdHVybl9zZWNvbmRzX3JlbWFpbmluZxgEIAEoAyKLAQoPQ2Fy",
+            "ZFBsYXllZEV2ZW50EgwKBHNlYXQYASABKAUSHwoFY2FyZHMYAiADKAsyEC50",
+            "aWVubGVuLnYxLkNhcmQSFgoObmV4dF90dXJuX3NlYXQYAyABKAUSEQoJbmV3",
+            "X3JvdW5kGAQgASgIEh4KFnR1cm5fc2Vjb25kc19yZW1haW5pbmcYBSABKAMi",
+            "agoPVHVyblBhc3NlZEV2ZW50EgwKBHNlYXQYASABKAUSFgoObmV4dF90dXJu",
+            "X3NlYXQYAiABKAUSEQoJbmV3X3JvdW5kGAMgASgIEh4KFnR1cm5fc2Vjb25k",
+            "c19yZW1haW5pbmcYBCABKAMiKwoIQ2FyZExpc3QSHwoFY2FyZHMYASADKAsy",
+            "EC50aWVubGVuLnYxLkNhcmQiwgIKDkdhbWVFbmRlZEV2ZW50EhoKEmZpbmlz",
+            "aF9vcmRlcl9zZWF0cxgBIAMoBRJHCg9iYWxhbmNlX2NoYW5nZXMYAiADKAsy",
+            "Li50aWVubGVuLnYxLkdhbWVFbmRlZEV2ZW50LkJhbGFuY2VDaGFuZ2VzRW50",
+            "cnkSRwoPcmVtYWluaW5nX2hhbmRzGAMgAygLMi4udGllbmxlbi52MS5HYW1l",
+            "RW5kZWRFdmVudC5SZW1haW5pbmdIYW5kc0VudHJ5GjUKE0JhbGFuY2VDaGFu",
+            "Z2VzRW50cnkSCwoDa2V5GAEgASgJEg0KBXZhbHVlGAIgASgDOgI4ARpLChNS",
+            "ZW1haW5pbmdIYW5kc0VudHJ5EgsKA2tleRgBIAEoBRIjCgV2YWx1ZRgCIAEo",
+            "CzIULnRpZW5sZW4udjEuQ2FyZExpc3Q6AjgBIjEKE1BsYXllckZpbmlzaGVk",
+            "RXZlbnQSDAoEc2VhdBgBIAEoBRIMCgRyYW5rGAIgASgFIi8KDkdhbWVFcnJv",
+            "ckV2ZW50EgwKBGNvZGUYASABKAUSDwoHbWVzc2FnZRgCIAEoCSKiAgoPUGln",
+            "Q2hvcHBlZEV2ZW50EhMKC3NvdXJjZV9zZWF0GAEgASgFEhMKC3RhcmdldF9z",
+            "ZWF0GAIgASgFEhEKCWNob3BfdHlwZRgDIAEoCRInCg1jYXJkc19jaG9wcGVk",
+            "GAQgAygLMhAudGllbmxlbi52MS5DYXJkEigKDmNhcmRzX2Nob3BwaW5nGAUg",
+            "AygLMhAudGllbmxlbi52MS5DYXJkEkgKD2JhbGFuY2VfY2hhbmdlcxgGIAMo",
+            "CzIvLnRpZW5sZW4udjEuUGlnQ2hvcHBlZEV2ZW50LkJhbGFuY2VDaGFuZ2Vz",
+            "RW50cnkaNQoTQmFsYW5jZUNoYW5nZXNFbnRyeRILCgNrZXkYASABKAkSDQoF",
+            "dmFsdWUYAiABKAM6AjgBIjYKD0luR2FtZUNoYXRFdmVudBISCgpzZWF0X2lu",
+            "ZGV4GAEgASgFEg8KB21lc3NhZ2UYAiABKAkqSwoEU3VpdBIPCgtTVUlUX1NQ",
+            "QURFUxAAEg4KClNVSVRfQ0xVQlMQARIRCg1TVUlUX0RJQU1PTkRTEAISDwoL",
+            "U1VJVF9IRUFSVFMQAyrJAQoEUmFuaxIOCgpSQU5LX1RIUkVFEAASDQoJUkFO",
+            "S19GT1VSEAESDQoJUkFOS19GSVZFEAISDAoIUkFOS19TSVgQAxIOCgpSQU5L",
+            "X1NFVkVOEAQSDgoKUkFOS19FSUdIVBAFEg0KCVJBTktfTklORRAGEgwKCFJB",
+            "TktfVEVOEAcSDQoJUkFOS19KQUNLEAgSDgoKUkFOS19RVUVFThAJEg0KCVJB",
+            "TktfS0lORxAKEgwKCFJBTktfQUNFEAsSDAoIUkFOS19UV08QDCpFCglHYW1l",
+            "UGhhc2USEQoNUEhBU0VfV0FJVElORxAAEhEKDVBIQVNFX1BMQVlJTkcQARIS",
+            "Cg5QSEFTRV9GSU5JU0hFRBACKmkKCU1hdGNoVHlwZRIaChZNQVRDSF9UWVBF",
+            "X1VOU1BFQ0lGSUVEEAASFQoRTUFUQ0hfVFlQRV9DQVNVQUwQARISCg5NQVRD",
+            "SF9UWVBFX1ZJUBACEhUKEU1BVENIX1RZUEVfUkFOS0VEEAMqhgMKBk9wQ29k",
+            "ZRIXChNPUF9DT0RFX1VOU1BFQ0lGSUVEEAASFgoST1BfQ09ERV9TVEFSVF9H",
+            "QU1FEAESFgoST1BfQ09ERV9QTEFZX0NBUkRTEAISFQoRT1BfQ09ERV9QQVNT",
+            "X1RVUk4QAxIcChhPUF9DT0RFX1JFUVVFU1RfTkVXX0dBTUUQBBIZChVPUF9D",
+            "T0RFX1BMQVlFUl9KT0lORUQQMhIXChNPUF9DT0RFX1BMQVlFUl9MRUZUEDMS",
+            "GAoUT1BfQ09ERV9HQU1FX1NUQVJURUQQZBIXChNPUF9DT0RFX0NBUkRfUExB",
+            "WUVEEGYSFwoTT1BfQ09ERV9UVVJOX1BBU1NFRBBnEhYKEk9QX0NPREVfR0FN",
+            "RV9FTkRFRBBoEhYKEk9QX0NPREVfR0FNRV9FUlJPUhBpEhcKE09QX0NPREVf",
+            "UElHX0NIT1BQRUQQahIbChdPUF9DT0RFX1BMQVlFUl9GSU5JU0hFRBBrEhgK",
+            "FE9QX0NPREVfSU5fR0FNRV9DSEFUEGxCEloQdGllbmxlbi9wcm90bztwYmIG",
+            "cHJvdG8z"));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchLabel), global::Tienlen.V1.MatchLabel.Parser, new[]{ "Open", "State" }, null, null, null, null),
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.MatchType), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchLabel), global::Tienlen.V1.MatchLabel.Parser, new[]{ "Open", "State", "Type" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.Card), global::Tienlen.V1.Card.Parser, new[]{ "Suit", "Rank" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerState), global::Tienlen.V1.PlayerState.Parser, new[]{ "UserId", "Seat", "IsOwner", "CardsRemaining", "DisplayName", "AvatarIndex", "Balance" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerState), global::Tienlen.V1.PlayerState.Parser, new[]{ "UserId", "Seat", "IsOwner", "CardsRemaining", "DisplayName", "AvatarIndex", "Balance", "IsVip" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.FindMatchRequest), global::Tienlen.V1.FindMatchRequest.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.StartGameRequest), global::Tienlen.V1.StartGameRequest.Parser, null, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.FindMatchResponse), global::Tienlen.V1.FindMatchResponse.Parser, new[]{ "MatchId" }, null, null, null, null),
@@ -101,7 +105,7 @@ namespace Tienlen.V1 {
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.InGameChatRequest), global::Tienlen.V1.InGameChatRequest.Parser, new[]{ "Message" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerJoinedEvent), global::Tienlen.V1.PlayerJoinedEvent.Parser, new[]{ "Player" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerLeftEvent), global::Tienlen.V1.PlayerLeftEvent.Parser, new[]{ "Seat", "UserId" }, null, null, null, null),
-            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerSeat", "Tick", "Players", "TurnSecondsRemaining" }, null, null, null, null),
+            new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchStateSnapshot), global::Tienlen.V1.MatchStateSnapshot.Parser, new[]{ "Seats", "OwnerSeat", "Tick", "Players", "TurnSecondsRemaining", "Type" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.GameStartedEvent), global::Tienlen.V1.GameStartedEvent.Parser, new[]{ "FirstTurnSeat", "Phase", "Hand", "TurnSecondsRemaining" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.CardPlayedEvent), global::Tienlen.V1.CardPlayedEvent.Parser, new[]{ "Seat", "Cards", "NextTurnSeat", "NewRound", "TurnSecondsRemaining" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.TurnPassedEvent), global::Tienlen.V1.TurnPassedEvent.Parser, new[]{ "Seat", "NextTurnSeat", "NewRound", "TurnSecondsRemaining" }, null, null, null, null),
@@ -144,6 +148,13 @@ namespace Tienlen.V1 {
     [pbr::OriginalName("PHASE_WAITING")] PhaseWaiting = 0,
     [pbr::OriginalName("PHASE_PLAYING")] PhasePlaying = 1,
     [pbr::OriginalName("PHASE_FINISHED")] PhaseFinished = 2,
+  }
+
+  public enum MatchType {
+    [pbr::OriginalName("MATCH_TYPE_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("MATCH_TYPE_CASUAL")] Casual = 1,
+    [pbr::OriginalName("MATCH_TYPE_VIP")] Vip = 2,
+    [pbr::OriginalName("MATCH_TYPE_RANKED")] Ranked = 3,
   }
 
   public enum OpCode {
@@ -204,6 +215,7 @@ namespace Tienlen.V1 {
     public MatchLabel(MatchLabel other) : this() {
       open_ = other.open_;
       state_ = other.state_;
+      type_ = other.type_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -237,6 +249,18 @@ namespace Tienlen.V1 {
       }
     }
 
+    /// <summary>Field number for the "type" field.</summary>
+    public const int TypeFieldNumber = 3;
+    private int type_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Type {
+      get { return type_; }
+      set {
+        type_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -254,6 +278,7 @@ namespace Tienlen.V1 {
       }
       if (Open != other.Open) return false;
       if (State != other.State) return false;
+      if (Type != other.Type) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -263,6 +288,7 @@ namespace Tienlen.V1 {
       int hash = 1;
       if (Open != 0) hash ^= Open.GetHashCode();
       if (State.Length != 0) hash ^= State.GetHashCode();
+      if (Type != 0) hash ^= Type.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -289,6 +315,10 @@ namespace Tienlen.V1 {
         output.WriteRawTag(18);
         output.WriteString(State);
       }
+      if (Type != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Type);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -307,6 +337,10 @@ namespace Tienlen.V1 {
         output.WriteRawTag(18);
         output.WriteString(State);
       }
+      if (Type != 0) {
+        output.WriteRawTag(24);
+        output.WriteInt32(Type);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -322,6 +356,9 @@ namespace Tienlen.V1 {
       }
       if (State.Length != 0) {
         size += 1 + pb::CodedOutputStream.ComputeStringSize(State);
+      }
+      if (Type != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Type);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -340,6 +377,9 @@ namespace Tienlen.V1 {
       }
       if (other.State.Length != 0) {
         State = other.State;
+      }
+      if (other.Type != 0) {
+        Type = other.Type;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -368,6 +408,10 @@ namespace Tienlen.V1 {
             State = input.ReadString();
             break;
           }
+          case 24: {
+            Type = input.ReadInt32();
+            break;
+          }
         }
       }
     #endif
@@ -393,6 +437,10 @@ namespace Tienlen.V1 {
           }
           case 18: {
             State = input.ReadString();
+            break;
+          }
+          case 24: {
+            Type = input.ReadInt32();
             break;
           }
         }
@@ -679,6 +727,7 @@ namespace Tienlen.V1 {
       displayName_ = other.displayName_;
       avatarIndex_ = other.avatarIndex_;
       balance_ = other.balance_;
+      isVip_ = other.isVip_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -778,6 +827,18 @@ namespace Tienlen.V1 {
       }
     }
 
+    /// <summary>Field number for the "is_vip" field.</summary>
+    public const int IsVipFieldNumber = 8;
+    private bool isVip_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public bool IsVip {
+      get { return isVip_; }
+      set {
+        isVip_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -800,6 +861,7 @@ namespace Tienlen.V1 {
       if (DisplayName != other.DisplayName) return false;
       if (AvatarIndex != other.AvatarIndex) return false;
       if (Balance != other.Balance) return false;
+      if (IsVip != other.IsVip) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -814,6 +876,7 @@ namespace Tienlen.V1 {
       if (DisplayName.Length != 0) hash ^= DisplayName.GetHashCode();
       if (AvatarIndex != 0) hash ^= AvatarIndex.GetHashCode();
       if (Balance != 0L) hash ^= Balance.GetHashCode();
+      if (IsVip != false) hash ^= IsVip.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -860,6 +923,10 @@ namespace Tienlen.V1 {
         output.WriteRawTag(56);
         output.WriteInt64(Balance);
       }
+      if (IsVip != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(IsVip);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -898,6 +965,10 @@ namespace Tienlen.V1 {
         output.WriteRawTag(56);
         output.WriteInt64(Balance);
       }
+      if (IsVip != false) {
+        output.WriteRawTag(64);
+        output.WriteBool(IsVip);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -928,6 +999,9 @@ namespace Tienlen.V1 {
       }
       if (Balance != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(Balance);
+      }
+      if (IsVip != false) {
+        size += 1 + 1;
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -961,6 +1035,9 @@ namespace Tienlen.V1 {
       }
       if (other.Balance != 0L) {
         Balance = other.Balance;
+      }
+      if (other.IsVip != false) {
+        IsVip = other.IsVip;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -1009,6 +1086,10 @@ namespace Tienlen.V1 {
             Balance = input.ReadInt64();
             break;
           }
+          case 64: {
+            IsVip = input.ReadBool();
+            break;
+          }
         }
       }
     #endif
@@ -1054,6 +1135,10 @@ namespace Tienlen.V1 {
           }
           case 56: {
             Balance = input.ReadInt64();
+            break;
+          }
+          case 64: {
+            IsVip = input.ReadBool();
             break;
           }
         }
@@ -2778,6 +2863,7 @@ namespace Tienlen.V1 {
       tick_ = other.tick_;
       players_ = other.players_.Clone();
       turnSecondsRemaining_ = other.turnSecondsRemaining_;
+      type_ = other.type_;
       _unknownFields = pb::UnknownFieldSet.Clone(other._unknownFields);
     }
 
@@ -2854,6 +2940,18 @@ namespace Tienlen.V1 {
       }
     }
 
+    /// <summary>Field number for the "type" field.</summary>
+    public const int TypeFieldNumber = 6;
+    private int type_;
+    [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
+    [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
+    public int Type {
+      get { return type_; }
+      set {
+        type_ = value;
+      }
+    }
+
     [global::System.Diagnostics.DebuggerNonUserCodeAttribute]
     [global::System.CodeDom.Compiler.GeneratedCode("protoc", null)]
     public override bool Equals(object other) {
@@ -2874,6 +2972,7 @@ namespace Tienlen.V1 {
       if (Tick != other.Tick) return false;
       if(!players_.Equals(other.players_)) return false;
       if (TurnSecondsRemaining != other.TurnSecondsRemaining) return false;
+      if (Type != other.Type) return false;
       return Equals(_unknownFields, other._unknownFields);
     }
 
@@ -2886,6 +2985,7 @@ namespace Tienlen.V1 {
       if (Tick != 0L) hash ^= Tick.GetHashCode();
       hash ^= players_.GetHashCode();
       if (TurnSecondsRemaining != 0L) hash ^= TurnSecondsRemaining.GetHashCode();
+      if (Type != 0) hash ^= Type.GetHashCode();
       if (_unknownFields != null) {
         hash ^= _unknownFields.GetHashCode();
       }
@@ -2918,6 +3018,10 @@ namespace Tienlen.V1 {
         output.WriteRawTag(40);
         output.WriteInt64(TurnSecondsRemaining);
       }
+      if (Type != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(Type);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(output);
       }
@@ -2942,6 +3046,10 @@ namespace Tienlen.V1 {
         output.WriteRawTag(40);
         output.WriteInt64(TurnSecondsRemaining);
       }
+      if (Type != 0) {
+        output.WriteRawTag(48);
+        output.WriteInt32(Type);
+      }
       if (_unknownFields != null) {
         _unknownFields.WriteTo(ref output);
       }
@@ -2962,6 +3070,9 @@ namespace Tienlen.V1 {
       size += players_.CalculateSize(_repeated_players_codec);
       if (TurnSecondsRemaining != 0L) {
         size += 1 + pb::CodedOutputStream.ComputeInt64Size(TurnSecondsRemaining);
+      }
+      if (Type != 0) {
+        size += 1 + pb::CodedOutputStream.ComputeInt32Size(Type);
       }
       if (_unknownFields != null) {
         size += _unknownFields.CalculateSize();
@@ -2985,6 +3096,9 @@ namespace Tienlen.V1 {
       players_.Add(other.players_);
       if (other.TurnSecondsRemaining != 0L) {
         TurnSecondsRemaining = other.TurnSecondsRemaining;
+      }
+      if (other.Type != 0) {
+        Type = other.Type;
       }
       _unknownFields = pb::UnknownFieldSet.MergeFrom(_unknownFields, other._unknownFields);
     }
@@ -3025,6 +3139,10 @@ namespace Tienlen.V1 {
             TurnSecondsRemaining = input.ReadInt64();
             break;
           }
+          case 48: {
+            Type = input.ReadInt32();
+            break;
+          }
         }
       }
     #endif
@@ -3062,6 +3180,10 @@ namespace Tienlen.V1 {
           }
           case 40: {
             TurnSecondsRemaining = input.ReadInt64();
+            break;
+          }
+          case 48: {
+            Type = input.ReadInt32();
             break;
           }
         }

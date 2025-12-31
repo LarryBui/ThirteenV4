@@ -115,9 +115,9 @@ namespace TienLen.Application
 
         // --- Use Cases ---
 
-        public async UniTask FindAndJoinMatchAsync()
+        public async UniTask FindAndJoinMatchAsync(int matchType = 0)
         {
-            string matchId = await _networkClient.FindMatchAsync();
+            string matchId = await _networkClient.FindMatchAsync(matchType);
             await JoinMatchAsync(matchId);
         }
 
@@ -418,6 +418,7 @@ namespace TienLen.Application
             Array.Copy(snapshot.Seats, CurrentMatch.Seats, seatsToCopy);
             CurrentMatch.OwnerSeat = snapshot.OwnerSeat;
             CurrentMatch.TurnSecondsRemaining = snapshot.TurnSecondsRemaining;
+            CurrentMatch.Type = snapshot.Type;
 
             ApplyGameRoomSnapshotToPlayers(snapshot);
             UpdateLocalSeatIndex();
@@ -498,6 +499,7 @@ namespace TienLen.Application
                     player.DisplayName = pState.DisplayName;
                     player.AvatarIndex = (int)pState.AvatarIndex;
                     player.Balance = pState.Balance;
+                    player.IsVip = pState.IsVip;
 
                     // Sync local session balance if this is the local player
                     var localUserId = _gameSessionContext.Identity.UserId;

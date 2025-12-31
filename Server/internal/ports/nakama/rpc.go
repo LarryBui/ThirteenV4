@@ -10,6 +10,7 @@ import (
 
 	"tienlen/internal/app"
 	"tienlen/internal/domain"
+	pb "tienlen/proto"
 
 	"github.com/heroiclabs/nakama-common/runtime"
 )
@@ -20,18 +21,55 @@ var vivoxService *app.VivoxService
 // If an available match is found, it returns the Match ID.
 // If no match is found, it creates a new match and returns its ID.
 //
-// Payload: (Optional) Unused for now.
+// Payload: JSON containing "type" (int32)
 // Returns: String containing the Match ID.
 func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, payload string) (string, error) {
 	userId, _ := ctx.Value(runtime.RUNTIME_CTX_USER_ID).(string)
 
-	// 1. Search for matches with at least 1 open seat.
-	// Query syntax: "+label.open:>=1"
-	// +label.open means we are filtering on the "open" key in the JSON label.
-	// :>=1 means the value must be greater than or equal to 1.
+	type findMatchReq struct {
+		Type int32 `json:"type"`
+	}
+	var req findMatchReq
+	if payload != "" {
+		if err := json.Unmarshal([]byte(payload), &req); err != nil {
+			logger.Error("RpcFindMatch [User:%s]: Failed to unmarshal payload: %v", userId, err)
+			return "", err
+		}
+	}
+
+	matchType := pb.MatchType(req.Type)
+	if matchType == pb.MatchType_MATCH_TYPE_UNSPECIFIED {
+		matchType = pb.MatchType_MATCH_TYPE_CASUAL
+	}
+
+	// 1. VIP Check
+	if matchType == pb.MatchType_MATCH_TYPE_VIP {
+		objects, err := nk.StorageRead(ctx, []*runtime.StorageRead{
+			{
+				Collection: "profiles",
+				Key:        "vip_status",
+				UserID:     userId,
+			},
+		})
+		isVip := false
+		if err == nil && len(objects) > 0 {
+			var status struct {
+				IsVip bool `json:"is_vip"`
+			}
+			if err := json.Unmarshal([]byte(objects[0].Value), &status); err == nil {
+				isVip = status.IsVip
+			}
+		}
+
+		if !isVip {
+			return "", runtime.NewError("VIP status required to create or join VIP matches", 3) // 3 = Permission Denied
+		}
+	}
+
+	// 2. Search for matches with at least 1 open seat and matching type.
 	limit := 1
 	authoritative := true
-	labelQuery := fmt.Sprintf("+label.%s:>=1", MatchLabelKey_OpenSeats)
+	labelQuery := fmt.Sprintf("+label.%s:>=1 +label.%s:%d", MatchLabelKey_OpenSeats, MatchLabelKey_Type, int32(matchType))
 	minSize := 0
 	maxSize := 4
 
@@ -41,23 +79,56 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 		return "", err
 	}
 
-	// 2. If a match is found, return its ID.
+	// 3. If a match is found, return its ID.
 	if len(matches) > 0 {
 		matchId := matches[0].MatchId
-		logger.Info("RpcFindMatch [User:%s]: Found existing match %s", userId, matchId)
+		logger.Info("RpcFindMatch [User:%s]: Found existing match %s of type %d", userId, matchId, matchType)
 		return fmt.Sprintf("%q", matchId), nil
 	}
 
-	// 3. If no match is found, create a new one.
+	// 4. If no match is found, create a new one.
 	moduleName := MatchNameTienLen // Must match the name registered in InitModule
-	matchId, err := nk.MatchCreate(ctx, moduleName, nil)
+	params := map[string]interface{}{
+		"type": int(matchType),
+	}
+	matchId, err := nk.MatchCreate(ctx, moduleName, params)
 	if err != nil {
 		logger.Error("RpcFindMatch [User:%s]: Failed to create match: %v", userId, err)
 		return "", err
 	}
 
-	logger.Info("RpcFindMatch [User:%s]: Created new match %s", userId, matchId)
+	logger.Info("RpcFindMatch [User:%s]: Created new match %s of type %d", userId, matchId, matchType)
 	return fmt.Sprintf("%q", matchId), nil
+}
+
+// RpcSetVip is for testing/dev to grant VIP status.
+func RpcSetVip(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, payload string) (string, error) {
+	userId, _ := ctx.Value(runtime.RUNTIME_CTX_USER_ID).(string)
+
+	type setVipReq struct {
+		IsVip bool `json:"is_vip"`
+	}
+	var req setVipReq
+	if err := json.Unmarshal([]byte(payload), &req); err != nil {
+		return "", err
+	}
+
+	value, _ := json.Marshal(map[string]bool{"is_vip": req.IsVip})
+	_, err := nk.StorageWrite(ctx, []*runtime.StorageWrite{
+		{
+			Collection:      "profiles",
+			Key:             "vip_status",
+			UserID:          userId,
+			Value:           string(value),
+			PermissionRead:  2, // Owner Read
+			PermissionWrite: 0, // No Write (Server only)
+		},
+	})
+	if err != nil {
+		return "", err
+	}
+
+	return "{}", nil
 }
 
 // RpcCreateMatchTest is for integration testing only. It always creates a fresh match.

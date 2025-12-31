@@ -1,6 +1,7 @@
 using TienLen.Presentation.GameRoomScreen.DebugTools;
 using TienLen.Presentation.GameRoomScreen.Services;
 using TienLen.Presentation.GameRoomScreen.Views;
+using TienLen.Application.Voice;
 using VContainer;
 using VContainer.Unity;
 
@@ -42,6 +43,9 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Register Rigged Deck Debug View
             builder.RegisterComponentInHierarchy<RiggedDeckDebugView>();
+
+            // Register Voice Chat Handler
+            builder.Register<VoiceChatHandler>(Lifetime.Scoped);
 
             // Register Presenter
             builder.Register<GameRoomPresenter>(Lifetime.Scoped);

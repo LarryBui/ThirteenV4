@@ -11,6 +11,8 @@ namespace TienLen.Domain.Aggregates
     {
         /// <summary>Match identifier.</summary>
         public string Id { get; }
+        /// <summary>Match type (Casual, VIP, etc.).</summary>
+        public int Type { get; set; }
         /// <summary>Lifecycle phase (lobby or playing).</summary>
         public string Phase { get; set; }
         /// <summary>UserId -> Player lookup.</summary>

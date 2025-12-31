@@ -3,6 +3,7 @@ package nakama
 import (
 	"context"
 	"database/sql"
+	"os"
 
 	"tienlen/internal/app"
 	"tienlen/internal/bot"
@@ -15,9 +16,9 @@ const MatchNameTienLen = "tienlen_match"
 // InitModule wires RPCs and match handlers for Nakama runtime.
 func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, initializer runtime.Initializer) error {
 	env := ctx.Value(runtime.RUNTIME_CTX_ENV).(map[string]string)
-	vivoxSecret := env["VIVOX_SECRET"]
-	vivoxIssuer := env["VIVOX_ISSUER"]
-	vivoxDomain := env["VIVOX_DOMAIN"]
+	vivoxSecret := envOrOs(env, "VIVOX_SECRET")
+	vivoxIssuer := envOrOs(env, "VIVOX_ISSUER")
+	vivoxDomain := envOrOs(env, "VIVOX_DOMAIN")
 
 	// Initialize the Vivox service
 	vivoxService = app.NewVivoxService(vivoxSecret, vivoxIssuer, vivoxDomain)
@@ -29,11 +30,11 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 		return err
 	}
 
-	// Register test-only RPCs if test mode is enabled
-	if val, ok := env["tienlen_test_mode"]; ok && val == "true" {
-		if err := initializer.RegisterRpc("test_create_match", RpcCreateMatchTest); err != nil {
-			return err
-		}
+	if err := initializer.RegisterRpc("set_vip", RpcSetVip); err != nil {
+		return err
+	}
+
+	if err := initializer.RegisterRpc("test_create_match", RpcCreateMatchTest); err != nil {
 		if err := initializer.RegisterRpc("test_start_game", RpcStartGameTest); err != nil {
 			return err
 		}
@@ -59,4 +60,11 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 
 	logger.Info("TienLen Go module loaded.")
 	return nil
+}
+
+func envOrOs(env map[string]string, key string) string {
+	if value, ok := env[key]; ok && value != "" {
+		return value
+	}
+	return os.Getenv(key)
 }

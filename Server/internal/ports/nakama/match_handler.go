@@ -23,6 +23,7 @@ import (
 
 const (
 	MatchLabelKey_OpenSeats        = "open" // Key for the open seats in the match label
+	MatchLabelKey_Type             = "type" // Key for the match type in the match label
 	gameStartTurnTimerBonusSeconds = 5      // Extra seconds added to the first turn timer to cover card dealing.
 	lobbyAutoFillBotMax            = 2      // Max bots to auto-fill when a single human is waiting.
 )
@@ -45,6 +46,7 @@ type MatchState struct {
 	TurnSecondsRemaining int64                       `json:"turn_seconds_remaining"`  // Seconds remaining before the current turn expires
 	Bots                 map[string]*bot.Agent       `json:"-"`                       // Active bot agents
 	Economy              ports.EconomyPort           `json:"-"`                       // Interface to Nakama wallet
+	Type                 pb.MatchType                `json:"type"`                    // Match type (Casual, VIP, etc.)
 }
 
 func (ms *MatchState) GetOpenSeatsCount() int {
@@ -130,6 +132,15 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 		LastWinnerSeat: -1,
 		Bots:           make(map[string]*bot.Agent),
 		Economy:        NewNakamaEconomyAdapter(nk),
+		Type:           pb.MatchType_MATCH_TYPE_CASUAL,
+	}
+
+	if val, ok := params["type"]; ok {
+		if t, ok := val.(float64); ok {
+			state.Type = pb.MatchType(int32(t))
+		} else if t, ok := val.(int); ok {
+			state.Type = pb.MatchType(int32(t))
+		}
 	}
 
 	// Read environment variables for bot configuration
@@ -172,6 +183,7 @@ func (mh *matchHandler) MatchInit(ctx context.Context, logger runtime.Logger, db
 	label := &pb.MatchLabel{
 		Open:  int32(state.GetOpenSeatsCount()),
 		State: "lobby",
+		Type:  int32(state.Type),
 	}
 	labelBytes, err := (&protojson.MarshalOptions{EmitUnpopulated: true}).Marshal(label)
 	if err != nil {
@@ -542,85 +554,66 @@ func (mh *matchHandler) broadcastMatchState(ctx context.Context, state *MatchSta
 			continue
 		}
 
-		        displayName := userId
+		displayName := userId
+		avatarIndex := 0
+		isVip := false
 
-				avatarIndex := 0
+		if p, exists := state.Presences[userId]; exists {
+			displayName = p.GetUsername()
+		}
 
-		
-
-				if p, exists := state.Presences[userId]; exists {
-
-					displayName = p.GetUsername()
-
-					// For humans, we could fetch from account if we wanted, 
-
-					// but for now let's prioritize bots which we have in memory.
-
+		if botCfg, isBot := bot.GetBotConfig(userId); isBot {
+			displayName = botCfg.DisplayName
+			avatarIndex = botCfg.AvatarIndex
+		} else {
+			// Fetch VIP status from storage for humans
+			objects, err := state.Economy.(*NakamaEconomyAdapter).nk.StorageRead(ctx, []*runtime.StorageRead{
+				{
+					Collection: "profiles",
+					Key:        "vip_status",
+					UserID:     userId,
+				},
+			})
+			if err == nil && len(objects) > 0 {
+				var status struct {
+					IsVip bool `json:"is_vip"`
 				}
-
-		
-
-				if botCfg, isBot := bot.GetBotConfig(userId); isBot {
-
-					displayName = botCfg.DisplayName
-
-					avatarIndex = botCfg.AvatarIndex
-
+				if err := json.Unmarshal([]byte(objects[0].Value), &status); err == nil {
+					isVip = status.IsVip
 				}
+			}
+		}
 
-		
-
-				cardsRemaining := 0
-
-				if state.Game != nil {
-
-					for _, p := range state.Game.Players {
-
-						if p.Seat == i {
-
-							cardsRemaining = len(p.Hand)
-
-							break
-
-						}
-
-					}
-
+		cardsRemaining := 0
+		if state.Game != nil {
+			for _, p := range state.Game.Players {
+				if p.Seat == i {
+					cardsRemaining = len(p.Hand)
+					break
 				}
+			}
+		}
 
-		
+		balance := int64(0)
+		if state.Economy != nil {
+			var err error
+			balance, err = state.Economy.GetBalance(ctx, userId)
+			if err != nil {
+				logger.Warn("broadcastMatchState: Failed to fetch balance for user %s: %v", userId, err)
+				balance = 0
+			}
+		}
 
-				balance := int64(0)
-				if state.Economy != nil {
-					var err error
-					balance, err = state.Economy.GetBalance(ctx, userId)
-					if err != nil {
-						logger.Warn("broadcastMatchState: Failed to fetch balance for user %s: %v", userId, err)
-						balance = 0
-					}
-				}
-
-		
-
-				playerStates = append(playerStates, &pb.PlayerState{
-
-					UserId:         userId,
-
-					Seat:           int32(i),
-
-					IsOwner:        i == state.OwnerSeat,
-
-					CardsRemaining: int32(cardsRemaining),
-
-					DisplayName:    displayName,
-
-					AvatarIndex:    int32(avatarIndex),
-
-					Balance:        balance,
-
-				})
-
-		
+		playerStates = append(playerStates, &pb.PlayerState{
+			UserId:         userId,
+			Seat:           int32(i),
+			IsOwner:        i == state.OwnerSeat,
+			CardsRemaining: int32(cardsRemaining),
+			DisplayName:    displayName,
+			AvatarIndex:    int32(avatarIndex),
+			Balance:        balance,
+			IsVip:          isVip,
+		})
 	}
 
 	snapshot := &pb.MatchStateSnapshot{
@@ -629,6 +622,7 @@ func (mh *matchHandler) broadcastMatchState(ctx context.Context, state *MatchSta
 		Tick:                 state.Tick,
 		TurnSecondsRemaining: state.TurnSecondsRemaining,
 		Players:              playerStates,
+		Type:                 int32(state.Type),
 	}
 	bytes, _ := proto.Marshal(snapshot)
 	dispatcher.BroadcastMessage(int64(pb.OpCode_OP_CODE_PLAYER_JOINED), bytes, nil, nil, true)
@@ -1027,6 +1021,7 @@ func (mh *matchHandler) updateLabel(state *MatchState, dispatcher runtime.MatchD
 	label := &pb.MatchLabel{
 		Open:  int32(state.GetOpenSeatsCount()),
 		State: matchState,
+		Type:  int32(state.Type),
 	}
 	labelBytes, err := (&protojson.MarshalOptions{EmitUnpopulated: true}).Marshal(label)
 	if err != nil {

@@ -110,7 +110,7 @@ namespace TienLen.Application
         /// <summary>
         /// Initiates matchmaking and returns the found match ID upon success.
         /// </summary>
-        UniTask<string> FindMatchAsync();
+        UniTask<string> FindMatchAsync(int matchType = 0);
     }
 
     /// <summary>

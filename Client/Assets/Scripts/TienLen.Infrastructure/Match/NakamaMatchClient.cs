@@ -66,14 +66,15 @@ namespace TienLen.Infrastructure.Match
 
         // --- IMatchNetworkClient Implementation ---
 
-        public async UniTask<string> FindMatchAsync()
+        public async UniTask<string> FindMatchAsync(int matchType)
         {
             if (Socket == null) throw new InvalidOperationException("Not connected to Nakama socket.");
             if (!Socket.IsConnected) throw new InvalidOperationException("Nakama socket is not connected.");
 
             // 1. Call server-side RPC to find or create a match
             var rpcId = "find_match";
-            var rpcResponse = await Client.RpcAsync(_authService.Session, rpcId);
+            var jsonPayload = JsonConvert.SerializeObject(new { type = matchType });
+            var rpcResponse = await Client.RpcAsync(_authService.Session, rpcId, jsonPayload);
 
             if (rpcResponse == null || string.IsNullOrEmpty(rpcResponse.Payload))
             {
@@ -263,26 +264,32 @@ namespace TienLen.Infrastructure.Match
                         var seats = new string[payload.Seats.Count];
                         payload.Seats.CopyTo(seats, 0);
 
-                        var players = new List<PlayerStateDTO>();
+                        var players = new List<PlayerStateDto>();
                         foreach (var p in payload.Players)
                         {
-                            players.Add(new PlayerStateDTO(
-                                p.UserId,
-                                p.Seat,
-                                p.IsOwner,
-                                p.CardsRemaining,
-                                p.DisplayName,
-                                0, // Force avatar index to 0
-                                p.Balance));
+                            players.Add(new PlayerStateDto
+                            {
+                                UserId = p.UserId,
+                                Seat = p.Seat,
+                                IsOwner = p.IsOwner,
+                                CardsRemaining = p.CardsRemaining,
+                                DisplayName = p.DisplayName,
+                                AvatarIndex = 0, // Force avatar index to 0
+                                Balance = p.Balance,
+                                IsVip = p.IsVip
+                            });
                         }
 
                         // Updated to use OwnerSeat (int) instead of OwnerId (string)
-                        var snapshot = new MatchStateSnapshotDto(
-                            seats,
-                            payload.OwnerSeat,
-                            payload.Tick,
-                            payload.TurnSecondsRemaining,
-                            players);
+                        var snapshot = new MatchStateSnapshotDto
+                        {
+                            Seats = seats,
+                            OwnerSeat = payload.OwnerSeat,
+                            Tick = payload.Tick,
+                            TurnSecondsRemaining = payload.TurnSecondsRemaining,
+                            Players = players.ToArray(),
+                            Type = payload.Type
+                        };
                         _logger?.LogInformation(
                             "Match join snapshot received. matchId={matchId} seatCount={seatCount} playerCount={playerCount} ownerSeat={ownerSeat}",
                             _matchId,
