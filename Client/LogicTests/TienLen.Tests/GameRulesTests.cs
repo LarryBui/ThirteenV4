@@ -13,7 +13,7 @@ namespace TienLen.Domain.Tests
         {
             var cards = Cards(new Card(Rank.Three, Suit.Spades));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Single, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Single));
         }
 
         [Test]
@@ -21,7 +21,7 @@ namespace TienLen.Domain.Tests
         {
             var cards = Cards(new Card(Rank.Three, Suit.Spades), new Card(Rank.Three, Suit.Clubs));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Pair, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Pair));
         }
 
         [Test]
@@ -32,7 +32,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Three, Suit.Clubs),
                 new Card(Rank.Three, Suit.Diamonds));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Triple, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Triple));
         }
 
         [Test]
@@ -44,7 +44,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Three, Suit.Diamonds),
                 new Card(Rank.Three, Suit.Hearts));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Bomb, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Bomb));
         }
 
         [Test]
@@ -55,7 +55,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Four, Suit.Clubs),
                 new Card(Rank.Five, Suit.Diamonds));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Straight, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Straight));
         }
 
         [Test]
@@ -69,7 +69,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Five, Suit.Spades),
                 new Card(Rank.Five, Suit.Clubs));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Bomb, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Bomb));
         }
 
         [Test]
@@ -80,7 +80,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Ace, Suit.Clubs),
                 new Card(Rank.Two, Suit.Diamonds));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Invalid, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Invalid));
         }
 
         [Test]
@@ -94,7 +94,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Three, Suit.Spades),
                 new Card(Rank.Three, Suit.Clubs));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Invalid, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Invalid));
         }
 
         [Test]
@@ -108,7 +108,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Six, Suit.Spades),
                 new Card(Rank.Six, Suit.Clubs));
             var combo = GameRules.IdentifyCombination(cards);
-            Assert.AreEqual(CardCombinationType.Invalid, combo.Type);
+            Assert.That(combo.Type, Is.EqualTo(CardCombinationType.Invalid));
         }
 
         [Test]
@@ -116,7 +116,7 @@ namespace TienLen.Domain.Tests
         {
             var prev = Cards(new Card(Rank.Three, Suit.Spades));
             var next = Cards(new Card(Rank.Three, Suit.Clubs));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -124,7 +124,7 @@ namespace TienLen.Domain.Tests
         {
             var prev = Cards(new Card(Rank.Eight, Suit.Spades), new Card(Rank.Eight, Suit.Clubs));
             var next = Cards(new Card(Rank.Eight, Suit.Diamonds), new Card(Rank.Eight, Suit.Hearts));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -138,7 +138,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Four, Suit.Clubs),
                 new Card(Rank.Five, Suit.Spades),
                 new Card(Rank.Five, Suit.Clubs));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -150,7 +150,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Three, Suit.Clubs),
                 new Card(Rank.Three, Suit.Diamonds),
                 new Card(Rank.Three, Suit.Hearts));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -162,7 +162,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Four, Suit.Clubs),
                 new Card(Rank.Four, Suit.Diamonds),
                 new Card(Rank.Four, Suit.Hearts));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -180,7 +180,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Six, Suit.Clubs),
                 new Card(Rank.Six, Suit.Diamonds),
                 new Card(Rank.Six, Suit.Hearts));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -196,7 +196,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Five, Suit.Clubs),
                 new Card(Rank.Six, Suit.Spades),
                 new Card(Rank.Six, Suit.Clubs));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -216,7 +216,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Six, Suit.Clubs),
                 new Card(Rank.Seven, Suit.Spades),
                 new Card(Rank.Seven, Suit.Clubs));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -232,7 +232,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Five, Suit.Clubs),
                 new Card(Rank.Six, Suit.Spades),
                 new Card(Rank.Six, Suit.Clubs));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -258,7 +258,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Ten, Suit.Clubs),
                 new Card(Rank.Jack, Suit.Spades),
                 new Card(Rank.Jack, Suit.Clubs));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         [Test]
@@ -278,7 +278,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Five, Suit.Clubs),
                 new Card(Rank.Six, Suit.Spades),
                 new Card(Rank.Six, Suit.Clubs));
-            Assert.IsTrue(GameRules.CanBeat(prev, next));
+            Assert.That(GameRules.CanBeat(prev, next), Is.True);
         }
 
         private static List<Card> Cards(params Card[] cards)

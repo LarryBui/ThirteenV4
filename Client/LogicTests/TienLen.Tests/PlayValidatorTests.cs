@@ -13,8 +13,8 @@ namespace TienLen.Domain.Tests
         {
             var hand = Cards(new Card(Rank.Three, Suit.Spades));
             var result = PlayValidator.ValidatePlay(hand, new List<Card>(), new List<Card>());
-            Assert.IsFalse(result.IsValid);
-            Assert.AreEqual(PlayValidationReason.NoSelection, result.Reason);
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Reason, Is.EqualTo(PlayValidationReason.NoSelection));
         }
 
         [Test]
@@ -23,8 +23,8 @@ namespace TienLen.Domain.Tests
             var hand = Cards(new Card(Rank.Three, Suit.Spades));
             var selection = Cards(new Card(Rank.Four, Suit.Clubs));
             var result = PlayValidator.ValidatePlay(hand, selection, new List<Card>());
-            Assert.IsFalse(result.IsValid);
-            Assert.AreEqual(PlayValidationReason.CardsNotInHand, result.Reason);
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Reason, Is.EqualTo(PlayValidationReason.CardsNotInHand));
         }
 
         [Test]
@@ -37,8 +37,8 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Three, Suit.Spades),
                 new Card(Rank.Four, Suit.Clubs));
             var result = PlayValidator.ValidatePlay(hand, selection, new List<Card>());
-            Assert.IsFalse(result.IsValid);
-            Assert.AreEqual(PlayValidationReason.InvalidCombination, result.Reason);
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Reason, Is.EqualTo(PlayValidationReason.InvalidCombination));
         }
 
         [Test]
@@ -48,8 +48,8 @@ namespace TienLen.Domain.Tests
             var selection = Cards(new Card(Rank.Three, Suit.Spades));
             var board = Cards(new Card(Rank.Four, Suit.Hearts));
             var result = PlayValidator.ValidatePlay(hand, selection, board);
-            Assert.IsFalse(result.IsValid);
-            Assert.AreEqual(PlayValidationReason.CannotBeat, result.Reason);
+            Assert.That(result.IsValid, Is.False);
+            Assert.That(result.Reason, Is.EqualTo(PlayValidationReason.CannotBeat));
         }
 
         [Test]
@@ -62,26 +62,26 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Three, Suit.Spades),
                 new Card(Rank.Three, Suit.Clubs));
             var result = PlayValidator.ValidatePlay(hand, selection, new List<Card>());
-            Assert.IsTrue(result.IsValid);
+            Assert.That(result.IsValid, Is.True);
         }
 
         [Test]
         public void CanPass_ReturnsFalseOnNewRound()
         {
-            Assert.IsFalse(PlayValidator.CanPass(new List<Card>()));
+            Assert.That(PlayValidator.CanPass(new List<Card>()), Is.False);
         }
 
         [Test]
         public void CanPass_ReturnsTrueWhenBoardHasCards()
         {
-            Assert.IsTrue(PlayValidator.CanPass(Cards(new Card(Rank.Three, Suit.Spades))));
+            Assert.That(PlayValidator.CanPass(Cards(new Card(Rank.Three, Suit.Spades))), Is.True);
         }
 
         [Test]
         public void HasPlayableMove_ReturnsFalseWhenBoardEmpty()
         {
             var hand = Cards(new Card(Rank.Three, Suit.Spades));
-            Assert.IsFalse(PlayValidator.HasPlayableMove(hand, new List<Card>()));
+            Assert.That(PlayValidator.HasPlayableMove(hand, new List<Card>()), Is.False);
         }
 
         [Test]
@@ -89,7 +89,7 @@ namespace TienLen.Domain.Tests
         {
             var hand = Cards(new Card(Rank.Three, Suit.Clubs));
             var board = Cards(new Card(Rank.Three, Suit.Spades));
-            Assert.IsTrue(PlayValidator.HasPlayableMove(hand, board));
+            Assert.That(PlayValidator.HasPlayableMove(hand, board), Is.True);
         }
 
         [Test]
@@ -100,7 +100,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.King, Suit.Clubs),
                 new Card(Rank.Three, Suit.Hearts));
             var board = Cards(new Card(Rank.Two, Suit.Hearts));
-            Assert.IsFalse(PlayValidator.HasPlayableMove(hand, board));
+            Assert.That(PlayValidator.HasPlayableMove(hand, board), Is.False);
         }
 
         [Test]
@@ -112,7 +112,7 @@ namespace TienLen.Domain.Tests
                 new Card(Rank.Three, Suit.Diamonds),
                 new Card(Rank.Three, Suit.Hearts));
             var board = Cards(new Card(Rank.Two, Suit.Hearts));
-            Assert.IsTrue(PlayValidator.HasPlayableMove(hand, board));
+            Assert.That(PlayValidator.HasPlayableMove(hand, board), Is.True);
         }
 
         private static List<Card> Cards(params Card[] cards)

@@ -18,7 +18,7 @@ namespace TienLen.Application.Tests
         {
             var result = BalanceFormatter.FormatShort(value);
 
-            Assert.AreEqual(expected, result);
+            Assert.That(result, Is.EqualTo(expected));
         }
 
         [Test]
@@ -26,7 +26,7 @@ namespace TienLen.Application.Tests
         {
             var result = BalanceFormatter.FormatShort(999_500);
 
-            Assert.AreEqual("1M", result);
+            Assert.That(result, Is.EqualTo("1M"));
         }
     }
 }

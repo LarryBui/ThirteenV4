@@ -21,8 +21,8 @@ namespace TienLen.Application.Tests
 
             var result = RiggedDeckValidator.TryValidate(request, out var error);
 
-            Assert.IsTrue(result);
-            Assert.IsNull(error);
+            Assert.That(result, Is.True);
+            Assert.That(error, Is.Null);
         }
 
         [Test]
@@ -37,8 +37,8 @@ namespace TienLen.Application.Tests
 
             var result = RiggedDeckValidator.TryValidate(request, out var error);
 
-            Assert.IsFalse(result);
-            Assert.IsNotEmpty(error);
+            Assert.That(result, Is.False);
+            Assert.That(error, Is.Not.Empty);
         }
 
         [Test]
@@ -53,8 +53,8 @@ namespace TienLen.Application.Tests
 
             var result = RiggedDeckValidator.TryValidate(request, out var error);
 
-            Assert.IsFalse(result);
-            Assert.IsNotEmpty(error);
+            Assert.That(result, Is.False);
+            Assert.That(error, Is.Not.Empty);
         }
 
         [Test]
@@ -70,8 +70,8 @@ namespace TienLen.Application.Tests
 
             var result = RiggedDeckValidator.TryValidate(request, out var error);
 
-            Assert.IsTrue(result);
-            Assert.IsNull(error);
+            Assert.That(result, Is.True);
+            Assert.That(error, Is.Null);
         }
 
         [Test]
@@ -81,8 +81,8 @@ namespace TienLen.Application.Tests
 
             var result = RiggedDeckValidator.TryValidate(request, out var error);
 
-            Assert.IsFalse(result);
-            Assert.IsNotEmpty(error);
+            Assert.That(result, Is.False);
+            Assert.That(error, Is.Not.Empty);
         }
     }
 }
