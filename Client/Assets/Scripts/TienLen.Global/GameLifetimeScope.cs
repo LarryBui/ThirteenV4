@@ -53,6 +53,10 @@ namespace TienLen.Global
                 .As<IAuthenticationService>()
                 .AsSelf();
 
+            // Register Vivox Service
+            builder.Register<VivoxService>(Lifetime.Singleton)
+                .As<IVivoxService>();
+
             // Register Match Infrastructure
             builder.Register<NakamaMatchClient>(Lifetime.Singleton)
                 .As<IMatchNetworkClient>();

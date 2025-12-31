@@ -21,6 +21,7 @@ namespace TienLen.Presentation
     {
         [Header("UI References")]
         [SerializeField] private Button playButton;
+        [SerializeField] private Button createVIPTableButton; // New Button
         [SerializeField] private Button quitButton;
         [SerializeField] private TMP_Text statusText;
         [SerializeField] private GameObject contentRoot; // Mandatory: Used to hide/show the entire Home UI
@@ -53,6 +54,7 @@ namespace TienLen.Presentation
         private void Awake()
         {
             playButton?.onClick.AddListener(HandlePlayClicked);
+            createVIPTableButton?.onClick.AddListener(HandleVIPTableClicked);
             quitButton?.onClick.AddListener(HandleQuitClicked);
 
             // Subscribe to authentication events for resilience.
@@ -124,12 +126,37 @@ namespace TienLen.Presentation
 
         private void OnSceneUnloaded(Scene scene)
         {
-            if (scene.name == "GameRoom")
+            if (scene.name == "GameRoom" || scene.name == "VIPGameRoom")
             {
                 SetHomeUIVisibility(true);
                 // Reset status
                 if (statusText) statusText.text = "";
                 SetPlayInteractable(true);
+            }
+        }
+
+        private async void HandleVIPTableClicked()
+        {
+            SetMatchmakingState(true, "Creating VIP Room...");
+            try
+            {
+                // In a real implementation, we might ask Nakama to create a private match here.
+                // For now, we just open the VIP Scene which handles Voice Chat.
+
+                // Load VIPGameRoom Additively
+                using (LifetimeScope.EnqueueParent(_currentScope))
+                {
+                    // Note: Ensure "VIPGameRoom" is added to Build Settings!
+                    await SceneManager.LoadSceneAsync("VIPGameRoom", LoadSceneMode.Additive);
+                }
+
+                SetHomeUIVisibility(false);
+            }
+            catch (Exception ex)
+            {
+                SetMatchmakingState(false, "");
+                _logger.LogError(ex, "Failed to open VIP Room.");
+                if (statusText) statusText.text = "Failed to open VIP Room.";
             }
         }
 
@@ -174,6 +201,7 @@ namespace TienLen.Presentation
         private void SetPlayInteractable(bool interactable)
         {
             if (playButton) playButton.interactable = interactable;
+            if (createVIPTableButton) createVIPTableButton.interactable = interactable;
         }
 
         /// <summary>

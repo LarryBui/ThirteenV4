@@ -17,6 +17,10 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 		return err
 	}
 
+	if err := initializer.RegisterRpc("generate_vivox_token", RpcGenerateVivoxToken); err != nil {
+		return err
+	}
+
 	// Register test-only RPCs if test mode is enabled
 	env := ctx.Value(runtime.RUNTIME_CTX_ENV).(map[string]string)
 	if val, ok := env["tienlen_test_mode"]; ok && val == "true" {
