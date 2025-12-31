@@ -9,6 +9,8 @@ using TienLen.Application.Chat;
 using TienLen.Application.Speech;
 using TienLen.Infrastructure.Chat;
 using TienLen.Infrastructure.Speech;
+using TienLen.Application.Voice;
+using TienLen.Infrastructure.Voice;
 using TienLen.Infrastructure.Services;
 using TienLen.Presentation.BootstrapScreen; // Needed for BootstrapUIController
 using UnityEngine;
@@ -73,6 +75,17 @@ namespace TienLen.Global
 
             // Register Application Handler
             builder.Register<TienLenMatchHandler>(Lifetime.Singleton);
+
+            // Register Vivox Config
+            var vivoxConfig = Resources.Load<VivoxConfig>("VivoxConfig");
+            builder.RegisterInstance(vivoxConfig);
+
+            // Register Socket for injection
+            builder.Register(container => container.Resolve<NakamaAuthenticationService>().Socket, Lifetime.Singleton);
+
+            // Register Voice Chat Service
+            builder.Register<VivoxVoiceChatService>(Lifetime.Singleton)
+                .As<IVoiceChatService>();
 
             // Register Bootstrap UI (Component in Hierarchy) so it receives Injection
             builder.RegisterComponentInHierarchy<BootstrapUIController>();

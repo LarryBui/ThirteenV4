@@ -42,7 +42,7 @@ namespace TienLen.Infrastructure.Services
         public string CurrentUserDisplayName => _session?.Username;
         public int CurrentUserAvatarIndex => GetAvatarIndex(_session?.UserId);
 
-        internal ISocket Socket => _socket;
+        public ISocket Socket => _socket;
         public IClient Client => _client;
         public ISession Session => _session;
 

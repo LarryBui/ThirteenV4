@@ -8,10 +8,13 @@ import (
 	"strings"
 	"unicode"
 
+	"tienlen/internal/app"
 	"tienlen/internal/domain"
 
 	"github.com/heroiclabs/nakama-common/runtime"
 )
+
+var vivoxService *app.VivoxService
 
 // RpcFindMatch searches for an available match with open seats.
 // If an available match is found, it returns the Match ID.
@@ -372,4 +375,30 @@ func nextUnusedCard(deck []domain.Card, index *int, used map[domain.Card]bool) (
 		}
 	}
 	return domain.Card{}, fmt.Errorf("not enough cards to fill rigged deck")
+}
+
+func RpcGetVivoxToken(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, payload string) (string, error) {
+	userID, ok := ctx.Value(runtime.RUNTIME_CTX_USER_ID).(string)
+	if !ok {
+		return "", fmt.Errorf("invalid context")
+	}
+
+	type request struct {
+		MatchID string `json:"match_id"`
+	}
+	var req request
+	if err := json.Unmarshal([]byte(payload), &req); err != nil {
+		return "", fmt.Errorf("failed to unmarshal payload: %w", err)
+	}
+
+	if vivoxService == nil {
+		return "", fmt.Errorf("vivox service not initialized")
+	}
+
+	token, err := vivoxService.GenerateToken(userID, req.MatchID)
+	if err != nil {
+		return "", fmt.Errorf("failed to generate vivox token: %w", err)
+	}
+
+	return fmt.Sprintf("{\"token\":\"%s\"}", token), nil
 }

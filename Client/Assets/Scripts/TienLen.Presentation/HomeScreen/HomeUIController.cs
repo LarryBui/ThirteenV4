@@ -21,6 +21,7 @@ namespace TienLen.Presentation
     {
         [Header("UI References")]
         [SerializeField] private Button playButton;
+        [SerializeField] private Button createVipTableButton;
         [SerializeField] private Button quitButton;
         [SerializeField] private TMP_Text statusText;
         [SerializeField] private GameObject contentRoot; // Mandatory: Used to hide/show the entire Home UI
@@ -53,6 +54,7 @@ namespace TienLen.Presentation
         private void Awake()
         {
             playButton?.onClick.AddListener(HandlePlayClicked);
+            createVipTableButton?.onClick.AddListener(HandleCreateVipTableClicked);
             quitButton?.onClick.AddListener(HandleQuitClicked);
 
             // Subscribe to authentication events for resilience.
@@ -122,9 +124,40 @@ namespace TienLen.Presentation
             }
         }
 
+        private async void HandleCreateVipTableClicked()
+        {
+            if (_matchHandler == null)
+            {
+                _logger.LogError("Match handler not initialized.");
+                return;
+            }
+
+            SetMatchmakingState(true, "Creating VIP Table...");
+
+            try
+            {
+                await _matchHandler.FindAndJoinMatchAsync();
+                
+                SetMatchmakingState(false, "VIP Table Created!");
+                
+                using (LifetimeScope.EnqueueParent(_currentScope))
+                {
+                    await SceneManager.LoadSceneAsync("VIPGameRoom", LoadSceneMode.Additive);
+                }
+                
+                SetHomeUIVisibility(false);
+            }
+            catch (Exception ex)
+            {
+                SetMatchmakingState(false, "");
+                _logger.LogError(ex, "Failed to create VIP table.");
+                if (statusText) statusText.text = "VIP table creation failed. Try again.";
+            }
+        }
+
         private void OnSceneUnloaded(Scene scene)
         {
-            if (scene.name == "GameRoom")
+            if (scene.name == "GameRoom" || scene.name == "VIPGameRoom")
             {
                 SetHomeUIVisibility(true);
                 // Reset status
