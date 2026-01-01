@@ -5,6 +5,7 @@ using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using VContainer.Unity;
 
 namespace TienLen.Presentation.HomeScreen.Presenters
 {
@@ -17,6 +18,7 @@ namespace TienLen.Presentation.HomeScreen.Presenters
         private readonly IAuthenticationService _authService;
         private readonly TienLenMatchHandler _matchHandler;
         private readonly ILogger<HomePresenter> _logger;
+        private readonly LifetimeScope _scope;
 
         public event Action<bool> OnPlayInteractableChanged;
         public event Action<string> OnStatusTextChanged;
@@ -26,10 +28,12 @@ namespace TienLen.Presentation.HomeScreen.Presenters
         public HomePresenter(
             IAuthenticationService authService,
             TienLenMatchHandler matchHandler,
+            LifetimeScope scope,
             ILogger<HomePresenter> logger)
         {
             _authService = authService;
             _matchHandler = matchHandler;
+            _scope = scope;
             _logger = logger ?? NullLogger<HomePresenter>.Instance;
 
             SubscribeToServices();
@@ -71,9 +75,12 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             {
                 await _matchHandler.FindAndJoinMatchAsync((int)global::Tienlen.V1.MatchType.Casual);
                 
-                // Load GameRoom Additively
-                await SceneManager.LoadSceneAsync("GameRoom", LoadSceneMode.Additive);
-
+                // Load GameRoom Additively with Parent Scope
+                using (LifetimeScope.EnqueueParent(_scope))
+                {
+                    await SceneManager.LoadSceneAsync("GameRoom", LoadSceneMode.Additive);
+                }
+                
                 OnHideViewRequested?.Invoke();
             }
             catch (Exception ex)
@@ -95,8 +102,11 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             {
                 await _matchHandler.FindAndJoinMatchAsync((int)global::Tienlen.V1.MatchType.Vip);
                 
-                // Load VIPGameRoom Additively
-                await SceneManager.LoadSceneAsync("VIPGameRoom", LoadSceneMode.Additive);
+                // Load VIPGameRoom Additively with Parent Scope
+                using (LifetimeScope.EnqueueParent(_scope))
+                {
+                    await SceneManager.LoadSceneAsync("VIPGameRoom", LoadSceneMode.Additive);
+                }
 
                 OnHideViewRequested?.Invoke();
             }
@@ -107,7 +117,6 @@ namespace TienLen.Presentation.HomeScreen.Presenters
                 OnPlayInteractableChanged?.Invoke(true);
             }
         }
-
         public void QuitGame()
         {
             _logger.LogInformation("Quit clicked.");
