@@ -25,6 +25,7 @@ var vivoxService *app.VivoxService
 // Returns: String containing the Match ID.
 func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runtime.NakamaModule, payload string) (string, error) {
 	userId, _ := ctx.Value(runtime.RUNTIME_CTX_USER_ID).(string)
+	const permissionDeniedCode = 7
 
 	type findMatchReq struct {
 		Type int32 `json:"type"`
@@ -62,7 +63,22 @@ func RpcFindMatch(ctx context.Context, logger runtime.Logger, db *sql.DB, nk run
 		}
 
 		if !isVip {
-			return "", runtime.NewError("VIP status required to create or join VIP matches", 3) // 3 = Permission Denied
+			type errorPayload struct {
+				AppCode   int32 `json:"app_code"`
+				Category  int32 `json:"category"`
+				Retryable bool  `json:"retryable"`
+			}
+
+			payloadBytes, err := json.Marshal(errorPayload{
+				AppCode:   int32(pb.ErrorCode_ERROR_CODE_MATCH_VIP_REQUIRED),
+				Category:  int32(pb.ErrorCategory_ERROR_CATEGORY_ACCESS),
+				Retryable: false,
+			})
+			if err != nil {
+				payloadBytes = []byte("{}")
+			}
+
+			return "", runtime.NewError(string(payloadBytes), permissionDeniedCode)
 		}
 	}
 

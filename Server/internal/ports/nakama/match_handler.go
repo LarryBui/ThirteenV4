@@ -956,6 +956,11 @@ func (mh *matchHandler) broadcastEvent(ctx context.Context, state *MatchState, d
 		return
 	}
 
+	// Notify Bots of the event
+	for _, agent := range state.Bots {
+		agent.OnGameEvent(ev.Payload)
+	}
+
 	// Determine recipients (default to broadcast)
 	var recipients []runtime.Presence
 	if len(ev.Recipients) > 0 {

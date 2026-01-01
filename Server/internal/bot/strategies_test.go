@@ -2,6 +2,7 @@ package bot
 
 import (
 	"testing"
+	"tienlen/internal/bot/brain"
 	"tienlen/internal/domain"
 )
 
@@ -37,7 +38,7 @@ func TestStandardBot_PreservesStraight(t *testing.T) {
 		},
 	}
 	
-	bot := &StandardBot{}
+	bot := &StandardBot{Memory: brain.NewMemory()}
 	move, err := bot.CalculateMove(game, player)
 	if err != nil {
 		t.Fatalf("CalculateMove failed: %v", err)
@@ -71,7 +72,7 @@ func TestStandardBot_FinishesGame(t *testing.T) {
 		LastPlayedCombination: domain.CardCombination{Type: domain.Invalid},
 	}
 	
-	bot := &StandardBot{}
+	bot := &StandardBot{Memory: brain.NewMemory()}
 	move, _ := bot.CalculateMove(game, player)
 	
 	if len(move.Cards) != 1 || move.Cards[0].Rank != 12 {

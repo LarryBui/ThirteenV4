@@ -41,3 +41,8 @@ func (a *Agent) PlayAtSeat(game *domain.Game, seat int) (Move, error) {
 	}
 	return a.Strategy.CalculateMove(game, player)
 }
+
+// OnGameEvent notifies the agent of a game event.
+func (a *Agent) OnGameEvent(event interface{}) {
+	a.Strategy.OnEvent(event)
+}
