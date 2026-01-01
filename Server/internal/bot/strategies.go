@@ -6,17 +6,10 @@ import (
 	"tienlen/internal/domain"
 )
 
-type SmartBot struct{}
+type StandardBot struct{}
 
-func (b *SmartBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
+func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (Move, error) {
 	// 1. Identify Context
-	var player *domain.Player
-	for _, p := range game.Players {
-		if p.Seat == seat {
-			player = p
-			break
-		}
-	}
 	if player == nil || len(player.Hand) == 0 {
 		return Move{Pass: true}, nil
 	}
@@ -31,8 +24,33 @@ func (b *SmartBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 
 	// 3. Phase-aware scoring with pass logic.
 	phase := internal.DetectPhase(game)
-	weights := smartBotTuning.ForPhase(phase)
-	threat := internal.DetectThreat(game, seat, smartBotTuning.ThreatThreshold)
+	weights := DefaultTuning.ForPhase(phase)
+	
+	// Deterministic threat detection
+	threat := false
+	if game != nil && DefaultTuning.ThreatThreshold > 0 {
+		// Iterate seats 0-3 deterministically
+		for i := 0; i < 4; i++ {
+			if i == player.Seat {
+				continue
+			}
+			
+			// Find player at this seat
+			var opponent *domain.Player
+			for _, p := range game.Players {
+				if p.Seat == i {
+					opponent = p
+					break
+				}
+			}
+			
+			if opponent != nil && !opponent.Finished && len(opponent.Hand) > 0 && len(opponent.Hand) <= DefaultTuning.ThreatThreshold {
+				threat = true
+				break
+			}
+		}
+	}
+
 	scored := internal.BuildScoredMoves(player.Hand, validMoves, weights, threat)
 
 	sort.Slice(scored, func(i, j int) bool {
@@ -45,7 +63,7 @@ func (b *SmartBot) CalculateMove(game *domain.Game, seat int) (Move, error) {
 
 	if lastCombo.Type != domain.Invalid {
 		currentScore := internal.ScoreHand(player.Hand, weights)
-		if scored[0].Score < currentScore+smartBotTuning.PassThreshold {
+		if scored[0].Score < currentScore+DefaultTuning.PassThreshold {
 			return Move{Pass: true}, nil
 		}
 	}

@@ -4,55 +4,8 @@ import botinternal "tienlen/internal/bot/internal"
 
 const finishBonus = 1000.0
 
-// goodBotTuning keeps GoodBot conservative while still phase-aware.
-var goodBotTuning = botinternal.BotTuning{
-	Opening: botinternal.PhaseWeights{
-		HandScoreWeight:    0.2,
-		StraightCardWeight: 0.2,
-		PineCardWeight:     0.3,
-		PairWeight:         0.3,
-		TripleWeight:       0.5,
-		QuadWeight:         0.8,
-		SingleWeight:       -0.7,
-		TotalCardWeight:    -0.1,
-		UseTwoPenalty:      8.0,
-		UseBombPenalty:     6.0,
-		UseHighCardPenalty: 1.0,
-		FinishBonus:        finishBonus,
-	},
-	Mid: botinternal.PhaseWeights{
-		HandScoreWeight:    0.2,
-		StraightCardWeight: 0.2,
-		PineCardWeight:     0.3,
-		PairWeight:         0.4,
-		TripleWeight:       0.6,
-		QuadWeight:         0.8,
-		SingleWeight:       -0.9,
-		TotalCardWeight:    -0.2,
-		UseTwoPenalty:      7.0,
-		UseBombPenalty:     5.0,
-		UseHighCardPenalty: 0.9,
-		FinishBonus:        finishBonus,
-	},
-	End: botinternal.PhaseWeights{
-		HandScoreWeight:    0.2,
-		StraightCardWeight: 0.1,
-		PineCardWeight:     0.1,
-		PairWeight:         0.2,
-		TripleWeight:       0.3,
-		QuadWeight:         0.4,
-		SingleWeight:       -1.0,
-		TotalCardWeight:    -1.0,
-		UseTwoPenalty:      4.0,
-		UseBombPenalty:     2.0,
-		UseHighCardPenalty: 0.8,
-		FinishBonus:        finishBonus,
-		BlockerHighCardBonus: 0.3,
-	},
-}
-
-// smartBotTuning balances structure preservation and hand reduction by phase.
-var smartBotTuning = botinternal.BotTuning{
+// DefaultTuning balances structure preservation and hand reduction by phase.
+var DefaultTuning = botinternal.BotTuning{
 	Opening: botinternal.PhaseWeights{
 		HandScoreWeight:    1.0,
 		StraightCardWeight: 0.6,
@@ -97,55 +50,5 @@ var smartBotTuning = botinternal.BotTuning{
 		BlockerHighCardBonus: 0.8,
 	},
 	PassThreshold:   -10.0,
-	ThreatThreshold: 3,
-}
-
-// godBotTuning favors control and blocking while still tracking hand structure.
-var godBotTuning = botinternal.BotTuning{
-	Opening: botinternal.PhaseWeights{
-		HandScoreWeight:    1.3,
-		StraightCardWeight: 0.8,
-		PineCardWeight:     1.0,
-		PairWeight:         0.7,
-		TripleWeight:       0.9,
-		QuadWeight:         1.2,
-		SingleWeight:       -1.0,
-		TotalCardWeight:    -0.1,
-		UseTwoPenalty:      4.0,
-		UseBombPenalty:     2.0,
-		UseHighCardPenalty: 0.3,
-		FinishBonus:        finishBonus,
-	},
-	Mid: botinternal.PhaseWeights{
-		HandScoreWeight:    1.3,
-		StraightCardWeight: 0.7,
-		PineCardWeight:     0.9,
-		PairWeight:         0.8,
-		TripleWeight:       1.0,
-		QuadWeight:         1.2,
-		SingleWeight:       -1.1,
-		TotalCardWeight:    -0.3,
-		UseTwoPenalty:      3.0,
-		UseBombPenalty:     1.5,
-		UseHighCardPenalty: 0.2,
-		FinishBonus:        finishBonus,
-		BlockerHighCardBonus: 0.3,
-	},
-	End: botinternal.PhaseWeights{
-		HandScoreWeight:      1.5,
-		StraightCardWeight:   0.4,
-		PineCardWeight:       0.6,
-		PairWeight:           0.5,
-		TripleWeight:         0.7,
-		QuadWeight:           0.9,
-		SingleWeight:         -1.6,
-		TotalCardWeight:      -2.0,
-		UseTwoPenalty:        0.3,
-		UseBombPenalty:       0.0,
-		UseHighCardPenalty:   0.1,
-		FinishBonus:          finishBonus,
-		BlockerHighCardBonus: 1.2,
-	},
-	PassThreshold:   -5.0,
 	ThreatThreshold: 3,
 }

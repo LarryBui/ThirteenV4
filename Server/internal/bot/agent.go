@@ -20,7 +20,7 @@ func (a *Agent) Play(game *domain.Game) (Move, error) {
 		return Move{Pass: true}, nil
 	}
 	
-	move, err := a.Strategy.CalculateMove(game, player.Seat)
+	move, err := a.Strategy.CalculateMove(game, player)
 	if err != nil {
 		return Move{Pass: true}, err
 	}
@@ -29,5 +29,15 @@ func (a *Agent) Play(game *domain.Game) (Move, error) {
 
 // PlayAtSeat is a safer version if the Agent doesn't know its seat index automatically.
 func (a *Agent) PlayAtSeat(game *domain.Game, seat int) (Move, error) {
-	return a.Strategy.CalculateMove(game, seat)
+	var player *domain.Player
+	for _, p := range game.Players {
+		if p.Seat == seat {
+			player = p
+			break
+		}
+	}
+	if player == nil {
+		return Move{Pass: true}, nil
+	}
+	return a.Strategy.CalculateMove(game, player)
 }
