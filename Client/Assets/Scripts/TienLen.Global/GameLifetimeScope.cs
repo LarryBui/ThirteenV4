@@ -45,9 +45,8 @@ namespace TienLen.Global
                 .As<IGameSessionContext>();
 
             // Register Logging
-            var loggerService = new ZLoggerService();
-            builder.RegisterInstance(loggerService);
-            builder.RegisterInstance<ILoggerFactory>(loggerService.LoggerFactory);
+            builder.Register<ZLoggerService>(Lifetime.Singleton);
+            builder.Register<ILoggerFactory>(container => container.Resolve<ZLoggerService>().LoggerFactory, Lifetime.Singleton);
             builder.Register(typeof(ILogger<>), typeof(Logger<>), Lifetime.Singleton);
 
             // Register Auth Service as interface and self

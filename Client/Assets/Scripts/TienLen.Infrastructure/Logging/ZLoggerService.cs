@@ -2,8 +2,6 @@ using System;
 using System.IO;
 using Microsoft.Extensions.Logging;
 using UnityEngine;
-// Alias avoids collision with the TienLen.Application namespace.
-using UnityApplication = UnityEngine.Application;
 using ZLogger;
 using ZLogger.Unity;
 
@@ -11,11 +9,11 @@ namespace TienLen.Infrastructure.Logging
 {
     /// <summary>
     /// Configures ZLogger providers for Unity and exposes the logger factory to the app.
+    /// Lifecycle is managed by VContainer (IDisposable).
     /// </summary>
     public sealed class ZLoggerService : IDisposable
     {
         private readonly ILoggerFactory _loggerFactory;
-        private readonly ILogger<ZLoggerService> _internalLogger;
 
         /// <summary>
         /// Gets the full path of the active log file.
@@ -35,15 +33,13 @@ namespace TienLen.Infrastructure.Logging
             LogFilePath = BuildLogFilePath();
 
             _loggerFactory = Microsoft.Extensions.Logging.LoggerFactory.Create(ConfigureLogging);
-            _internalLogger = _loggerFactory.CreateLogger<ZLoggerService>();
+            var internalLogger = _loggerFactory.CreateLogger<ZLoggerService>();
 
-            _internalLogger.LogInformation("Logging initialized. logFile={logFile}", LogFilePath);
-            UnityApplication.quitting += HandleApplicationQuitting;
+            internalLogger.LogInformation("Logging initialized. logFile={logFile}", LogFilePath);
         }
 
         public void Dispose()
         {
-            UnityApplication.quitting -= HandleApplicationQuitting;
             _loggerFactory.Dispose();
         }
 
@@ -63,16 +59,13 @@ namespace TienLen.Infrastructure.Logging
 
         private static string BuildLogFilePath()
         {
-            var logDirectory = Path.Combine(UnityApplication.persistentDataPath, "logs");
-            Directory.CreateDirectory(logDirectory);
+            var logDirectory = Path.Combine(UnityEngine.Application.persistentDataPath, "logs");
+            if (!Directory.Exists(logDirectory))
+            {
+                Directory.CreateDirectory(logDirectory);
+            }
             var fileName = $"tienlen_{DateTime.UtcNow:yyyyMMdd_HHmmss}.jsonl";
             return Path.Combine(logDirectory, fileName);
         }
-
-        private void HandleApplicationQuitting()
-        {
-            Dispose();
-        }
-
     }
 }
