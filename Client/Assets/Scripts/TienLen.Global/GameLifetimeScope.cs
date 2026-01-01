@@ -12,7 +12,7 @@ using TienLen.Infrastructure.Speech;
 using TienLen.Application.Voice;
 using TienLen.Infrastructure.Voice;
 using TienLen.Infrastructure.Services;
-using TienLen.Presentation.BootstrapScreen; // Needed for BootstrapView
+using TienLen.Presentation.BootstrapScreen; // Needed for BootstrapUIController
 using UnityEngine;
 using VContainer;
 using VContainer.Unity;
@@ -88,7 +88,7 @@ namespace TienLen.Global
                 .As<IVoiceChatService>();
 
             // Register Bootstrap UI (Component in Hierarchy) so it receives Injection
-            builder.RegisterComponentInHierarchy<BootstrapView>();
+            builder.RegisterComponentInHierarchy<BootstrapUIController>();
         }
     }
 }

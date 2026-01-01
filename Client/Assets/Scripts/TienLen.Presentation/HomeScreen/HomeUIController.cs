@@ -13,10 +13,10 @@ using TMPro;
 namespace TienLen.Presentation
 {
     /// <summary>
-    /// View for the Home screen.
+    /// Controller for the Home screen.
     /// Handles UI references and events, communicating with services.
     /// </summary>
-    public sealed class HomeView : MonoBehaviour
+    public sealed class HomeUIController : MonoBehaviour
     {
         [Header("UI References")]
         [SerializeField] private Button playButton;
@@ -30,19 +30,19 @@ namespace TienLen.Presentation
         private IAuthenticationService _authService;
         private TienLenMatchHandler _matchHandler;
         private LifetimeScope _currentScope; 
-        private ILogger<HomeView> _logger;
+        private ILogger<HomeUIController> _logger;
 
         [Inject]
         public void Construct(
             IAuthenticationService authService,
             TienLenMatchHandler matchHandler,
             LifetimeScope currentScope,
-            ILogger<HomeView> logger)
+            ILogger<HomeUIController> logger)
         {
             _authService = authService;
             _matchHandler = matchHandler;
             _currentScope = currentScope;
-            _logger = logger ?? NullLogger<HomeView>.Instance;
+            _logger = logger ?? NullLogger<HomeUIController>.Instance;
         }
 
         private void Awake()
@@ -170,7 +170,7 @@ namespace TienLen.Presentation
             }
             else
             {
-                _logger.LogError("HomeView: contentRoot is not assigned. Cannot set UI visibility.");
+                _logger.LogError("HomeUIController: contentRoot is not assigned. Cannot set UI visibility.");
             }
         }
 

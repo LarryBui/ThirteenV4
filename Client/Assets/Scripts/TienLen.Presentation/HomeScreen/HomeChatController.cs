@@ -11,10 +11,10 @@ using TMPro;
 namespace TienLen.Presentation
 {
     /// <summary>
-    /// View for the Home screen chat system.
+    /// Controller for the Home screen chat system.
     /// Handles UI references and events for global chat.
     /// </summary>
-    public sealed class HomeChatView : MonoBehaviour
+    public sealed class HomeChatController : MonoBehaviour
     {
         [Header("UI References")]
         [SerializeField] private TMP_InputField messageInput;
@@ -24,14 +24,14 @@ namespace TienLen.Presentation
         [SerializeField] private GameObject messagePrefab;
 
         private GlobalChatHandler _chatHandler;
-        private ILogger<HomeChatView> _logger;
+        private ILogger<HomeChatController> _logger;
         private readonly List<GameObject> _messageElements = new List<GameObject>();
 
         [Inject]
-        public void Construct(GlobalChatHandler chatHandler, ILogger<HomeChatView> logger)
+        public void Construct(GlobalChatHandler chatHandler, ILogger<HomeChatController> logger)
         {
             _chatHandler = chatHandler;
-            _logger = logger ?? NullLogger<HomeChatView>.Instance;
+            _logger = logger ?? NullLogger<HomeChatController>.Instance;
         }
 
         private void Start()
