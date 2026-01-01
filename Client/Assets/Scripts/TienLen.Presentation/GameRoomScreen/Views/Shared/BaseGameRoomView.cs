@@ -33,12 +33,17 @@ namespace TienLen.Presentation.GameRoomScreen.Views.Shared
         [Inject]
         public virtual void Construct(
             GameRoomPresenter presenter,
-            TienLen.Infrastructure.Config.AvatarRegistry avatarRegistry,
-            ILogger<BaseGameRoomView> logger)
+            ILogger<BaseGameRoomView> logger,
+            TienLen.Infrastructure.Config.AvatarRegistry avatarRegistry = null)
         {
             _presenter = presenter;
             _avatarRegistry = avatarRegistry;
             _logger = logger;
+            
+            if (_avatarRegistry == null)
+            {
+                _logger.LogWarning("[BaseGameRoomView] AvatarRegistry not injected. Avatars will be missing.");
+            }
         }
 
         protected virtual void Start()

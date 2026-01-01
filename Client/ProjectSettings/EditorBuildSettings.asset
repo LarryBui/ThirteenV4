@@ -14,9 +14,6 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GameRoom.unity
     guid: 903285963ff60b74f9838727dcb7e7a8
-  - enabled: 1
-    path: Assets/Scenes/VIPGameRoom.unity
-    guid: efa36e3b8723aae40b75d5ed1098576e
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0

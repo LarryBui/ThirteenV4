@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 
 namespace TienLen.Presentation.HomeScreen.Presenters
 {
@@ -69,6 +70,10 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             try
             {
                 await _matchHandler.FindAndJoinMatchAsync((int)global::Tienlen.V1.MatchType.Casual);
+                
+                // Load GameRoom Additively
+                await SceneManager.LoadSceneAsync("GameRoom", LoadSceneMode.Additive);
+
                 OnHideViewRequested?.Invoke();
             }
             catch (Exception ex)
@@ -89,6 +94,10 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             try
             {
                 await _matchHandler.FindAndJoinMatchAsync((int)global::Tienlen.V1.MatchType.Vip);
+                
+                // Load VIPGameRoom Additively
+                await SceneManager.LoadSceneAsync("VIPGameRoom", LoadSceneMode.Additive);
+
                 OnHideViewRequested?.Invoke();
             }
             catch (Exception ex)
