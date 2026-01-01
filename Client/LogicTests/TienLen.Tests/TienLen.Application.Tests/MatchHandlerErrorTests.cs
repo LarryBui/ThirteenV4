@@ -11,52 +11,48 @@ using TienLen.Domain.ValueObjects;
 
 namespace TienLen.Application.Tests
 {
-    public sealed class MatchHandlerVivoxAuthTests
+    public sealed class MatchHandlerErrorTests
     {
         [Test]
-        public void PlayerJoinedOp_RequestsVivoxTokenEachSnapshot()
+        public void FindAndJoinMatchAsync_PublishesCriticalError_WhenAccessDenied()
         {
-            var network = new FakeMatchNetworkClient();
+            var exception = new MatchAccessDeniedException(
+                "VIP status required to create or join VIP matches",
+                3);
+            var network = new FakeMatchNetworkClient(exception);
             var auth = new FakeAuthService("user-1");
             var session = new GameSessionContext();
             var voice = new FakeVoiceChatService();
             var errorBus = new FakeErrorBus();
 
-            using var handler = new TienLenMatchHandler(network, auth, session, voice, errorBus, NullLogger<TienLenMatchHandler>.Instance);
+            using var handler = new TienLenMatchHandler(
+                network,
+                auth,
+                session,
+                voice,
+                errorBus,
+                NullLogger<TienLenMatchHandler>.Instance);
 
-            handler.JoinMatchAsync("match-1").Forget();
+            var thrown = Assert.ThrowsAsync<MatchAccessDeniedException>(
+                async () => await handler.FindAndJoinMatchAsync(2));
 
-            network.RaisePlayerJoined(new MatchStateSnapshotDto
-            {
-                Seats = new[] { "user-1", "user-2", "", "" },
-                OwnerSeat = 0,
-                Players = new[]
-                {
-                    new PlayerStateDto { UserId = "user-1", Seat = 0, DisplayName = "P1", AvatarIndex = 0 },
-                    new PlayerStateDto { UserId = "user-2", Seat = 1, DisplayName = "P2", AvatarIndex = 1 }
-                }
-            });
-
-            Assert.That(voice.RequestCalls, Is.EqualTo(1));
-            Assert.That(voice.LastMatchId, Is.EqualTo("match-1"));
-            Assert.That(handler.VivoxAuthToken, Is.EqualTo("token-1"));
-
-            network.RaisePlayerJoined(new MatchStateSnapshotDto
-            {
-                Seats = new[] { "user-1", "user-2", "", "" },
-                OwnerSeat = 0,
-                Players = new[]
-                {
-                    new PlayerStateDto { UserId = "user-1", Seat = 0, DisplayName = "P1", AvatarIndex = 0 },
-                    new PlayerStateDto { UserId = "user-2", Seat = 1, DisplayName = "P2", AvatarIndex = 1 }
-                }
-            });
-
-            Assert.That(voice.RequestCalls, Is.EqualTo(2));
+            Assert.That(thrown, Is.Not.Null);
+            Assert.That(errorBus.PublishCount, Is.EqualTo(1));
+            Assert.That(errorBus.LastError, Is.Not.Null);
+            Assert.That(errorBus.LastError.Code, Is.EqualTo("match_access_denied"));
+            Assert.That(errorBus.LastError.Message, Is.EqualTo(exception.Message));
+            Assert.That(errorBus.LastError.Context, Is.EqualTo("find_match"));
         }
 
         private sealed class FakeMatchNetworkClient : IMatchNetworkClient
         {
+            private readonly Exception _exception;
+
+            public FakeMatchNetworkClient(Exception exception)
+            {
+                _exception = exception;
+            }
+
             public event Action<int, List<Card>, int, bool, long> OnCardsPlayed;
             public event Action<int, int, bool, long> OnTurnPassed;
             public event Action<List<Card>, int, long> OnGameStarted;
@@ -76,11 +72,10 @@ namespace TienLen.Application.Tests
             public UniTask SendPassTurnAsync() => UniTask.CompletedTask;
             public UniTask SendRequestNewGameAsync() => UniTask.CompletedTask;
             public UniTask SendInGameChatAsync(string message) => UniTask.CompletedTask;
-            public UniTask<string> FindMatchAsync(int matchType = 0) => UniTask.FromResult("match-1");
 
-            public void RaisePlayerJoined(MatchStateSnapshotDto snapshot)
+            public UniTask<string> FindMatchAsync(int matchType = 0)
             {
-                OnPlayerJoinedOP?.Invoke(snapshot);
+                return UniTask.FromException<string>(_exception);
             }
         }
 
@@ -104,27 +99,22 @@ namespace TienLen.Application.Tests
 
         private sealed class FakeVoiceChatService : IVoiceChatService
         {
-            public int RequestCalls { get; private set; }
-            public string LastMatchId { get; private set; }
-
             public UniTask InitializeAsync() => UniTask.CompletedTask;
             public UniTask JoinChannelAsync(string matchId) => UniTask.CompletedTask;
             public UniTask LeaveChannelAsync() => UniTask.CompletedTask;
-
-            public UniTask<string> RequestAuthTokenAsync(string matchId)
-            {
-                RequestCalls++;
-                LastMatchId = matchId;
-                return UniTask.FromResult($"token-{RequestCalls}");
-            }
+            public UniTask<string> RequestAuthTokenAsync(string matchId) => UniTask.FromResult(string.Empty);
         }
 
         private sealed class FakeErrorBus : IAppErrorBus
         {
             public event Action<CriticalError> CriticalErrorPublished;
+            public int PublishCount { get; private set; }
+            public CriticalError LastError { get; private set; }
 
             public void Publish(CriticalError error)
             {
+                PublishCount++;
+                LastError = error;
                 CriticalErrorPublished?.Invoke(error);
             }
         }

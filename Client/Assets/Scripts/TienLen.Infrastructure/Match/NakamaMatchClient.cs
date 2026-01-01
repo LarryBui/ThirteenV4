@@ -7,6 +7,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using Nakama;
 using TienLen.Application; // Updated for IMatchNetworkClient and PlayerAvatar
+using TienLen.Application.Errors;
 using TienLen.Domain.ValueObjects;
 using TienLen.Infrastructure.Services;
 using Google.Protobuf;
@@ -26,6 +27,7 @@ namespace TienLen.Infrastructure.Match
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             NullValueHandling = NullValueHandling.Ignore
         };
+        private const long PermissionDeniedStatusCode = 3;
 
         private readonly NakamaAuthenticationService _authService;
         private readonly ILogger<NakamaMatchClient> _logger;
@@ -74,7 +76,18 @@ namespace TienLen.Infrastructure.Match
             // 1. Call server-side RPC to find or create a match
             var rpcId = "find_match";
             var jsonPayload = JsonConvert.SerializeObject(new { type = matchType });
-            var rpcResponse = await Client.RpcAsync(_authService.Session, rpcId, jsonPayload);
+            IApiRpc rpcResponse;
+            try
+            {
+                rpcResponse = await Client.RpcAsync(_authService.Session, rpcId, jsonPayload);
+            }
+            catch (ApiResponseException ex) when (ex.StatusCode == PermissionDeniedStatusCode)
+            {
+                var message = string.IsNullOrWhiteSpace(ex.Message)
+                    ? "VIP status required to create or join VIP matches"
+                    : ex.Message;
+                throw new MatchAccessDeniedException(message, ex.StatusCode, ex);
+            }
 
             if (rpcResponse == null || string.IsNullOrEmpty(rpcResponse.Payload))
             {

@@ -3,6 +3,7 @@ using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
+using TienLen.Application.Errors;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer.Unity;
@@ -109,6 +110,11 @@ namespace TienLen.Presentation.HomeScreen.Presenters
                 }
 
                 OnHideViewRequested?.Invoke();
+            }
+            catch (MatchAccessDeniedException ex)
+            {
+                _logger.LogWarning(ex, "VIP access denied.");
+                OnPlayInteractableChanged?.Invoke(true);
             }
             catch (Exception ex)
             {
