@@ -13,7 +13,7 @@ type StandardBot struct {
 	Estimator *brain.Estimator
 }
 
-func (b *StandardBot) OnEvent(event interface{}) {
+func (b *StandardBot) OnEvent(event interface{}, isRecipient bool) {
 	if b.Memory == nil {
 		return
 	}
@@ -25,9 +25,17 @@ func (b *StandardBot) OnEvent(event interface{}) {
 
 	switch e := event.(type) {
 	case app.CardPlayedPayload:
-		b.Memory.MarkPlayed(e.Cards)
+		b.Memory.UpdateTable(e.Cards)
+	case app.TurnPassedPayload:
+		b.Memory.RecordPass(e.Seat)
+		if e.NewRound {
+			b.Memory.UpdateTable(nil)
+		}
 	case app.GameStartedPayload:
 		b.Memory.Reset()
+		if isRecipient {
+			b.Memory.MarkMine(e.Hand)
+		}
 	case app.GameEndedPayload:
 		b.Memory.Reset()
 	}
@@ -82,7 +90,7 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 
 	scored := internal.BuildScoredMoves(player.Hand, validMoves, weights, threat)
 
-	// 4. Apply State-Aware reasoning (Boss Bonus / Lead Chance)
+	// 4. Apply State-Aware reasoning (Boss Bonus / Lead Chance / Opponent Safety)
 	for i := range scored {
 		if b.Estimator != nil {
 			// Bonus for Boss cards
@@ -95,6 +103,10 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 				prob := b.Estimator.LeadTurnProbability(scored[i].Move.Cards[0])
 				scored[i].Score += prob * 10.0
 			}
+
+			// Opponent Modeling: Is this move safe from next players?
+			safety := b.Estimator.IsSafeFromNextPlayers(scored[i].Combo, player.Seat)
+			scored[i].Score += safety * 15.0 // Reward safe plays
 		}
 	}
 

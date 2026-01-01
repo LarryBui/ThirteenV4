@@ -1,0 +1,47 @@
+package brain
+
+import (
+	"tienlen/internal/domain"
+)
+
+// OpponentProfile tracks the behavioral history of a specific player.
+type OpponentProfile struct {
+	Seat           int
+	CardsRemaining int
+	// Weaknesses maps a combination type to the strongest value the player FAILED to beat.
+	// e.g., if they passed on a Pair of 10s (Value 36), we record 36.
+	// If they later pass on a Pair of Queens (Value 44), we update to 44.
+	Weaknesses map[domain.CardCombinationType]int32
+}
+
+// NewOpponentProfile initializes a profile for a specific seat.
+func NewOpponentProfile(seat int) *OpponentProfile {
+	return &OpponentProfile{
+		Seat:       seat,
+		Weaknesses: make(map[domain.CardCombinationType]int32),
+	}
+}
+
+// RecordFailure notes that this opponent could not (or chose not to) beat a specific combo.
+func (p *OpponentProfile) RecordFailure(combo domain.CardCombination) {
+	if combo.Type == domain.Invalid {
+		return
+	}
+	
+	currentMax, ok := p.Weaknesses[combo.Type]
+	if !ok || combo.Value > currentMax {
+		p.Weaknesses[combo.Type] = combo.Value
+	}
+}
+
+// CanPossiblyBeat returns true if we have no evidence that the player cannot beat this combo.
+func (p *OpponentProfile) CanPossiblyBeat(combo domain.CardCombination) bool {
+	maxFailed, ok := p.Weaknesses[combo.Type]
+	if !ok {
+		return true // No evidence yet
+	}
+	
+	// If the current combo is weaker than or equal to something they already failed to beat,
+	// they almost certainly cannot beat this one either.
+	return combo.Value > maxFailed
+}

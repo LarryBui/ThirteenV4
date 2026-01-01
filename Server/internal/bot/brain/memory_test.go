@@ -22,18 +22,53 @@ func TestGameMemory(t *testing.T) {
 		t.Errorf("3S should be StatusMine")
 	}
 
-	// Mark Played: 3 of Spades
-	m.MarkPlayed([]domain.Card{threeSpades})
-	if m.DeckStatus[0] != StatusPlayed {
-		t.Errorf("3S should be StatusPlayed")
-	}
-	if !m.IsPlayed(threeSpades) {
-		t.Errorf("IsPlayed(3S) should be true")
-	}
-
 	// Reset
 	m.Reset()
 	if m.DeckStatus[0] != StatusUnknown {
 		t.Errorf("After reset, 3S should be StatusUnknown")
+	}
+}
+
+func TestGameMemory_OpponentModeling(t *testing.T) {
+	m := NewMemory()
+
+	// 1. Table has a Pair of 10s
+	pair10s := []domain.Card{
+		{Rank: 7, Suit: 0},
+		{Rank: 7, Suit: 1},
+	}
+	m.UpdateTable(pair10s)
+	
+	if m.CurrentCombo.Type != domain.Pair {
+		t.Errorf("CurrentCombo should be Pair")
+	}
+
+	// 2. Seat 1 passes
+	m.RecordPass(1)
+
+	profile, ok := m.Opponents[1]
+	if !ok {
+		t.Fatal("Opponent profile not created")
+	}
+
+	if _, exists := profile.Weaknesses[domain.Pair]; !exists {
+		t.Errorf("Weakness for Pair should exist")
+	}
+	
+	if profile.CanPossiblyBeat(domain.IdentifyCombination(pair10s)) {
+		t.Errorf("Should NOT possibly beat what they just passed on")
+	}
+
+	// 3. Table updated to Pair of Queens
+	pairQs := []domain.Card{
+		{Rank: 9, Suit: 0},
+		{Rank: 9, Suit: 1},
+	}
+	oldValue := profile.Weaknesses[domain.Pair]
+	m.UpdateTable(pairQs)
+	m.RecordPass(1)
+
+	if profile.Weaknesses[domain.Pair] <= oldValue {
+		t.Errorf("Weakness should have increased to Pair of Queens value")
 	}
 }

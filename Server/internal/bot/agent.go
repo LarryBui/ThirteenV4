@@ -43,6 +43,15 @@ func (a *Agent) PlayAtSeat(game *domain.Game, seat int) (Move, error) {
 }
 
 // OnGameEvent notifies the agent of a game event.
-func (a *Agent) OnGameEvent(event interface{}) {
-	a.Strategy.OnEvent(event)
+func (a *Agent) OnGameEvent(payload interface{}, recipients []string) {
+	isRecipient := len(recipients) == 0
+	if !isRecipient {
+		for _, r := range recipients {
+			if r == a.ID {
+				isRecipient = true
+				break
+			}
+		}
+	}
+	a.Strategy.OnEvent(payload, isRecipient)
 }

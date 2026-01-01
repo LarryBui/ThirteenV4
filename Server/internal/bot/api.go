@@ -14,5 +14,5 @@ type Move struct {
 // Brain is the interface that all bot strategies must implement.
 type Brain interface {
 	CalculateMove(game *domain.Game, player *domain.Player) (Move, error)
-	OnEvent(event interface{})
+	OnEvent(payload interface{}, isRecipient bool)
 }

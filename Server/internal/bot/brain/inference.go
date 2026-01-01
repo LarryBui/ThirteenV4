@@ -86,3 +86,39 @@ func (e *Estimator) CalculateDominance(hand []domain.Card) float64 {
 	avgUnknownPower := unknownPower / float64(unknownCount)
 	return avgHandPower / (avgHandPower + avgUnknownPower)
 }
+
+// IsSafeFromNextPlayers returns 1.0 if the next active players are known to be unable 
+// to beat the given combo based on their pass history.
+func (e *Estimator) IsSafeFromNextPlayers(combo domain.CardCombination, mySeat int) float64 {
+	if combo.Type == domain.Invalid {
+		return 0.0
+	}
+
+	// We check the next seats in order (1, 2, 3 seats away)
+	// If the immediate next player is "weak" against this combo, it's safer.
+	safety := 0.0
+	checked := 0
+
+	for i := 1; i <= 3; i++ {
+		nextSeat := (mySeat + i) % 4
+		profile, ok := e.Memory.Opponents[nextSeat]
+		if !ok {
+			continue // No data on this player
+		}
+
+		checked++
+		if !profile.CanPossiblyBeat(combo) {
+			safety += 1.0
+		} else {
+			// If even one person can possibly beat it, safety drops
+			// In a more complex version, we'd use probabilities here.
+			break 
+		}
+	}
+
+	if checked == 0 {
+		return 0.0
+	}
+
+	return safety / float64(checked)
+}

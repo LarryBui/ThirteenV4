@@ -18,11 +18,17 @@ const (
 type GameMemory struct {
 	// DeckStatus tracks all 52 cards. Index = Rank*4 + Suit.
 	DeckStatus [52]CardStatus
+	// Opponents tracks behavioral profiles by seat index.
+	Opponents map[int]*OpponentProfile
+	// CurrentCombo represents the combination currently on the table to beat.
+	CurrentCombo domain.CardCombination
 }
 
-// NewMemory initializes a fresh memory state where all cards are unknown.
+// NewMemory initializes a fresh memory state.
 func NewMemory() *GameMemory {
-	return &GameMemory{}
+	return &GameMemory{
+		Opponents: make(map[int]*OpponentProfile),
+	}
 }
 
 // Reset clears the memory for a new game.
@@ -30,6 +36,11 @@ func (m *GameMemory) Reset() {
 	for i := range m.DeckStatus {
 		m.DeckStatus[i] = StatusUnknown
 	}
+	// Reset opponent profiles
+	for _, p := range m.Opponents {
+		p.Weaknesses = make(map[domain.CardCombinationType]int32)
+	}
+	m.CurrentCombo = domain.CardCombination{Type: domain.Invalid}
 }
 
 // MarkMine records the cards currently in the bot's hand.
@@ -63,6 +74,30 @@ func (m *GameMemory) UpdateHand(hand []domain.Card) {
 	}
 	// Mark new hand
 	m.MarkMine(hand)
+}
+
+// UpdateTable records the combination currently on the table.
+func (m *GameMemory) UpdateTable(cards []domain.Card) {
+	if len(cards) == 0 {
+		m.CurrentCombo = domain.CardCombination{Type: domain.Invalid}
+		return
+	}
+	m.CurrentCombo = domain.IdentifyCombination(cards)
+	m.MarkPlayed(cards)
+}
+
+// RecordPass notes that an opponent passed on the current table combination.
+func (m *GameMemory) RecordPass(seat int) {
+	if m.CurrentCombo.Type == domain.Invalid {
+		return
+	}
+
+	p, ok := m.Opponents[seat]
+	if !ok {
+		p = NewOpponentProfile(seat)
+		m.Opponents[seat] = p
+	}
+	p.RecordFailure(m.CurrentCombo)
 }
 
 // IsBoss returns true if no higher card exists in an unknown or opponent hand.
