@@ -11,6 +11,7 @@ namespace TienLen.Presentation.HomeScreen
         {
             // Register Presenter
             builder.Register<TienLen.Presentation.HomeScreen.Presenters.HomePresenter>(Lifetime.Scoped);
+            builder.Register<TienLen.Presentation.HomeScreen.Presenters.HomeChatPresenter>(Lifetime.Scoped);
 
             // Register View (Component in Hierarchy)
             builder.RegisterComponentInHierarchy<HomeView>();

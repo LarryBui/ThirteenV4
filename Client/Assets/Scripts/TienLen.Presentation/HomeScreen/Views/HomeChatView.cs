@@ -1,8 +1,7 @@
 using System;
 using System.Collections.Generic;
-using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application.Chat;
+using TienLen.Presentation.HomeScreen.Presenters;
 using UnityEngine;
 using UnityEngine.UI;
 using VContainer;
@@ -23,15 +22,13 @@ namespace TienLen.Presentation.HomeScreen.Views
         [SerializeField] private RectTransform messageContainer;
         [SerializeField] private GameObject messagePrefab;
 
-        private GlobalChatHandler _chatHandler;
-        private ILogger<HomeChatView> _logger;
+        private HomeChatPresenter _presenter;
         private readonly List<GameObject> _messageElements = new List<GameObject>();
 
         [Inject]
-        public void Construct(GlobalChatHandler chatHandler, ILogger<HomeChatView> logger)
+        public void Construct(HomeChatPresenter presenter)
         {
-            _chatHandler = chatHandler;
-            _logger = logger ?? NullLogger<HomeChatView>.Instance;
+            _presenter = presenter;
         }
 
         private void Start()
@@ -39,11 +36,11 @@ namespace TienLen.Presentation.HomeScreen.Views
             if (sendButton) sendButton.onClick.AddListener(HandleSendClicked);
             if (messageInput) messageInput.onSubmit.AddListener(_ => HandleSendClicked());
 
-            if (_chatHandler != null)
+            if (_presenter != null)
             {
-                _chatHandler.MessageReceived += AddMessage;
+                _presenter.MessageReceived += AddMessage;
                 // Load existing history
-                foreach (var msg in _chatHandler.CachedMessages)
+                foreach (var msg in _presenter.CachedMessages)
                 {
                     AddMessage(msg);
                 }
@@ -52,27 +49,21 @@ namespace TienLen.Presentation.HomeScreen.Views
 
         private void OnDestroy()
         {
-            if (_chatHandler != null)
+            if (_presenter != null)
             {
-                _chatHandler.MessageReceived -= AddMessage;
+                _presenter.MessageReceived -= AddMessage;
+                _presenter.Dispose();
             }
         }
 
-        private async void HandleSendClicked()
+        private void HandleSendClicked()
         {
             if (string.IsNullOrWhiteSpace(messageInput.text)) return;
 
             string text = messageInput.text;
             messageInput.text = "";
 
-            try
-            {
-                await _chatHandler.SendMessageAsync(text);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to send chat message.");
-            }
+            _presenter?.SendMessage(text);
         }
 
         private void AddMessage(ChatMessageDto message)
