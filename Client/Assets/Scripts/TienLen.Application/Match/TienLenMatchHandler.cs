@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application.Session;
+using TienLen.Application.Voice;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.ValueObjects;
 
@@ -20,6 +21,7 @@ namespace TienLen.Application
         private readonly IMatchNetworkClient _networkClient;
         private readonly IAuthenticationService _authService;
         private readonly IGameSessionContext _gameSessionContext; // Injected
+        private readonly IVoiceChatService _voiceChatService;
         private readonly ILogger<TienLenMatchHandler> _logger;
 
         public Match CurrentMatch { get; private set; }
@@ -95,15 +97,22 @@ namespace TienLen.Application
         /// </summary>
         public event Action<int, string> InGameChatReceived; // seatIndex, message
 
+        /// <summary>
+        /// Latest Vivox auth token requested for the local player.
+        /// </summary>
+        public string? VivoxAuthToken { get; private set; }
+
         public TienLenMatchHandler(
             IMatchNetworkClient networkClient,
             IAuthenticationService authService,
             IGameSessionContext gameSessionContext,
+            IVoiceChatService voiceChatService,
             ILogger<TienLenMatchHandler> logger)
         {
             _networkClient = networkClient;
             _authService = authService;
             _gameSessionContext = gameSessionContext ?? throw new ArgumentNullException(nameof(gameSessionContext));
+            _voiceChatService = voiceChatService ?? throw new ArgumentNullException(nameof(voiceChatService));
             _logger = logger ?? NullLogger<TienLenMatchHandler>.Instance;
             SubscribeToNetworkEvents();
         }
@@ -434,6 +443,20 @@ namespace TienLen.Application
                         PlayerJoined?.Invoke(playerState.Seat, playerState.UserId);
                     }
                 }
+            }
+
+            RequestVivoxTokenAsync(CurrentMatch.Id).Forget();
+        }
+
+        private async UniTaskVoid RequestVivoxTokenAsync(string matchId)
+        {
+            try
+            {
+                VivoxAuthToken = await _voiceChatService.RequestAuthTokenAsync(matchId);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "MatchHandler: Vivox auth token request failed.");
             }
         }
 

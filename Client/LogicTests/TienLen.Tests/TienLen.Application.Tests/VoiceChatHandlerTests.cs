@@ -79,6 +79,11 @@ namespace TienLen.Application.Tests
                 LeaveCalls++;
                 return UniTask.CompletedTask;
             }
+
+            public UniTask<string> RequestAuthTokenAsync(string matchId)
+            {
+                return UniTask.FromResult(string.Empty);
+            }
         }
     }
 }

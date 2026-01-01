@@ -9,21 +9,21 @@ using VContainer;
 namespace TienLen.Presentation.BootstrapScreen
 {
     /// <summary>
-    /// Controller for the Bootstrap screen.
+    /// View for the Bootstrap screen.
     /// Handles the initial loading sequence and transition to the Home scene.
     /// </summary>
-    public class BootstrapUIController : MonoBehaviour
+    public class BootstrapView : MonoBehaviour
     {
         private IAuthenticationService _authService;
-        private ILogger<BootstrapUIController> _logger;
+        private ILogger<BootstrapView> _logger;
 
         [Inject]
         public void Construct(
             IAuthenticationService authService,
-            ILogger<BootstrapUIController> logger)
+            ILogger<BootstrapView> logger)
         {
             _authService = authService;
-            _logger = logger ?? NullLogger<BootstrapUIController>.Instance;
+            _logger = logger ?? NullLogger<BootstrapView>.Instance;
         }
 
         private async void Start()

@@ -10,7 +10,8 @@
         "Unity.InputSystem",
         "Unity.TextMeshPro",
         "Unity.Services.Core",
-        "Unity.Services.Vivox"
+        "Unity.Services.Vivox",
+        "TienLen.Proto"
     ],
     "includePlatforms": [],
     "excludePlatforms": [],

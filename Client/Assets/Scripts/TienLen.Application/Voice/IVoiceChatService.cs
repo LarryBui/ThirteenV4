@@ -7,5 +7,6 @@ namespace TienLen.Application.Voice
         UniTask InitializeAsync();
         UniTask JoinChannelAsync(string matchId);
         UniTask LeaveChannelAsync();
+        UniTask<string> RequestAuthTokenAsync(string matchId);
     }
 }

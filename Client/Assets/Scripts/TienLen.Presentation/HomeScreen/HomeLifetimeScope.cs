@@ -8,10 +8,10 @@ namespace TienLen.Presentation.HomeScreen
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            // Register HomeUIController within this scope.
+            // Register HomeView within this scope.
             // Using RegisterComponentInHierarchy as it is already placed in the scene.
-            builder.RegisterComponentInHierarchy<HomeUIController>();
-            builder.RegisterComponentInHierarchy<HomeChatController>();
+            builder.RegisterComponentInHierarchy<HomeView>();
+            builder.RegisterComponentInHierarchy<HomeChatView>();
         }
     }
 }

@@ -268,7 +268,7 @@ GameObject:
   - component: {fileID: 400560581}
   - component: {fileID: 400560582}
   m_Layer: 0
-  m_Name: HomeController
+  m_Name: ScreenManager
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -303,6 +303,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   playButton: {fileID: 1961967300}
   createVipTableButton: {fileID: 553120737}
+  powerUpButton: {fileID: 0}
   quitButton: {fileID: 949182890}
   statusText: {fileID: 1610132010}
   contentRoot: {fileID: 1566008057}
@@ -520,7 +521,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0.5}
   m_AnchorMax: {x: 1, y: 0.5}
-  m_AnchoredPosition: {x: 0.000061035156, y: 0}
+  m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 200, y: 60}
   m_Pivot: {x: 1, y: 0.5}
 --- !u!114 &553120737
