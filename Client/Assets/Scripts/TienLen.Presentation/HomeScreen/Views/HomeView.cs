@@ -10,13 +10,13 @@ using VContainer;
 using VContainer.Unity;
 using TMPro;
 
-namespace TienLen.Presentation
+namespace TienLen.Presentation.HomeScreen.Views
 {
     /// <summary>
-    /// Controller for the Home screen.
+    /// View for the Home screen.
     /// Handles UI references and events, communicating with services.
     /// </summary>
-    public sealed class HomeUIController : MonoBehaviour
+    public sealed class HomeView : MonoBehaviour
     {
         [Header("UI References")]
         [SerializeField] private Button playButton;
@@ -30,19 +30,19 @@ namespace TienLen.Presentation
         private IAuthenticationService _authService;
         private TienLenMatchHandler _matchHandler;
         private LifetimeScope _currentScope; 
-        private ILogger<HomeUIController> _logger;
+        private ILogger<HomeView> _logger;
 
         [Inject]
         public void Construct(
             IAuthenticationService authService,
             TienLenMatchHandler matchHandler,
             LifetimeScope currentScope,
-            ILogger<HomeUIController> logger)
+            ILogger<HomeView> logger)
         {
             _authService = authService;
             _matchHandler = matchHandler;
             _currentScope = currentScope;
-            _logger = logger ?? NullLogger<HomeUIController>.Instance;
+            _logger = logger ?? NullLogger<HomeView>.Instance;
         }
 
         private void Awake()
@@ -93,7 +93,7 @@ namespace TienLen.Presentation
             try
             {
                 // Explicitly request Casual match
-                await _matchHandler.FindAndJoinMatchAsync((int)Tienlen.V1.MatchType.Casual);
+                await _matchHandler.FindAndJoinMatchAsync((int)global::Tienlen.V1.MatchType.Casual);
             }
             catch (Exception ex)
             {
@@ -113,7 +113,7 @@ namespace TienLen.Presentation
             try
             {
                 // Explicitly request VIP match
-                await _matchHandler.FindAndJoinMatchAsync((int)Tienlen.V1.MatchType.Vip);
+                await _matchHandler.FindAndJoinMatchAsync((int)global::Tienlen.V1.MatchType.Vip);
             }
             catch (Exception ex)
             {
@@ -170,7 +170,7 @@ namespace TienLen.Presentation
             }
             else
             {
-                _logger.LogError("HomeUIController: contentRoot is not assigned. Cannot set UI visibility.");
+                _logger.LogError("HomeView: contentRoot is not assigned. Cannot set UI visibility.");
             }
         }
 

@@ -1,6 +1,7 @@
 using VContainer;
 using VContainer.Unity;
-using UnityEngine; // Required for MonoBehaviour related registrations
+using UnityEngine;
+using TienLen.Presentation.HomeScreen.Views; // Required for MonoBehaviour related registrations
 
 namespace TienLen.Presentation.HomeScreen
 {

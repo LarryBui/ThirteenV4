@@ -266,7 +266,6 @@ GameObject:
   m_Component:
   - component: {fileID: 400560580}
   - component: {fileID: 400560581}
-  - component: {fileID: 400560582}
   m_Layer: 0
   m_Name: ScreenManager
   m_TagString: Untagged
@@ -298,7 +297,7 @@ MonoBehaviour:
   m_GameObject: {fileID: 400560578}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 8946a6bc75e9b1f479f160c8dff67d83, type: 3}
+  m_Script: {fileID: 11500000, guid: 56aef58658c4c2d479f7ae38a97e01a5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
   playButton: {fileID: 1961967300}
@@ -307,23 +306,6 @@ MonoBehaviour:
   quitButton: {fileID: 949182890}
   statusText: {fileID: 1610132010}
   contentRoot: {fileID: 1566008057}
---- !u!114 &400560582
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 400560578}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 2b3d09be7cf4410f8abb77f47f85faa6, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  logText: {fileID: 37719875}
-  inputField: {fileID: 1849778241}
-  sendButton: {fileID: 1721996001}
-  micButton: {fileID: 1971894134}
-  maxVisibleMessages: 60
 --- !u!1 &410774085
 GameObject:
   m_ObjectHideFlags: 0

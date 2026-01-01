@@ -445,19 +445,10 @@ namespace TienLen.Application
                 }
             }
 
-            RequestVivoxTokenAsync(CurrentMatch.Id).Forget();
-        }
-
-        private async UniTaskVoid RequestVivoxTokenAsync(string matchId)
-        {
-            try
+            UniTask.Void(async () =>
             {
-                VivoxAuthToken = await _voiceChatService.RequestAuthTokenAsync(matchId);
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "MatchHandler: Vivox auth token request failed.");
-            }
+                VivoxAuthToken = await _voiceChatService.RequestAuthTokenAsync(CurrentMatch.Id);
+            });
         }
 
         private void HandlePlayerLeft(int seat, string userId)

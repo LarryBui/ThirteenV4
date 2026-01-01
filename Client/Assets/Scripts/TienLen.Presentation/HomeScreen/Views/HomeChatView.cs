@@ -8,7 +8,7 @@ using UnityEngine.UI;
 using VContainer;
 using TMPro;
 
-namespace TienLen.Presentation
+namespace TienLen.Presentation.HomeScreen.Views
 {
     /// <summary>
     /// View for the Home screen chat system.

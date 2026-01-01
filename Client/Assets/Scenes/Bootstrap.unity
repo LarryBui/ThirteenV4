@@ -958,11 +958,9 @@ MonoBehaviour:
   m_GameObject: {fileID: 1771500917}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: f3509c50a029e814ca567a3a0d9832fe, type: 3}
+  m_Script: {fileID: 11500000, guid: 05d77d06e79c48642bf52068a315b6d8, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  loadingScreenRoot: {fileID: 1771500917}
-  progressBar: {fileID: 474881287}
 --- !u!1 &1905728264
 GameObject:
   m_ObjectHideFlags: 0
@@ -1090,6 +1088,6 @@ SceneRoots:
   m_Roots:
   - {fileID: 933751252}
   - {fileID: 1905728266}
-  - {fileID: 1550547662}
   - {fileID: 113210347}
+  - {fileID: 1550547662}
   - {fileID: 1105892985}
