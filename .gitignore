@@ -105,3 +105,5 @@ InitTestScene*.unity*
 # TypeScript integration tests
 /Server/tests/integration/node_modules/
 /Server/tests/integration/coverage/
+Web_[Bb]uild/
+Web_[Bb]uilds/

@@ -9,8 +9,10 @@ namespace TienLen.Presentation.HomeScreen
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            // Register HomeView within this scope.
-            // Using RegisterComponentInHierarchy as it is already placed in the scene.
+            // Register Presenter
+            builder.Register<TienLen.Presentation.HomeScreen.Presenters.HomePresenter>(Lifetime.Scoped);
+
+            // Register View (Component in Hierarchy)
             builder.RegisterComponentInHierarchy<HomeView>();
             builder.RegisterComponentInHierarchy<HomeChatView>();
         }
