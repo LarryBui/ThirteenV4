@@ -56,3 +56,33 @@ func (e *Estimator) LeadTurnProbability(c domain.Card) float64 {
 	// This will be refined with opponent modeling later.
 	return 1.0 / float64(higherUnknown+1)
 }
+
+// CalculateDominance returns a 0.0 to 1.0 score representing the bot's hand strength 
+// relative to all unknown cards in the game.
+func (e *Estimator) CalculateDominance(hand []domain.Card) float64 {
+	if len(hand) == 0 {
+		return 0.0
+	}
+
+	handPower := 0.0
+	for _, c := range hand {
+		handPower += float64(cardToIndex(c))
+	}
+	avgHandPower := handPower / float64(len(hand))
+
+	unknownPower := 0.0
+	unknownCount := 0
+	for i, status := range e.Memory.DeckStatus {
+		if status == StatusUnknown || status == StatusOpponent {
+			unknownPower += float64(i)
+			unknownCount++
+		}
+	}
+
+	if unknownCount == 0 {
+		return 1.0
+	}
+
+	avgUnknownPower := unknownPower / float64(unknownCount)
+	return avgHandPower / (avgHandPower + avgUnknownPower)
+}

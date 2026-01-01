@@ -13,12 +13,6 @@ func TestEstimator_BossCards(t *testing.T) {
 	twoHearts := domain.Card{Rank: 12, Suit: 3}
 	hand := []domain.Card{twoHearts}
 
-	if !e.Memory.IsBoss(twoHearts) {
-		// All other cards are StatusUnknown, but there are NO cards higher than 2H.
-		// Wait, rank 12 suit 3 is the absolute max. cardToIndex(2H) = 12*4 + 3 = 51.
-		// The loop i := idx + 1; i < 52 will not run.
-	}
-
 	if len(e.GetBossCards(hand)) != 1 {
 		t.Errorf("2H should be a boss card")
 	}
@@ -60,5 +54,38 @@ func TestEstimator_LeadProbability(t *testing.T) {
 	prob := e.LeadTurnProbability(threeSpades)
 	if prob >= 0.5 {
 		t.Errorf("3S probability should be very low, got %f", prob)
+	}
+}
+
+func TestEstimator_CalculateDominance(t *testing.T) {
+	m := NewMemory()
+	e := NewEstimator(m)
+
+	// Hand: All 2s
+	hand := []domain.Card{
+		{Rank: 12, Suit: 0},
+		{Rank: 12, Suit: 1},
+		{Rank: 12, Suit: 2},
+		{Rank: 12, Suit: 3},
+	}
+	m.MarkMine(hand)
+
+	dom := e.CalculateDominance(hand)
+	if dom <= 0.5 {
+		t.Errorf("Hand with all 2s should have high dominance, got %f", dom)
+	}
+
+	// Hand: All 3s
+	handLow := []domain.Card{
+		{Rank: 0, Suit: 0},
+		{Rank: 0, Suit: 1},
+		{Rank: 0, Suit: 2},
+		{Rank: 0, Suit: 3},
+	}
+	m.Reset()
+	m.MarkMine(handLow)
+	domLow := e.CalculateDominance(handLow)
+	if domLow >= 0.5 {
+		t.Errorf("Hand with all 3s should have low dominance, got %f", domLow)
 	}
 }
