@@ -10,8 +10,8 @@ using TienLen.Domain.ValueObjects;
 namespace TienLen.Application
 {
     /// <summary>
-    /// Application service (Use Case Controller) that orchestrates the match flow.
-    /// It bridges the UI (Presentation), the Game Logic (Domain), and the Network (Infrastructure).
+    /// Application service (Use Case Orchestrator) that orchestrates the match flow.
+    /// Acts as the bridge between domain logic and network communication.
     /// </summary>
     public class TienLenMatchHandler : IDisposable
     {

@@ -14,7 +14,7 @@ namespace TienLen.Presentation.GameRoomScreen
 {
     /// <summary>
     /// Presenter for the GameRoom.
-    /// Handles interaction logic, state mapping, and event bridging from the Application layer (MatchHandler) to the View (Controller).
+    /// Handles interaction logic, state mapping, and event bridging from the Application layer (MatchHandler) to the View.
     /// </summary>
     public class GameRoomPresenter : IDisposable
     {

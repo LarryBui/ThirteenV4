@@ -15,7 +15,7 @@
 - **Database:** PostgreSQL (via Nakama's storage engine)
 - **Architecture:** Hybrid Clean Architecture/DDD.
   - **Source of Truth:** Nakama Go Modules (Server-Authoritative).
-  - **Client:** Unity acts as a View/Controller with local state prediction.
+  - **Client:** Unity acts as a View/Presenter with local state prediction.
 
 ## 2. Architectural Guardrails (Clean Architecture & DDD)
 ### Domain Isolation
@@ -32,6 +32,10 @@
 - **Protocols:** Use JSON or Protobuf for messages. Ensure that any change to the Go message struct is reflected in the Unity C# DTOs immediately.
 
 ## 4. Unity (C#) Coding Standards
+- **MVP Pattern:** Strictly follow Model-View-Presenter. 
+  - **Presenters:** Pure C# classes (no MonoBehaviour) handling logic and state mapping. Name: `[Feature]Presenter`.
+  - **Views:** `MonoBehaviours` handling UI references and events. Name: `[Feature]View`.
+  - **NO Controllers:** Do not use the suffix "Controller". Refactor existing "Controllers" to Presenters or Views as appropriate.
 - **Data-Driven UI:** The UI must react to the `GameState` DTO received from Nakama. Do not couple UI logic directly to input logic.
 - **Async/Await:** Use `UniTask` or standard `Task` for all network calls. Do not use blocking calls or coroutines for API requests.
 - **Event-Driven:** Use a local `EventBus` to decouple network messages from UI updates (e.g., `OnCardPlayed`, `OnTurnChanged`).
@@ -48,4 +52,9 @@
 1. **Context First:** Before writing code, analyze if the change affects the Shared Protocol (Network Messages) or Core Domain logic.
 2. **Go Modifications:** When modifying backend logic, ensure `MatchState` is updated transactionally and a broadcast is sent.
 3. **Unity Modifications:** When creating a new UI component, ensure it subscribes to the Event Bus and does not hold its own state.
-4. **Synchronization:** If game rules change (e.g., Bomb logic), update **both** the Go validator and the Unity client predictor.
+4. Synchronization: If game rules change (e.g., Bomb logic), update **both** the Go validator and the Unity client predictor.
+
+## 7. Error Handling & Navigation
+- **Critical Errors:** For game-breaking errors (network loss, fatal logic exception) where the user cannot proceed, use `ErrorContext.ShowError(message)`.
+- **Error Scene:** This will load the `ErrorScene` which displays the message and provides a "Back" button to the previous context.
+- **UI Feedback:** For non-critical errors (invalid move), use local UI feedback (toast, shake animation) instead of changing scenes.

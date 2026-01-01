@@ -8,12 +8,10 @@ namespace TienLen.Presentation.HomeScreen
     {
         protected override void Configure(IContainerBuilder builder)
         {
-            // Register HomeUIController within this scope.
-            // VContainer will find the component in the current scene hierarchy (the Home scene)
-            // and inject its dependencies.
-            builder.RegisterComponentInHierarchy<HomeUIController>();
-            builder.RegisterComponentInHierarchy<HomeChatController>();
-            builder.RegisterComponentInHierarchy<Views.BalanceView>();
+            // Register HomeView within this scope.
+            // Using RegisterComponentInHierarchy as it is already placed in the scene.
+            builder.RegisterComponentInHierarchy<HomeView>();
+            builder.RegisterComponentInHierarchy<HomeChatView>();
         }
     }
 }
