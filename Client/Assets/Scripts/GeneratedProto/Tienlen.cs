@@ -88,11 +88,18 @@ namespace Tienlen.V1 {
             "WUVEEGYSFwoTT1BfQ09ERV9UVVJOX1BBU1NFRBBnEhYKEk9QX0NPREVfR0FN",
             "RV9FTkRFRBBoEhYKEk9QX0NPREVfR0FNRV9FUlJPUhBpEhcKE09QX0NPREVf",
             "UElHX0NIT1BQRUQQahIbChdPUF9DT0RFX1BMQVlFUl9GSU5JU0hFRBBrEhgK",
-            "FE9QX0NPREVfSU5fR0FNRV9DSEFUEGxCEloQdGllbmxlbi9wcm90bztwYmIG",
-            "cHJvdG8z"));
+            "FE9QX0NPREVfSU5fR0FNRV9DSEFUEGwq+AEKDUVycm9yQ2F0ZWdvcnkSHgoa",
+            "RVJST1JfQ0FURUdPUllfVU5TUEVDSUZJRUQQABIXChNFUlJPUl9DQVRFR09S",
+            "WV9BVVRIEAESGQoVRVJST1JfQ0FURUdPUllfQUNDRVNTEAISHQoZRVJST1Jf",
+            "Q0FURUdPUllfVkFMSURBVElPThADEhwKGEVSUk9SX0NBVEVHT1JZX05PVF9G",
+            "T1VORBAEEhsKF0VSUk9SX0NBVEVHT1JZX0NPTkZMSUNUEAUSHAoYRVJST1Jf",
+            "Q0FURUdPUllfVFJBTlNJRU5UEAYSGwoXRVJST1JfQ0FURUdPUllfSU5URVJO",
+            "QUwQBypLCglFcnJvckNvZGUSGgoWRVJST1JfQ09ERV9VTlNQRUNJRklFRBAA",
+            "EiIKHUVSUk9SX0NPREVfTUFUQ0hfVklQX1JFUVVJUkVEEOkHQhJaEHRpZW5s",
+            "ZW4vcHJvdG87cGJiBnByb3RvMw=="));
       descriptor = pbr::FileDescriptor.FromGeneratedCode(descriptorData,
           new pbr::FileDescriptor[] { },
-          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.MatchType), typeof(global::Tienlen.V1.OpCode), }, null, new pbr::GeneratedClrTypeInfo[] {
+          new pbr::GeneratedClrTypeInfo(new[] {typeof(global::Tienlen.V1.Suit), typeof(global::Tienlen.V1.Rank), typeof(global::Tienlen.V1.GamePhase), typeof(global::Tienlen.V1.MatchType), typeof(global::Tienlen.V1.OpCode), typeof(global::Tienlen.V1.ErrorCategory), typeof(global::Tienlen.V1.ErrorCode), }, null, new pbr::GeneratedClrTypeInfo[] {
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.MatchLabel), global::Tienlen.V1.MatchLabel.Parser, new[]{ "Open", "State", "Type" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.Card), global::Tienlen.V1.Card.Parser, new[]{ "Suit", "Rank" }, null, null, null, null),
             new pbr::GeneratedClrTypeInfo(typeof(global::Tienlen.V1.PlayerState), global::Tienlen.V1.PlayerState.Parser, new[]{ "UserId", "Seat", "IsOwner", "CardsRemaining", "DisplayName", "AvatarIndex", "Balance", "IsVip" }, null, null, null, null),
@@ -173,6 +180,22 @@ namespace Tienlen.V1 {
     [pbr::OriginalName("OP_CODE_PIG_CHOPPED")] PigChopped = 106,
     [pbr::OriginalName("OP_CODE_PLAYER_FINISHED")] PlayerFinished = 107,
     [pbr::OriginalName("OP_CODE_IN_GAME_CHAT")] InGameChat = 108,
+  }
+
+  public enum ErrorCategory {
+    [pbr::OriginalName("ERROR_CATEGORY_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("ERROR_CATEGORY_AUTH")] Auth = 1,
+    [pbr::OriginalName("ERROR_CATEGORY_ACCESS")] Access = 2,
+    [pbr::OriginalName("ERROR_CATEGORY_VALIDATION")] Validation = 3,
+    [pbr::OriginalName("ERROR_CATEGORY_NOT_FOUND")] NotFound = 4,
+    [pbr::OriginalName("ERROR_CATEGORY_CONFLICT")] Conflict = 5,
+    [pbr::OriginalName("ERROR_CATEGORY_TRANSIENT")] Transient = 6,
+    [pbr::OriginalName("ERROR_CATEGORY_INTERNAL")] Internal = 7,
+  }
+
+  public enum ErrorCode {
+    [pbr::OriginalName("ERROR_CODE_UNSPECIFIED")] Unspecified = 0,
+    [pbr::OriginalName("ERROR_CODE_MATCH_VIP_REQUIRED")] MatchVipRequired = 1001,
   }
 
   #endregion

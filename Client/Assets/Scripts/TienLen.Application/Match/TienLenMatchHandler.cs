@@ -18,7 +18,6 @@ namespace TienLen.Application
     public class TienLenMatchHandler : IDisposable
     {
         private const int MaxPlayers = 4;
-        private const string MatchAccessDeniedErrorCode = "match_access_denied";
         private const string MatchAccessDeniedContext = "find_match";
 
         private readonly IMatchNetworkClient _networkClient;
@@ -606,7 +605,9 @@ namespace TienLen.Application
         private void PublishMatchAccessDenied(MatchAccessDeniedException ex)
         {
             var message = string.IsNullOrWhiteSpace(ex?.Message) ? "Access denied." : ex.Message;
-            _errorBus.Publish(new CriticalError(MatchAccessDeniedErrorCode, message, MatchAccessDeniedContext));
+            var appCode = ex?.AppCode ?? 0;
+            var category = ex?.Category ?? 0;
+            _errorBus.Publish(new CriticalError(appCode, category, message, MatchAccessDeniedContext));
         }
     }
 }

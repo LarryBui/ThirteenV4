@@ -9,6 +9,7 @@ using Nakama;
 using TienLen.Application; // Updated for IMatchNetworkClient and PlayerAvatar
 using TienLen.Application.Errors;
 using TienLen.Domain.ValueObjects;
+using TienLen.Infrastructure.Errors;
 using TienLen.Infrastructure.Services;
 using Google.Protobuf;
 using Proto = Tienlen.V1;
@@ -27,7 +28,19 @@ namespace TienLen.Infrastructure.Match
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             NullValueHandling = NullValueHandling.Ignore
         };
-        private const long PermissionDeniedStatusCode = 3;
+        private const long PermissionDeniedStatusCode = 7;
+
+        private sealed class RpcErrorPayload
+        {
+            [JsonProperty("app_code")]
+            public int AppCode { get; set; }
+
+            [JsonProperty("category")]
+            public int Category { get; set; }
+
+            [JsonProperty("retryable")]
+            public bool Retryable { get; set; }
+        }
 
         private readonly NakamaAuthenticationService _authService;
         private readonly ILogger<NakamaMatchClient> _logger;
@@ -81,12 +94,31 @@ namespace TienLen.Infrastructure.Match
             {
                 rpcResponse = await Client.RpcAsync(_authService.Session, rpcId, jsonPayload);
             }
-            catch (ApiResponseException ex) when (ex.StatusCode == PermissionDeniedStatusCode)
+            catch (ApiResponseException ex) when (IsPermissionDenied(ex))
             {
-                var message = string.IsNullOrWhiteSpace(ex.Message)
-                    ? "VIP status required to create or join VIP matches"
-                    : ex.Message;
-                throw new MatchAccessDeniedException(message, ex.StatusCode, ex);
+                if (TryParseRpcErrorPayload(ex.Message, out var payload))
+                {
+                    var message = ResolveMessage(payload.AppCode);
+                    var category = ResolveCategory(payload.AppCode, payload.Category);
+                    throw new MatchAccessDeniedException(
+                        payload.AppCode,
+                        category,
+                        GetStatusCode(ex),
+                        message,
+                        payload.Retryable,
+                        ex);
+                }
+
+                var defaultCode = (int)Proto.ErrorCode.MatchVipRequired;
+                var defaultCategory = ResolveCategory(defaultCode, (int)Proto.ErrorCategory.Access);
+                var defaultMessage = ResolveMessage(defaultCode);
+                throw new MatchAccessDeniedException(
+                    defaultCode,
+                    defaultCategory,
+                    GetStatusCode(ex),
+                    defaultMessage,
+                    retryable: false,
+                    ex);
             }
 
             if (rpcResponse == null || string.IsNullOrEmpty(rpcResponse.Payload))
@@ -477,6 +509,81 @@ namespace TienLen.Infrastructure.Match
             {
                 return $"<json-serialize-failed: {ex.GetType().Name}: {ex.Message}>";
             }
+        }
+
+        private static bool IsPermissionDenied(ApiResponseException ex)
+        {
+            if (ex == null) return false;
+            if (ex.GrpcStatusCode == PermissionDeniedStatusCode) return true;
+            return ex.StatusCode == PermissionDeniedStatusCode;
+        }
+
+        private static long GetStatusCode(ApiResponseException ex)
+        {
+            if (ex == null) return 0;
+            return ex.GrpcStatusCode != 0 ? ex.GrpcStatusCode : ex.StatusCode;
+        }
+
+        private static bool TryParseRpcErrorPayload(string message, out RpcErrorPayload payload)
+        {
+            payload = null;
+            if (string.IsNullOrWhiteSpace(message)) return false;
+
+            var json = ExtractJsonObject(message);
+            if (string.IsNullOrWhiteSpace(json)) return false;
+
+            try
+            {
+                payload = JsonConvert.DeserializeObject<RpcErrorPayload>(json);
+                return payload != null;
+            }
+            catch (JsonException)
+            {
+                return false;
+            }
+        }
+
+        private static string ExtractJsonObject(string message)
+        {
+            if (string.IsNullOrWhiteSpace(message)) return string.Empty;
+
+            int start = message.IndexOf('{');
+            int end = message.LastIndexOf('}');
+            if (start < 0 || end <= start) return string.Empty;
+
+            return message.Substring(start, end - start + 1);
+        }
+
+        private static string ResolveMessage(int appCode)
+        {
+            if (ErrorCatalog.TryGet(appCode, out var entry))
+            {
+                return entry.Message;
+            }
+
+            if (ErrorCatalog.TryGet((int)Proto.ErrorCode.Unspecified, out var fallback))
+            {
+                return fallback.Message;
+            }
+
+            return "An unexpected error occurred.";
+        }
+
+        private static int ResolveCategory(int appCode, int category)
+        {
+            if (category > 0) return category;
+
+            if (ErrorCatalog.TryGet(appCode, out var entry))
+            {
+                return entry.Category;
+            }
+
+            if (ErrorCatalog.TryGet((int)Proto.ErrorCode.Unspecified, out var fallback))
+            {
+                return fallback.Category;
+            }
+
+            return category;
         }
 
         private async UniTask SendAsync(long opcode, byte[] payload)

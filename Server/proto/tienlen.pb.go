@@ -338,6 +338,116 @@ func (OpCode) EnumDescriptor() ([]byte, []int) {
 	return file_tienlen_proto_rawDescGZIP(), []int{4}
 }
 
+type ErrorCategory int32
+
+const (
+	ErrorCategory_ERROR_CATEGORY_UNSPECIFIED ErrorCategory = 0
+	ErrorCategory_ERROR_CATEGORY_AUTH        ErrorCategory = 1
+	ErrorCategory_ERROR_CATEGORY_ACCESS      ErrorCategory = 2
+	ErrorCategory_ERROR_CATEGORY_VALIDATION  ErrorCategory = 3
+	ErrorCategory_ERROR_CATEGORY_NOT_FOUND   ErrorCategory = 4
+	ErrorCategory_ERROR_CATEGORY_CONFLICT    ErrorCategory = 5
+	ErrorCategory_ERROR_CATEGORY_TRANSIENT   ErrorCategory = 6
+	ErrorCategory_ERROR_CATEGORY_INTERNAL    ErrorCategory = 7
+)
+
+// Enum value maps for ErrorCategory.
+var (
+	ErrorCategory_name = map[int32]string{
+		0: "ERROR_CATEGORY_UNSPECIFIED",
+		1: "ERROR_CATEGORY_AUTH",
+		2: "ERROR_CATEGORY_ACCESS",
+		3: "ERROR_CATEGORY_VALIDATION",
+		4: "ERROR_CATEGORY_NOT_FOUND",
+		5: "ERROR_CATEGORY_CONFLICT",
+		6: "ERROR_CATEGORY_TRANSIENT",
+		7: "ERROR_CATEGORY_INTERNAL",
+	}
+	ErrorCategory_value = map[string]int32{
+		"ERROR_CATEGORY_UNSPECIFIED": 0,
+		"ERROR_CATEGORY_AUTH":        1,
+		"ERROR_CATEGORY_ACCESS":      2,
+		"ERROR_CATEGORY_VALIDATION":  3,
+		"ERROR_CATEGORY_NOT_FOUND":   4,
+		"ERROR_CATEGORY_CONFLICT":    5,
+		"ERROR_CATEGORY_TRANSIENT":   6,
+		"ERROR_CATEGORY_INTERNAL":    7,
+	}
+)
+
+func (x ErrorCategory) Enum() *ErrorCategory {
+	p := new(ErrorCategory)
+	*p = x
+	return p
+}
+
+func (x ErrorCategory) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ErrorCategory) Descriptor() protoreflect.EnumDescriptor {
+	return file_tienlen_proto_enumTypes[5].Descriptor()
+}
+
+func (ErrorCategory) Type() protoreflect.EnumType {
+	return &file_tienlen_proto_enumTypes[5]
+}
+
+func (x ErrorCategory) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ErrorCategory.Descriptor instead.
+func (ErrorCategory) EnumDescriptor() ([]byte, []int) {
+	return file_tienlen_proto_rawDescGZIP(), []int{5}
+}
+
+type ErrorCode int32
+
+const (
+	ErrorCode_ERROR_CODE_UNSPECIFIED        ErrorCode = 0
+	ErrorCode_ERROR_CODE_MATCH_VIP_REQUIRED ErrorCode = 1001
+)
+
+// Enum value maps for ErrorCode.
+var (
+	ErrorCode_name = map[int32]string{
+		0:    "ERROR_CODE_UNSPECIFIED",
+		1001: "ERROR_CODE_MATCH_VIP_REQUIRED",
+	}
+	ErrorCode_value = map[string]int32{
+		"ERROR_CODE_UNSPECIFIED":        0,
+		"ERROR_CODE_MATCH_VIP_REQUIRED": 1001,
+	}
+)
+
+func (x ErrorCode) Enum() *ErrorCode {
+	p := new(ErrorCode)
+	*p = x
+	return p
+}
+
+func (x ErrorCode) String() string {
+	return protoimpl.X.EnumStringOf(x.Descriptor(), protoreflect.EnumNumber(x))
+}
+
+func (ErrorCode) Descriptor() protoreflect.EnumDescriptor {
+	return file_tienlen_proto_enumTypes[6].Descriptor()
+}
+
+func (ErrorCode) Type() protoreflect.EnumType {
+	return &file_tienlen_proto_enumTypes[6]
+}
+
+func (x ErrorCode) Number() protoreflect.EnumNumber {
+	return protoreflect.EnumNumber(x)
+}
+
+// Deprecated: Use ErrorCode.Descriptor instead.
+func (ErrorCode) EnumDescriptor() ([]byte, []int) {
+	return file_tienlen_proto_rawDescGZIP(), []int{6}
+}
+
 type MatchLabel struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Open          int32                  `protobuf:"varint,1,opt,name=open,proto3" json:"open,omitempty"`
@@ -1708,7 +1818,19 @@ const file_tienlen_proto_rawDesc = "" +
 	"\x12OP_CODE_GAME_ERROR\x10i\x12\x17\n" +
 	"\x13OP_CODE_PIG_CHOPPED\x10j\x12\x1b\n" +
 	"\x17OP_CODE_PLAYER_FINISHED\x10k\x12\x18\n" +
-	"\x14OP_CODE_IN_GAME_CHAT\x10lB\x12Z\x10tienlen/proto;pbb\x06proto3"
+	"\x14OP_CODE_IN_GAME_CHAT\x10l*\xf8\x01\n" +
+	"\rErrorCategory\x12\x1e\n" +
+	"\x1aERROR_CATEGORY_UNSPECIFIED\x10\x00\x12\x17\n" +
+	"\x13ERROR_CATEGORY_AUTH\x10\x01\x12\x19\n" +
+	"\x15ERROR_CATEGORY_ACCESS\x10\x02\x12\x1d\n" +
+	"\x19ERROR_CATEGORY_VALIDATION\x10\x03\x12\x1c\n" +
+	"\x18ERROR_CATEGORY_NOT_FOUND\x10\x04\x12\x1b\n" +
+	"\x17ERROR_CATEGORY_CONFLICT\x10\x05\x12\x1c\n" +
+	"\x18ERROR_CATEGORY_TRANSIENT\x10\x06\x12\x1b\n" +
+	"\x17ERROR_CATEGORY_INTERNAL\x10\a*K\n" +
+	"\tErrorCode\x12\x1a\n" +
+	"\x16ERROR_CODE_UNSPECIFIED\x10\x00\x12\"\n" +
+	"\x1dERROR_CODE_MATCH_VIP_REQUIRED\x10\xe9\aB\x12Z\x10tienlen/proto;pbb\x06proto3"
 
 var (
 	file_tienlen_proto_rawDescOnce sync.Once
@@ -1722,7 +1844,7 @@ func file_tienlen_proto_rawDescGZIP() []byte {
 	return file_tienlen_proto_rawDescData
 }
 
-var file_tienlen_proto_enumTypes = make([]protoimpl.EnumInfo, 5)
+var file_tienlen_proto_enumTypes = make([]protoimpl.EnumInfo, 7)
 var file_tienlen_proto_msgTypes = make([]protoimpl.MessageInfo, 25)
 var file_tienlen_proto_goTypes = []any{
 	(Suit)(0),                     // 0: tienlen.v1.Suit
@@ -1730,48 +1852,50 @@ var file_tienlen_proto_goTypes = []any{
 	(GamePhase)(0),                // 2: tienlen.v1.GamePhase
 	(MatchType)(0),                // 3: tienlen.v1.MatchType
 	(OpCode)(0),                   // 4: tienlen.v1.OpCode
-	(*MatchLabel)(nil),            // 5: tienlen.v1.MatchLabel
-	(*Card)(nil),                  // 6: tienlen.v1.Card
-	(*PlayerState)(nil),           // 7: tienlen.v1.PlayerState
-	(*FindMatchRequest)(nil),      // 8: tienlen.v1.FindMatchRequest
-	(*StartGameRequest)(nil),      // 9: tienlen.v1.StartGameRequest
-	(*FindMatchResponse)(nil),     // 10: tienlen.v1.FindMatchResponse
-	(*PlayCardsRequest)(nil),      // 11: tienlen.v1.PlayCardsRequest
-	(*PassTurnRequest)(nil),       // 12: tienlen.v1.PassTurnRequest
-	(*RequestNewGameRequest)(nil), // 13: tienlen.v1.RequestNewGameRequest
-	(*InGameChatRequest)(nil),     // 14: tienlen.v1.InGameChatRequest
-	(*PlayerJoinedEvent)(nil),     // 15: tienlen.v1.PlayerJoinedEvent
-	(*PlayerLeftEvent)(nil),       // 16: tienlen.v1.PlayerLeftEvent
-	(*MatchStateSnapshot)(nil),    // 17: tienlen.v1.MatchStateSnapshot
-	(*GameStartedEvent)(nil),      // 18: tienlen.v1.GameStartedEvent
-	(*CardPlayedEvent)(nil),       // 19: tienlen.v1.CardPlayedEvent
-	(*TurnPassedEvent)(nil),       // 20: tienlen.v1.TurnPassedEvent
-	(*CardList)(nil),              // 21: tienlen.v1.CardList
-	(*GameEndedEvent)(nil),        // 22: tienlen.v1.GameEndedEvent
-	(*PlayerFinishedEvent)(nil),   // 23: tienlen.v1.PlayerFinishedEvent
-	(*GameErrorEvent)(nil),        // 24: tienlen.v1.GameErrorEvent
-	(*PigChoppedEvent)(nil),       // 25: tienlen.v1.PigChoppedEvent
-	(*InGameChatEvent)(nil),       // 26: tienlen.v1.InGameChatEvent
-	nil,                           // 27: tienlen.v1.GameEndedEvent.BalanceChangesEntry
-	nil,                           // 28: tienlen.v1.GameEndedEvent.RemainingHandsEntry
-	nil,                           // 29: tienlen.v1.PigChoppedEvent.BalanceChangesEntry
+	(ErrorCategory)(0),            // 5: tienlen.v1.ErrorCategory
+	(ErrorCode)(0),                // 6: tienlen.v1.ErrorCode
+	(*MatchLabel)(nil),            // 7: tienlen.v1.MatchLabel
+	(*Card)(nil),                  // 8: tienlen.v1.Card
+	(*PlayerState)(nil),           // 9: tienlen.v1.PlayerState
+	(*FindMatchRequest)(nil),      // 10: tienlen.v1.FindMatchRequest
+	(*StartGameRequest)(nil),      // 11: tienlen.v1.StartGameRequest
+	(*FindMatchResponse)(nil),     // 12: tienlen.v1.FindMatchResponse
+	(*PlayCardsRequest)(nil),      // 13: tienlen.v1.PlayCardsRequest
+	(*PassTurnRequest)(nil),       // 14: tienlen.v1.PassTurnRequest
+	(*RequestNewGameRequest)(nil), // 15: tienlen.v1.RequestNewGameRequest
+	(*InGameChatRequest)(nil),     // 16: tienlen.v1.InGameChatRequest
+	(*PlayerJoinedEvent)(nil),     // 17: tienlen.v1.PlayerJoinedEvent
+	(*PlayerLeftEvent)(nil),       // 18: tienlen.v1.PlayerLeftEvent
+	(*MatchStateSnapshot)(nil),    // 19: tienlen.v1.MatchStateSnapshot
+	(*GameStartedEvent)(nil),      // 20: tienlen.v1.GameStartedEvent
+	(*CardPlayedEvent)(nil),       // 21: tienlen.v1.CardPlayedEvent
+	(*TurnPassedEvent)(nil),       // 22: tienlen.v1.TurnPassedEvent
+	(*CardList)(nil),              // 23: tienlen.v1.CardList
+	(*GameEndedEvent)(nil),        // 24: tienlen.v1.GameEndedEvent
+	(*PlayerFinishedEvent)(nil),   // 25: tienlen.v1.PlayerFinishedEvent
+	(*GameErrorEvent)(nil),        // 26: tienlen.v1.GameErrorEvent
+	(*PigChoppedEvent)(nil),       // 27: tienlen.v1.PigChoppedEvent
+	(*InGameChatEvent)(nil),       // 28: tienlen.v1.InGameChatEvent
+	nil,                           // 29: tienlen.v1.GameEndedEvent.BalanceChangesEntry
+	nil,                           // 30: tienlen.v1.GameEndedEvent.RemainingHandsEntry
+	nil,                           // 31: tienlen.v1.PigChoppedEvent.BalanceChangesEntry
 }
 var file_tienlen_proto_depIdxs = []int32{
 	0,  // 0: tienlen.v1.Card.suit:type_name -> tienlen.v1.Suit
 	1,  // 1: tienlen.v1.Card.rank:type_name -> tienlen.v1.Rank
-	6,  // 2: tienlen.v1.PlayCardsRequest.cards:type_name -> tienlen.v1.Card
-	7,  // 3: tienlen.v1.PlayerJoinedEvent.player:type_name -> tienlen.v1.PlayerState
-	7,  // 4: tienlen.v1.MatchStateSnapshot.players:type_name -> tienlen.v1.PlayerState
+	8,  // 2: tienlen.v1.PlayCardsRequest.cards:type_name -> tienlen.v1.Card
+	9,  // 3: tienlen.v1.PlayerJoinedEvent.player:type_name -> tienlen.v1.PlayerState
+	9,  // 4: tienlen.v1.MatchStateSnapshot.players:type_name -> tienlen.v1.PlayerState
 	2,  // 5: tienlen.v1.GameStartedEvent.phase:type_name -> tienlen.v1.GamePhase
-	6,  // 6: tienlen.v1.GameStartedEvent.hand:type_name -> tienlen.v1.Card
-	6,  // 7: tienlen.v1.CardPlayedEvent.cards:type_name -> tienlen.v1.Card
-	6,  // 8: tienlen.v1.CardList.cards:type_name -> tienlen.v1.Card
-	27, // 9: tienlen.v1.GameEndedEvent.balance_changes:type_name -> tienlen.v1.GameEndedEvent.BalanceChangesEntry
-	28, // 10: tienlen.v1.GameEndedEvent.remaining_hands:type_name -> tienlen.v1.GameEndedEvent.RemainingHandsEntry
-	6,  // 11: tienlen.v1.PigChoppedEvent.cards_chopped:type_name -> tienlen.v1.Card
-	6,  // 12: tienlen.v1.PigChoppedEvent.cards_chopping:type_name -> tienlen.v1.Card
-	29, // 13: tienlen.v1.PigChoppedEvent.balance_changes:type_name -> tienlen.v1.PigChoppedEvent.BalanceChangesEntry
-	21, // 14: tienlen.v1.GameEndedEvent.RemainingHandsEntry.value:type_name -> tienlen.v1.CardList
+	8,  // 6: tienlen.v1.GameStartedEvent.hand:type_name -> tienlen.v1.Card
+	8,  // 7: tienlen.v1.CardPlayedEvent.cards:type_name -> tienlen.v1.Card
+	8,  // 8: tienlen.v1.CardList.cards:type_name -> tienlen.v1.Card
+	29, // 9: tienlen.v1.GameEndedEvent.balance_changes:type_name -> tienlen.v1.GameEndedEvent.BalanceChangesEntry
+	30, // 10: tienlen.v1.GameEndedEvent.remaining_hands:type_name -> tienlen.v1.GameEndedEvent.RemainingHandsEntry
+	8,  // 11: tienlen.v1.PigChoppedEvent.cards_chopped:type_name -> tienlen.v1.Card
+	8,  // 12: tienlen.v1.PigChoppedEvent.cards_chopping:type_name -> tienlen.v1.Card
+	31, // 13: tienlen.v1.PigChoppedEvent.balance_changes:type_name -> tienlen.v1.PigChoppedEvent.BalanceChangesEntry
+	23, // 14: tienlen.v1.GameEndedEvent.RemainingHandsEntry.value:type_name -> tienlen.v1.CardList
 	15, // [15:15] is the sub-list for method output_type
 	15, // [15:15] is the sub-list for method input_type
 	15, // [15:15] is the sub-list for extension type_name
@@ -1789,7 +1913,7 @@ func file_tienlen_proto_init() {
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_tienlen_proto_rawDesc), len(file_tienlen_proto_rawDesc)),
-			NumEnums:      5,
+			NumEnums:      7,
 			NumMessages:   25,
 			NumExtensions: 0,
 			NumServices:   0,

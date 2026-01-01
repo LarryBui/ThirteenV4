@@ -17,8 +17,11 @@ namespace TienLen.Application.Tests
         public void FindAndJoinMatchAsync_PublishesCriticalError_WhenAccessDenied()
         {
             var exception = new MatchAccessDeniedException(
-                "VIP status required to create or join VIP matches",
-                3);
+                appCode: 1001,
+                category: 2,
+                statusCode: 3,
+                message: "VIP status required to create or join VIP matches",
+                retryable: false);
             var network = new FakeMatchNetworkClient(exception);
             var auth = new FakeAuthService("user-1");
             var session = new GameSessionContext();
@@ -39,7 +42,8 @@ namespace TienLen.Application.Tests
             Assert.That(thrown, Is.Not.Null);
             Assert.That(errorBus.PublishCount, Is.EqualTo(1));
             Assert.That(errorBus.LastError, Is.Not.Null);
-            Assert.That(errorBus.LastError.Code, Is.EqualTo("match_access_denied"));
+            Assert.That(errorBus.LastError.AppCode, Is.EqualTo(1001));
+            Assert.That(errorBus.LastError.Category, Is.EqualTo(2));
             Assert.That(errorBus.LastError.Message, Is.EqualTo(exception.Message));
             Assert.That(errorBus.LastError.Context, Is.EqualTo("find_match"));
         }
