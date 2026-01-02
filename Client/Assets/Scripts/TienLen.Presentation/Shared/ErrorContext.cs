@@ -29,7 +29,28 @@ namespace TienLen.Presentation.Shared
         {
             CurrentErrorMessage = message;
             PreviousSceneName = SceneManager.GetActiveScene().name;
-            SceneManager.LoadScene(ErrorSceneName);
+
+            var errorScene = SceneManager.GetSceneByName(ErrorSceneName);
+            if (errorScene.IsValid() && errorScene.isLoaded)
+            {
+                SceneManager.SetActiveScene(errorScene);
+                return;
+            }
+
+            var loadOperation = SceneManager.LoadSceneAsync(ErrorSceneName, LoadSceneMode.Additive);
+            if (loadOperation == null)
+            {
+                return;
+            }
+
+            loadOperation.completed += _ =>
+            {
+                var loadedScene = SceneManager.GetSceneByName(ErrorSceneName);
+                if (loadedScene.IsValid())
+                {
+                    SceneManager.SetActiveScene(loadedScene);
+                }
+            };
         }
 
         /// <summary>

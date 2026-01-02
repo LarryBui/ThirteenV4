@@ -17,6 +17,15 @@ namespace TienLen.Presentation.ErrorScreen
         {
             string target = string.IsNullOrEmpty(PreviousSceneName) ? "Home" : PreviousSceneName;
             ErrorContext.Clear();
+
+            var previousScene = SceneManager.GetSceneByName(target);
+            if (previousScene.IsValid() && previousScene.isLoaded)
+            {
+                SceneManager.SetActiveScene(previousScene);
+                SceneManager.UnloadSceneAsync(ErrorContext.ErrorSceneName);
+                return;
+            }
+
             SceneManager.LoadScene(target);
         }
 
