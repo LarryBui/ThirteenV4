@@ -13,6 +13,10 @@ namespace TienLen.Infrastructure.Errors
         public void Raise(AppError error)
         {
             if (error == null) throw new ArgumentNullException(nameof(error));
+            if (error.Outcome == ErrorOutcome.InlineScene)
+            {
+                return;
+            }
             ErrorRaised?.Invoke(error);
         }
     }

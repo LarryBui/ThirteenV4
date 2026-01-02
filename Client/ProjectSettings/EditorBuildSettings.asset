@@ -14,6 +14,18 @@ EditorBuildSettings:
   - enabled: 1
     path: Assets/Scenes/GameRoom.unity
     guid: 903285963ff60b74f9838727dcb7e7a8
+  - enabled: 1
+    path: Assets/Scenes/ErrorScene.unity
+    guid: 3976f18b25106c448bf45641bf8ab181
+  - enabled: 1
+    path: Assets/Scenes/VIPGameRoom.unity
+    guid: efa36e3b8723aae40b75d5ed1098576e
+  - enabled: 1
+    path: Assets/Scenes/Daily.unity
+    guid: c3f99c5e03aa4c24d84ab2c7f49ff0d2
+  - enabled: 1
+    path: Assets/Scenes/Shopping.unity
+    guid: 97723acacec30ea48ae3c1ba673f670c
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 052faaac586de48259a63d0c4782560b, type: 3}
   m_UseUCBPForAssetBundles: 0
