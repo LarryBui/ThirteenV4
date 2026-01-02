@@ -122,3 +122,58 @@ func (e *Estimator) IsSafeFromNextPlayers(combo domain.CardCombination, mySeat i
 
 	return safety / float64(checked)
 }
+
+// GetComboLikelihood returns a 0.0 to 1.0 estimate of the probability that 
+// an opponent at the specified seat still has a specific combo type.
+func (e *Estimator) GetComboLikelihood(seat int, comboType domain.CardCombinationType) float64 {
+	p, ok := e.Memory.Opponents[seat]
+	if !ok {
+		return 0.5 // Unknown
+	}
+
+	// 1. Hard Constraints (Physical impossibility)
+	switch comboType {
+	case domain.Straight:
+		if p.CardsRemaining < 3 {
+			return 0.0
+		}
+	case domain.Pair:
+		if p.CardsRemaining < 2 {
+			return 0.0
+		}
+	case domain.Triple:
+		if p.CardsRemaining < 3 {
+			return 0.0
+		}
+	case domain.Bomb:
+		if p.CardsRemaining < 4 {
+			return 0.0
+		}
+	}
+
+	// 2. Exhaustion Heuristics (Typical hand structure limits)
+	played := p.PlayedStats[comboType]
+	
+	switch comboType {
+	case domain.Straight:
+		if played >= 2 {
+			return 0.1 // Rare to have 3 straights in 13 cards
+		}
+		if played == 1 {
+			return 0.3
+		}
+	case domain.Pair:
+		if played >= 4 {
+			return 0.1
+		}
+		if played >= 3 {
+			return 0.4
+		}
+	case domain.Bomb:
+		if played >= 1 {
+			return 0.05 // Very rare to have 2 bombs
+		}
+	}
+
+	return 0.7 // Default high likelihood if few have been played
+}

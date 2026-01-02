@@ -9,17 +9,26 @@ type OpponentProfile struct {
 	Seat           int
 	CardsRemaining int
 	// Weaknesses maps a combination type to the strongest value the player FAILED to beat.
-	// e.g., if they passed on a Pair of 10s (Value 36), we record 36.
-	// If they later pass on a Pair of Queens (Value 44), we update to 44.
 	Weaknesses map[domain.CardCombinationType]int32
+	// PlayedStats tracks how many of each combination type this opponent has played.
+	PlayedStats map[domain.CardCombinationType]int
 }
 
 // NewOpponentProfile initializes a profile for a specific seat.
 func NewOpponentProfile(seat int) *OpponentProfile {
 	return &OpponentProfile{
-		Seat:       seat,
-		Weaknesses: make(map[domain.CardCombinationType]int32),
+		Seat:        seat,
+		Weaknesses:  make(map[domain.CardCombinationType]int32),
+		PlayedStats: make(map[domain.CardCombinationType]int),
 	}
+}
+
+// RecordPlay logs a combination played by this opponent.
+func (p *OpponentProfile) RecordPlay(combo domain.CardCombination) {
+	if combo.Type == domain.Invalid {
+		return
+	}
+	p.PlayedStats[combo.Type]++
 }
 
 // RecordFailure notes that this opponent could not (or chose not to) beat a specific combo.

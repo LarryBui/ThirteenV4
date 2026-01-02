@@ -26,6 +26,7 @@ func (b *StandardBot) OnEvent(event interface{}, isRecipient bool) {
 	switch e := event.(type) {
 	case app.CardPlayedPayload:
 		b.Memory.UpdateTable(e.Cards)
+		b.Memory.RecordPlay(e.Seat, e.Cards)
 	case app.TurnPassedPayload:
 		b.Memory.RecordPass(e.Seat)
 		if e.NewRound {
@@ -107,6 +108,11 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 			// Opponent Modeling: Is this move safe from next players?
 			safety := b.Estimator.IsSafeFromNextPlayers(scored[i].Combo, player.Seat)
 			scored[i].Score += safety * 15.0 // Reward safe plays
+
+			// Strategic Leading: Favor types the NEXT player is likely exhausted of
+			nextSeat := (player.Seat + 1) % 4
+			likelihood := b.Estimator.GetComboLikelihood(nextSeat, scored[i].Combo.Type)
+			scored[i].Score += (1.0 - likelihood) * 10.0 // Reward "blocking" plays
 		}
 	}
 

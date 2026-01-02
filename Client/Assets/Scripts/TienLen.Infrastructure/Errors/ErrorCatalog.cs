@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using AppErrorOutcome = TienLen.Application.Errors.ErrorOutcome;
 using Proto = Tienlen.V1;
 
 namespace TienLen.Infrastructure.Errors
@@ -16,6 +17,7 @@ namespace TienLen.Infrastructure.Errors
                     new ErrorCatalogEntry(
                         (int)Proto.ErrorCode.Unspecified,
                         (int)Proto.ErrorCategory.Unspecified,
+                        AppErrorOutcome.InlineScene,
                         "An unexpected error occurred.",
                         "Fallback when no specific server error code is provided.")
                 },
@@ -24,6 +26,7 @@ namespace TienLen.Infrastructure.Errors
                     new ErrorCatalogEntry(
                         (int)Proto.ErrorCode.MatchVipRequired,
                         (int)Proto.ErrorCategory.Access,
+                        AppErrorOutcome.ErrorScene,
                         "VIP status required to create or join VIP matches",
                         "User attempted to create or join a VIP match without membership.")
                 }
@@ -37,16 +40,18 @@ namespace TienLen.Infrastructure.Errors
 
     internal sealed class ErrorCatalogEntry
     {
-        public ErrorCatalogEntry(int code, int category, string message, string notes)
+        public ErrorCatalogEntry(int code, int category, AppErrorOutcome outcome, string message, string notes)
         {
             Code = code;
             Category = category;
+            Outcome = outcome;
             Message = message ?? string.Empty;
             Notes = notes ?? string.Empty;
         }
 
         public int Code { get; }
         public int Category { get; }
+        public AppErrorOutcome Outcome { get; }
         public string Message { get; }
         public string Notes { get; }
     }

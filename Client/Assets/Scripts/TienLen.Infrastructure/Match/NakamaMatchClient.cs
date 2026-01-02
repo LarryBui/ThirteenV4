@@ -100,24 +100,28 @@ namespace TienLen.Infrastructure.Match
                 {
                     var message = ResolveMessage(payload.AppCode);
                     var category = ResolveCategory(payload.AppCode, payload.Category);
+                    var outcome = ResolveOutcome(payload.AppCode);
                     throw new MatchAccessDeniedException(
                         payload.AppCode,
                         category,
                         GetStatusCode(ex),
                         message,
                         payload.Retryable,
+                        outcome,
                         ex);
                 }
 
                 var defaultCode = (int)Proto.ErrorCode.MatchVipRequired;
                 var defaultCategory = ResolveCategory(defaultCode, (int)Proto.ErrorCategory.Access);
                 var defaultMessage = ResolveMessage(defaultCode);
+                var defaultOutcome = ResolveOutcome(defaultCode);
                 throw new MatchAccessDeniedException(
                     defaultCode,
                     defaultCategory,
                     GetStatusCode(ex),
                     defaultMessage,
                     retryable: false,
+                    defaultOutcome,
                     ex);
             }
 
@@ -515,7 +519,8 @@ namespace TienLen.Infrastructure.Match
         {
             if (ex == null) return false;
             if (ex.GrpcStatusCode == PermissionDeniedStatusCode) return true;
-            return ex.StatusCode == PermissionDeniedStatusCode;
+            if (ex.StatusCode == PermissionDeniedStatusCode) return true;
+            return ex.StatusCode == 403;
         }
 
         private static long GetStatusCode(ApiResponseException ex)
@@ -584,6 +589,21 @@ namespace TienLen.Infrastructure.Match
             }
 
             return category;
+        }
+
+        private static ErrorOutcome ResolveOutcome(int appCode)
+        {
+            if (ErrorCatalog.TryGet(appCode, out var entry))
+            {
+                return entry.Outcome;
+            }
+
+            if (ErrorCatalog.TryGet((int)Proto.ErrorCode.Unspecified, out var fallback))
+            {
+                return fallback.Outcome;
+            }
+
+            return ErrorOutcome.InlineScene;
         }
 
         private async UniTask SendAsync(long opcode, byte[] payload)

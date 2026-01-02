@@ -37,8 +37,11 @@ func (m *GameMemory) Reset() {
 		m.DeckStatus[i] = StatusUnknown
 	}
 	// Reset opponent profiles
-	for _, p := range m.Opponents {
+	for seat, p := range m.Opponents {
 		p.Weaknesses = make(map[domain.CardCombinationType]int32)
+		p.PlayedStats = make(map[domain.CardCombinationType]int)
+		p.CardsRemaining = 13 // Reset to starting hand size
+		_ = seat
 	}
 	m.CurrentCombo = domain.CardCombination{Type: domain.Invalid}
 }
@@ -84,6 +87,26 @@ func (m *GameMemory) UpdateTable(cards []domain.Card) {
 	}
 	m.CurrentCombo = domain.IdentifyCombination(cards)
 	m.MarkPlayed(cards)
+}
+
+// RecordPlay logs that a specific seat played a set of cards.
+func (m *GameMemory) RecordPlay(seat int, cards []domain.Card) {
+	if len(cards) == 0 {
+		return
+	}
+
+	p, ok := m.Opponents[seat]
+	if !ok {
+		p = NewOpponentProfile(seat)
+		p.CardsRemaining = 13
+		m.Opponents[seat] = p
+	}
+
+	p.RecordPlay(m.CurrentCombo)
+	p.CardsRemaining -= len(cards)
+	if p.CardsRemaining < 0 {
+		p.CardsRemaining = 0
+	}
 }
 
 // RecordPass notes that an opponent passed on the current table combination.

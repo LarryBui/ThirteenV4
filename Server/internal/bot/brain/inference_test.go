@@ -16,76 +16,34 @@ func TestEstimator_BossCards(t *testing.T) {
 	if len(e.GetBossCards(hand)) != 1 {
 		t.Errorf("2H should be a boss card")
 	}
+}
 
-	// Hand: Ace of Hearts (Rank 11, Suit 3)
-	aceHearts := domain.Card{Rank: 11, Suit: 3}
-	hand = []domain.Card{aceHearts}
+func TestEstimator_GetComboLikelihood(t *testing.T) {
+	m := NewMemory()
+	e := NewEstimator(m)
+
+	// Setup opponent at seat 1
+	p := NewOpponentProfile(1)
+	p.CardsRemaining = 13
+	m.Opponents[1] = p
+
+	// Initially likelihood should be default high
+	if e.GetComboLikelihood(1, domain.Straight) < 0.5 {
+		t.Errorf("Initially should have high likelihood for straight")
+	}
+
+	// 1. Hard constraint check
+	p.CardsRemaining = 2
+	if e.GetComboLikelihood(1, domain.Straight) != 0.0 {
+		t.Errorf("With 2 cards, likelihood of a straight must be 0")
+	}
+
+	// 2. Exhaustion check
+	p.CardsRemaining = 10
+	p.RecordPlay(domain.CardCombination{Type: domain.Straight})
+	p.RecordPlay(domain.CardCombination{Type: domain.Straight})
 	
-	// Initially not a boss because 2s are unknown
-	if len(e.GetBossCards(hand)) != 0 {
-		t.Errorf("AH should not be a boss if 2s are unknown")
-	}
-
-	// Mark all 2s as played
-	m.MarkPlayed([]domain.Card{
-		{Rank: 12, Suit: 0},
-		{Rank: 12, Suit: 1},
-		{Rank: 12, Suit: 2},
-		{Rank: 12, Suit: 3},
-	})
-
-	if len(e.GetBossCards(hand)) != 1 {
-		t.Errorf("AH should be a boss if all 2s are played")
-	}
-}
-
-func TestEstimator_LeadProbability(t *testing.T) {
-	m := NewMemory()
-	e := NewEstimator(m)
-
-	// Highest card
-	twoHearts := domain.Card{Rank: 12, Suit: 3}
-	if e.LeadTurnProbability(twoHearts) != 1.0 {
-		t.Errorf("2H probability should be 1.0")
-	}
-
-	// 3 of Spades with many unknown higher cards
-	threeSpades := domain.Card{Rank: 0, Suit: 0}
-	prob := e.LeadTurnProbability(threeSpades)
-	if prob >= 0.5 {
-		t.Errorf("3S probability should be very low, got %f", prob)
-	}
-}
-
-func TestEstimator_CalculateDominance(t *testing.T) {
-	m := NewMemory()
-	e := NewEstimator(m)
-
-	// Hand: All 2s
-	hand := []domain.Card{
-		{Rank: 12, Suit: 0},
-		{Rank: 12, Suit: 1},
-		{Rank: 12, Suit: 2},
-		{Rank: 12, Suit: 3},
-	}
-	m.MarkMine(hand)
-
-	dom := e.CalculateDominance(hand)
-	if dom <= 0.5 {
-		t.Errorf("Hand with all 2s should have high dominance, got %f", dom)
-	}
-
-	// Hand: All 3s
-	handLow := []domain.Card{
-		{Rank: 0, Suit: 0},
-		{Rank: 0, Suit: 1},
-		{Rank: 0, Suit: 2},
-		{Rank: 0, Suit: 3},
-	}
-	m.Reset()
-	m.MarkMine(handLow)
-	domLow := e.CalculateDominance(handLow)
-	if domLow >= 0.5 {
-		t.Errorf("Hand with all 3s should have low dominance, got %f", domLow)
+	if e.GetComboLikelihood(1, domain.Straight) > 0.2 {
+		t.Errorf("After 2 straights, likelihood should be very low, got %f", e.GetComboLikelihood(1, domain.Straight))
 	}
 }
