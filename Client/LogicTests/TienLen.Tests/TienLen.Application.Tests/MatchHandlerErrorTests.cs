@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using TienLen.Application;
-using TienLen.Application.Errors;
 using TienLen.Application.Session;
 using TienLen.Application.Voice;
 using TienLen.Domain.ValueObjects;
@@ -14,38 +13,25 @@ namespace TienLen.Application.Tests
     public sealed class MatchHandlerErrorTests
     {
         [Test]
-        public void FindAndJoinMatchAsync_PublishesAppError_WhenAccessDenied()
+        public void FindAndJoinMatchAsync_PropagatesException_WhenNetworkFails()
         {
-            var exception = new MatchAccessDeniedException(
-                appCode: 1001,
-                category: 2,
-                statusCode: 3,
-                message: "VIP status required to create or join VIP matches",
-                retryable: false);
+            var exception = new InvalidOperationException("Network failure.");
             var network = new FakeMatchNetworkClient(exception);
             var auth = new FakeAuthService("user-1");
             var session = new GameSessionContext();
             var voice = new FakeVoiceChatService();
-            var errorBus = new FakeErrorBus();
 
             using var handler = new TienLenMatchHandler(
                 network,
                 auth,
                 session,
                 voice,
-                errorBus,
                 NullLogger<TienLenMatchHandler>.Instance);
 
-            var thrown = Assert.ThrowsAsync<MatchAccessDeniedException>(
+            var thrown = Assert.ThrowsAsync<InvalidOperationException>(
                 async () => await handler.FindAndJoinMatchAsync(2));
 
-            Assert.That(thrown, Is.Not.Null);
-            Assert.That(errorBus.PublishCount, Is.EqualTo(1));
-            Assert.That(errorBus.LastError, Is.Not.Null);
-            Assert.That(errorBus.LastError.AppCode, Is.EqualTo(1001));
-            Assert.That(errorBus.LastError.Category, Is.EqualTo(2));
-            Assert.That(errorBus.LastError.Message, Is.EqualTo(exception.Message));
-            Assert.That(errorBus.LastError.Context, Is.EqualTo("find_match"));
+            Assert.That(thrown, Is.SameAs(exception));
         }
 
         private sealed class FakeMatchNetworkClient : IMatchNetworkClient
@@ -109,18 +95,5 @@ namespace TienLen.Application.Tests
             public UniTask<string> RequestAuthTokenAsync(string matchId) => UniTask.FromResult(string.Empty);
         }
 
-        private sealed class FakeErrorBus : IAppErrorBus
-        {
-            public event Action<AppError> AppErrorPublished;
-            public int PublishCount { get; private set; }
-            public AppError LastError { get; private set; }
-
-            public void Publish(AppError error)
-            {
-                PublishCount++;
-                LastError = error;
-                AppErrorPublished?.Invoke(error);
-            }
-        }
     }
 }

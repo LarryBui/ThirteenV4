@@ -28,7 +28,6 @@ namespace TienLen.Infrastructure.Match
             ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
             NullValueHandling = NullValueHandling.Ignore
         };
-        private const long PermissionDeniedStatusCode = 7;
 
         private sealed class RpcErrorPayload
         {
@@ -43,6 +42,7 @@ namespace TienLen.Infrastructure.Match
         }
 
         private readonly NakamaAuthenticationService _authService;
+        private readonly IErrorNetworkClient _errorNetworkClient;
         private readonly ILogger<NakamaMatchClient> _logger;
         private string _matchId;
         private ISocket _subscribedSocket;
@@ -69,10 +69,15 @@ namespace TienLen.Infrastructure.Match
         /// Initializes the match client with required services.
         /// </summary>
         /// <param name="authService">Authentication service used for socket access.</param>
+        /// <param name="errorNetworkClient">Network error source used to emit application errors.</param>
         /// <param name="logger">Logger used for structured match diagnostics.</param>
-        public NakamaMatchClient(NakamaAuthenticationService authService, ILogger<NakamaMatchClient> logger)
+        public NakamaMatchClient(
+            NakamaAuthenticationService authService,
+            IErrorNetworkClient errorNetworkClient,
+            ILogger<NakamaMatchClient> logger)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _errorNetworkClient = errorNetworkClient ?? throw new ArgumentNullException(nameof(errorNetworkClient));
             _logger = logger ?? NullLogger<NakamaMatchClient>.Instance;
         }
 
@@ -94,35 +99,10 @@ namespace TienLen.Infrastructure.Match
             {
                 rpcResponse = await Client.RpcAsync(_authService.Session, rpcId, jsonPayload);
             }
-            catch (ApiResponseException ex) when (IsPermissionDenied(ex))
+            catch (ApiResponseException ex)
             {
-                if (TryParseRpcErrorPayload(ex.Message, out var payload))
-                {
-                    var message = ResolveMessage(payload.AppCode);
-                    var category = ResolveCategory(payload.AppCode, payload.Category);
-                    var outcome = ResolveOutcome(payload.AppCode);
-                    throw new MatchAccessDeniedException(
-                        payload.AppCode,
-                        category,
-                        GetStatusCode(ex),
-                        message,
-                        payload.Retryable,
-                        outcome,
-                        ex);
-                }
-
-                var defaultCode = (int)Proto.ErrorCode.MatchVipRequired;
-                var defaultCategory = ResolveCategory(defaultCode, (int)Proto.ErrorCategory.Access);
-                var defaultMessage = ResolveMessage(defaultCode);
-                var defaultOutcome = ResolveOutcome(defaultCode);
-                throw new MatchAccessDeniedException(
-                    defaultCode,
-                    defaultCategory,
-                    GetStatusCode(ex),
-                    defaultMessage,
-                    retryable: false,
-                    defaultOutcome,
-                    ex);
+                RaiseRpcError(rpcId, ex);
+                throw new InvalidOperationException($"RPC '{rpcId}' failed.", ex);
             }
 
             if (rpcResponse == null || string.IsNullOrEmpty(rpcResponse.Payload))
@@ -515,18 +495,22 @@ namespace TienLen.Infrastructure.Match
             }
         }
 
-        private static bool IsPermissionDenied(ApiResponseException ex)
+        private void RaiseRpcError(string context, ApiResponseException ex)
         {
-            if (ex == null) return false;
-            if (ex.GrpcStatusCode == PermissionDeniedStatusCode) return true;
-            if (ex.StatusCode == PermissionDeniedStatusCode) return true;
-            return ex.StatusCode == 403;
-        }
+            if (ex == null) return;
 
-        private static long GetStatusCode(ApiResponseException ex)
-        {
-            if (ex == null) return 0;
-            return ex.GrpcStatusCode != 0 ? ex.GrpcStatusCode : ex.StatusCode;
+            var appCode = (int)Proto.ErrorCode.Unspecified;
+            var category = (int)Proto.ErrorCategory.Unspecified;
+
+            if (TryParseRpcErrorPayload(ex.Message, out var payload))
+            {
+                appCode = payload.AppCode;
+                category = ResolveCategory(payload.AppCode, payload.Category);
+            }
+
+            var message = ResolveMessage(appCode);
+            var outcome = ResolveOutcome(appCode);
+            _errorNetworkClient.Raise(new AppError(appCode, category, outcome, message, context ?? string.Empty));
         }
 
         private static bool TryParseRpcErrorPayload(string message, out RpcErrorPayload payload)

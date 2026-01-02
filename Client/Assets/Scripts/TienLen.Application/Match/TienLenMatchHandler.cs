@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
-using TienLen.Application.Errors;
 using TienLen.Application.Session;
 using TienLen.Application.Voice;
 using TienLen.Domain.Aggregates;
@@ -18,13 +17,10 @@ namespace TienLen.Application
     public class TienLenMatchHandler : IDisposable
     {
         private const int MaxPlayers = 4;
-        private const string MatchAccessDeniedContext = "find_match";
-
         private readonly IMatchNetworkClient _networkClient;
         private readonly IAuthenticationService _authService;
         private readonly IGameSessionContext _gameSessionContext; // Injected
         private readonly IVoiceChatService _voiceChatService;
-        private readonly IAppErrorBus _errorBus;
         private readonly ILogger<TienLenMatchHandler> _logger;
 
         public Match CurrentMatch { get; private set; }
@@ -110,14 +106,12 @@ namespace TienLen.Application
             IAuthenticationService authService,
             IGameSessionContext gameSessionContext,
             IVoiceChatService voiceChatService,
-            IAppErrorBus errorBus,
             ILogger<TienLenMatchHandler> logger)
         {
             _networkClient = networkClient;
             _authService = authService;
             _gameSessionContext = gameSessionContext ?? throw new ArgumentNullException(nameof(gameSessionContext));
             _voiceChatService = voiceChatService ?? throw new ArgumentNullException(nameof(voiceChatService));
-            _errorBus = errorBus ?? throw new ArgumentNullException(nameof(errorBus));
             _logger = logger ?? NullLogger<TienLenMatchHandler>.Instance;
             SubscribeToNetworkEvents();
         }
@@ -131,16 +125,8 @@ namespace TienLen.Application
 
         public async UniTask FindAndJoinMatchAsync(int matchType = 0)
         {
-            try
-            {
-                string matchId = await _networkClient.FindMatchAsync(matchType);
-                await JoinMatchAsync(matchId);
-            }
-            catch (MatchAccessDeniedException ex)
-            {
-                PublishMatchAccessDenied(ex);
-                throw;
-            }
+            string matchId = await _networkClient.FindMatchAsync(matchType);
+            await JoinMatchAsync(matchId);
         }
 
         public async UniTask JoinMatchAsync(string matchId)
@@ -602,12 +588,5 @@ namespace TienLen.Application
             return $"Player {suffix}";
         }
 
-        private void PublishMatchAccessDenied(MatchAccessDeniedException ex)
-        {
-            var message = string.IsNullOrWhiteSpace(ex?.Message) ? "Access denied." : ex.Message;
-            var appCode = ex?.AppCode ?? 0;
-            var category = ex?.Category ?? 0;
-            _errorBus.Publish(new AppError(appCode, category, message, MatchAccessDeniedContext));
-        }
     }
 }

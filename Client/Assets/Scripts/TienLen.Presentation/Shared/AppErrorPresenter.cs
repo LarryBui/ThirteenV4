@@ -29,6 +29,11 @@ namespace TienLen.Presentation.Shared
         {
             if (error == null) return;
 
+            if (error.Outcome != ErrorOutcome.ErrorScene)
+            {
+                return;
+            }
+
             string message = string.IsNullOrWhiteSpace(error.Message)
                 ? "Unexpected error."
                 : error.Message;

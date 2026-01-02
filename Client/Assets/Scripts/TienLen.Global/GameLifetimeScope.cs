@@ -47,9 +47,9 @@ namespace TienLen.Global
             builder.Register<GameSessionContext>(Lifetime.Singleton)
                 .As<IGameSessionContext>();
 
-            // Register Application Error Bus
-            builder.Register<AppErrorBus>(Lifetime.Singleton)
-                .As<IAppErrorBus>();
+            // Register Network Error Source
+            builder.Register<ErrorNetworkClient>(Lifetime.Singleton)
+                .As<IErrorNetworkClient>();
 
             // Register Application Error Handler
             builder.Register<AppErrorHandler>(Lifetime.Singleton);

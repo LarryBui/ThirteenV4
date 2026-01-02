@@ -111,15 +111,10 @@ namespace TienLen.Presentation.HomeScreen.Presenters
 
                 OnHideViewRequested?.Invoke();
             }
-            catch (MatchAccessDeniedException ex)
-            {
-                _logger.LogWarning(ex, "VIP access denied.");
-                OnPlayInteractableChanged?.Invoke(true);
-            }
+            
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to join VIP match.");
-                OnStatusTextChanged?.Invoke("VIP Access Required or Error.");
                 OnPlayInteractableChanged?.Invoke(true);
             }
         }

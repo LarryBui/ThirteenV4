@@ -7,7 +7,7 @@ namespace TienLen.Application.Errors
     /// </summary>
     public sealed class AppErrorHandler : IDisposable
     {
-        private readonly IAppErrorBus _errorBus;
+        private readonly IErrorNetworkClient _errorNetworkClient;
 
         /// <summary>
         /// Fired when an application error is received from the application error bus.
@@ -18,15 +18,15 @@ namespace TienLen.Application.Errors
         /// Initializes a new instance of the <see cref="AppErrorHandler"/> class.
         /// </summary>
         /// <param name="errorBus">Application error bus for critical error publishing.</param>
-        public AppErrorHandler(IAppErrorBus errorBus)
+        public AppErrorHandler(IErrorNetworkClient errorNetworkClient)
         {
-            _errorBus = errorBus ?? throw new ArgumentNullException(nameof(errorBus));
-            _errorBus.AppErrorPublished += HandleAppError;
+            _errorNetworkClient = errorNetworkClient ?? throw new ArgumentNullException(nameof(errorNetworkClient));
+            _errorNetworkClient.ErrorRaised += HandleAppError;
         }
 
         public void Dispose()
         {
-            _errorBus.AppErrorPublished -= HandleAppError;
+            _errorNetworkClient.ErrorRaised -= HandleAppError;
         }
 
         private void HandleAppError(AppError error)

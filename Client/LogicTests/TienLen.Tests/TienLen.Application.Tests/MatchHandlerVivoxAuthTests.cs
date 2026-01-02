@@ -4,7 +4,6 @@ using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using TienLen.Application;
-using TienLen.Application.Errors;
 using TienLen.Application.Session;
 using TienLen.Application.Voice;
 using TienLen.Domain.ValueObjects;
@@ -20,9 +19,8 @@ namespace TienLen.Application.Tests
             var auth = new FakeAuthService("user-1");
             var session = new GameSessionContext();
             var voice = new FakeVoiceChatService();
-            var errorBus = new FakeErrorBus();
 
-            using var handler = new TienLenMatchHandler(network, auth, session, voice, errorBus, NullLogger<TienLenMatchHandler>.Instance);
+            using var handler = new TienLenMatchHandler(network, auth, session, voice, NullLogger<TienLenMatchHandler>.Instance);
 
             handler.JoinMatchAsync("match-1").Forget();
 
@@ -119,14 +117,5 @@ namespace TienLen.Application.Tests
             }
         }
 
-        private sealed class FakeErrorBus : IAppErrorBus
-        {
-            public event Action<AppError> AppErrorPublished;
-
-            public void Publish(AppError error)
-            {
-                AppErrorPublished?.Invoke(error);
-            }
-        }
     }
 }

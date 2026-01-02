@@ -10,13 +10,15 @@ namespace TienLen.Application.Errors
         /// </summary>
         /// <param name="appCode">Application error code.</param>
         /// <param name="category">Application error category.</param>
+        /// <param name="outcome">Presentation outcome for the error.</param>
         /// <param name="message">User-safe message describing the error.</param>
         /// <param name="context">Optional context (operation or subsystem). Avoid PII.</param>
         /// <param name="correlationId">Optional correlation id for logs/traces.</param>
-        public AppError(int appCode, int category, string message, string context = "", string correlationId = "")
+        public AppError(int appCode, int category, ErrorOutcome outcome, string message, string context = "", string correlationId = "")
         {
             AppCode = appCode;
             Category = category;
+            Outcome = outcome;
             Message = message ?? string.Empty;
             Context = context ?? string.Empty;
             CorrelationId = correlationId ?? string.Empty;
@@ -31,6 +33,11 @@ namespace TienLen.Application.Errors
         /// Application error category.
         /// </summary>
         public int Category { get; }
+
+        /// <summary>
+        /// Presentation outcome for the error.
+        /// </summary>
+        public ErrorOutcome Outcome { get; }
 
         /// <summary>
         /// User-safe message describing the error.
