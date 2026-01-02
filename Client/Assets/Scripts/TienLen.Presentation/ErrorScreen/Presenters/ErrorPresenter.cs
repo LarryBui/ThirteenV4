@@ -1,5 +1,6 @@
 using System;
 using TienLen.Presentation.Shared;
+using UnityEngine;
 using UnityEngine.SceneManagement;
 
 namespace TienLen.Presentation.ErrorScreen
@@ -19,10 +20,12 @@ namespace TienLen.Presentation.ErrorScreen
         public ErrorPresenter(ErrorSceneState state)
         {
             _state = state ?? throw new ArgumentNullException(nameof(state));
+            UnityEngine.Debug.Log($"[ErrorPresenter] Initialized. Message: '{_state.Message}'");
         }
 
         public void GoBack()
         {
+            UnityEngine.Debug.Log($"[ErrorPresenter] GoBack called. Target Scene: {_state.PreviousSceneName}");
             string target = string.IsNullOrWhiteSpace(_state.PreviousSceneName) ? "Home" : _state.PreviousSceneName;
             _state.Clear();
 

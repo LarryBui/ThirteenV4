@@ -102,6 +102,7 @@ namespace TienLen.Presentation.HomeScreen.Presenters
 
         public async void JoinVipMatch()
         {
+            
             if (_matchHandler == null) return;
 
             OnPlayInteractableChanged?.Invoke(false);
@@ -121,8 +122,13 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             }
             catch (TienLenAppException ex)
             {
+                _errorSceneState.Set(ex.Message, SceneManager.GetActiveScene().name);
+                using (LifetimeScope.EnqueueParent(_scope))
+                {
+                    await SceneManager.LoadSceneAsync("ErrorScene", LoadSceneMode.Additive);
+                }
                 _logger.LogError(ex, " custom Exception. Failed to join VIP match.");
-                await HandleAppExceptionAsync(ex, "Failed to join VIP match.");
+                // await HandleAppExceptionAsync(ex, "Failed to join VIP match.");
             }
             catch (Exception ex)
             {
@@ -176,13 +182,15 @@ namespace TienLen.Presentation.HomeScreen.Presenters
 
             if (ex.Outcome == ErrorOutcome.ErrorScene)
             {
-                _errorSceneState.Set(ex.Message, SceneManager.GetActiveScene().name);
+                 _errorSceneState.Set(ex.Message, SceneManager.GetActiveScene().name);
                 using (LifetimeScope.EnqueueParent(_scope))
                 {
-            _logger.LogWarning(logMessage);
+                    _logger.LogWarning(logMessage);
                     await SceneManager.LoadSceneAsync("ErrorScene", LoadSceneMode.Additive);
                 }
-                OnPlayInteractableChanged?.Invoke(true);
+                // SceneManager.SetActiveScene(SceneManager.GetSceneByName("ErrorScene"));
+                OnHideViewRequested?.Invoke();
+                // OnPlayInteractableChanged?.Invoke(true);
                 return;
             }
 

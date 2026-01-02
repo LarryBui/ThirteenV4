@@ -43,8 +43,14 @@ namespace TienLen.Presentation.ErrorScreen
             // 2. Bind Events
             if (backButton != null)
             {
+                 Debug.LogError("[ErrorView] button hooked up");
                 backButton.onClick.AddListener(_presenter.GoBack);
             }
+        }
+
+        public void dosomething()
+        {
+            Debug.Log("Doing something in ErrorView");
         }
 
         private void OnDestroy()
