@@ -56,6 +56,9 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 		b.Estimator = brain.NewEstimator(b.Memory)
 	}
 
+	// Tactical Hand Organization
+	organized := internal.PartitionHand(player.Hand)
+
 	// 2. Generate all valid moves
 	lastCombo := game.LastPlayedCombination
 	validMoves := internal.GetValidMoves(player.Hand, lastCombo)
@@ -91,8 +94,16 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 
 	scored := internal.BuildScoredMoves(player.Hand, validMoves, weights, threat)
 
-	// 4. Apply State-Aware reasoning (Boss Bonus / Lead Chance / Opponent Safety)
+	// 4. Apply State-Aware reasoning (Boss Bonus / Lead Chance / Opponent Safety / Tactical Protection)
 	for i := range scored {
+		// Penalty for breaking tactical structures
+		if isBreakingBomb(scored[i].Move.Cards, organized.Bombs) {
+			scored[i].Score -= 1000.0 // Protect Nukes
+		}
+		if isBreakingStraight(scored[i].Move.Cards, organized.Straights) {
+			scored[i].Score -= 50.0 // Protect fragile straights
+		}
+
 		if b.Estimator != nil {
 			// Bonus for Boss cards
 			if len(scored[i].Move.Cards) == 1 && b.Memory.IsBoss(scored[i].Move.Cards[0]) {
@@ -132,6 +143,44 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 
 	return Move{Cards: scored[0].Move.Cards}, nil
 }
+
+func isBreakingBomb(moveCards []domain.Card, bombs []domain.CardCombination) bool {
+	for _, b := range bombs {
+		contains := 0
+		for _, mc := range moveCards {
+			for _, bc := range b.Cards {
+				if mc == bc {
+					contains++
+					break
+				}
+			}
+		}
+		// If move uses SOME cards of the bomb but not ALL, it breaks the bomb.
+		if contains > 0 && contains < len(b.Cards) {
+			return true
+		}
+	}
+	return false
+}
+
+func isBreakingStraight(moveCards []domain.Card, straights []domain.CardCombination) bool {
+	for _, s := range straights {
+		contains := 0
+		for _, mc := range moveCards {
+			for _, sc := range s.Cards {
+				if mc == sc {
+					contains++
+					break
+				}
+			}
+		}
+		if contains > 0 && contains < len(s.Cards) {
+			return true
+		}
+	}
+	return false
+}
+
 
 // DumpState returns a debug summary of the bot's internal state.
 func (b *StandardBot) DumpState() string {
