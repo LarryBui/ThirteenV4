@@ -46,6 +46,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             _presenter.OnTurnPassed += HandleTurnPassed;
             _presenter.OnCardsPlayed += HandleCardsPlayed;
             _presenter.OnPresenceChanged += HandlePresenceChanged;
+            _presenter.OnGameEnded += HandleGameEnded;
         }
 
         private void OnDestroy()
@@ -56,6 +57,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 _presenter.OnTurnPassed -= HandleTurnPassed;
                 _presenter.OnCardsPlayed -= HandleCardsPlayed;
                 _presenter.OnPresenceChanged -= HandlePresenceChanged;
+                _presenter.OnGameEnded -= HandleGameEnded;
             }
         }
 
@@ -82,6 +84,25 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             foreach (var c in changes)
             {
                 AddEntry($"{c.Username} {(c.Joined ? "joined" : "left")}.");
+            }
+        }
+
+        private void HandleGameEnded(TienLen.Application.GameEndedResultDto result)
+        {
+            AddEntry("Game Ended");
+
+            if (result.BalanceChanges == null) return;
+
+            foreach (var kvp in result.BalanceChanges)
+            {
+                string userId = kvp.Key;
+                long change = kvp.Value;
+
+                int seat = _presenter.FindSeatByUserId(userId);
+                string name = _presenter.ResolveDisplayName(seat, userId);
+
+                string sign = change >= 0 ? "+" : "";
+                AddEntry($"{name}: {sign}{change}");
             }
         }
 
