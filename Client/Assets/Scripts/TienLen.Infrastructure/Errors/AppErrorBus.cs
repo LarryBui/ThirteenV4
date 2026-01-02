@@ -8,12 +8,12 @@ namespace TienLen.Infrastructure.Errors
     /// </summary>
     public sealed class AppErrorBus : IAppErrorBus
     {
-        public event Action<CriticalError> CriticalErrorPublished;
+        public event Action<AppError> AppErrorPublished;
 
-        public void Publish(CriticalError error)
+        public void Publish(AppError error)
         {
             if (error == null) throw new ArgumentNullException(nameof(error));
-            CriticalErrorPublished?.Invoke(error);
+            AppErrorPublished?.Invoke(error);
         }
     }
 }

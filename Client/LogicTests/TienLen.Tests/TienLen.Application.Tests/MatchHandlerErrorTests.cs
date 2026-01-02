@@ -14,7 +14,7 @@ namespace TienLen.Application.Tests
     public sealed class MatchHandlerErrorTests
     {
         [Test]
-        public void FindAndJoinMatchAsync_PublishesCriticalError_WhenAccessDenied()
+        public void FindAndJoinMatchAsync_PublishesAppError_WhenAccessDenied()
         {
             var exception = new MatchAccessDeniedException(
                 appCode: 1001,
@@ -111,15 +111,15 @@ namespace TienLen.Application.Tests
 
         private sealed class FakeErrorBus : IAppErrorBus
         {
-            public event Action<CriticalError> CriticalErrorPublished;
+            public event Action<AppError> AppErrorPublished;
             public int PublishCount { get; private set; }
-            public CriticalError LastError { get; private set; }
+            public AppError LastError { get; private set; }
 
-            public void Publish(CriticalError error)
+            public void Publish(AppError error)
             {
                 PublishCount++;
                 LastError = error;
-                CriticalErrorPublished?.Invoke(error);
+                AppErrorPublished?.Invoke(error);
             }
         }
     }

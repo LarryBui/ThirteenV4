@@ -8,14 +8,14 @@ namespace TienLen.Application.Errors
     public interface IAppErrorBus
     {
         /// <summary>
-        /// Fired when a critical error is published.
+        /// Fired when an application error is published.
         /// </summary>
-        event Action<CriticalError> CriticalErrorPublished;
+        event Action<AppError> AppErrorPublished;
 
         /// <summary>
-        /// Publishes a critical error to subscribers.
+        /// Publishes an application error to subscribers.
         /// </summary>
         /// <param name="error">The error to publish.</param>
-        void Publish(CriticalError error);
+        void Publish(AppError error);
     }
 }

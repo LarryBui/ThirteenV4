@@ -3,16 +3,16 @@ using System;
 namespace TienLen.Application.Errors
 {
     /// <summary>
-    /// Handles critical errors published by the application and exposes them to presenters.
+    /// Handles application errors published by the application and exposes them to presenters.
     /// </summary>
     public sealed class AppErrorHandler : IDisposable
     {
         private readonly IAppErrorBus _errorBus;
 
         /// <summary>
-        /// Fired when a critical error is received from the application error bus.
+        /// Fired when an application error is received from the application error bus.
         /// </summary>
-        public event Action<CriticalError> OnCriticalError;
+        public event Action<AppError> OnAppError;
 
         /// <summary>
         /// Initializes a new instance of the <see cref="AppErrorHandler"/> class.
@@ -21,17 +21,17 @@ namespace TienLen.Application.Errors
         public AppErrorHandler(IAppErrorBus errorBus)
         {
             _errorBus = errorBus ?? throw new ArgumentNullException(nameof(errorBus));
-            _errorBus.CriticalErrorPublished += HandleCriticalError;
+            _errorBus.AppErrorPublished += HandleAppError;
         }
 
         public void Dispose()
         {
-            _errorBus.CriticalErrorPublished -= HandleCriticalError;
+            _errorBus.AppErrorPublished -= HandleAppError;
         }
 
-        private void HandleCriticalError(CriticalError error)
+        private void HandleAppError(AppError error)
         {
-            OnCriticalError?.Invoke(error);
+            OnAppError?.Invoke(error);
         }
     }
 }

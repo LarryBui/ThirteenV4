@@ -4,7 +4,7 @@ using TienLen.Application.Errors;
 namespace TienLen.Presentation.Shared
 {
     /// <summary>
-    /// Routes critical application errors to the Error scene.
+    /// Routes application errors to the Error scene.
     /// </summary>
     public sealed class AppErrorPresenter : IDisposable
     {
@@ -17,15 +17,15 @@ namespace TienLen.Presentation.Shared
         public AppErrorPresenter(AppErrorHandler errorHandler)
         {
             _errorHandler = errorHandler ?? throw new ArgumentNullException(nameof(errorHandler));
-            _errorHandler.OnCriticalError += HandleCriticalError;
+            _errorHandler.OnAppError += HandleAppError;
         }
 
         public void Dispose()
         {
-            _errorHandler.OnCriticalError -= HandleCriticalError;
+            _errorHandler.OnAppError -= HandleAppError;
         }
 
-        private static void HandleCriticalError(CriticalError error)
+        private static void HandleAppError(AppError error)
         {
             if (error == null) return;
 

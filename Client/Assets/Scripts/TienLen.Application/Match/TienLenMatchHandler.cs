@@ -607,7 +607,7 @@ namespace TienLen.Application
             var message = string.IsNullOrWhiteSpace(ex?.Message) ? "Access denied." : ex.Message;
             var appCode = ex?.AppCode ?? 0;
             var category = ex?.Category ?? 0;
-            _errorBus.Publish(new CriticalError(appCode, category, message, MatchAccessDeniedContext));
+            _errorBus.Publish(new AppError(appCode, category, message, MatchAccessDeniedContext));
         }
     }
 }

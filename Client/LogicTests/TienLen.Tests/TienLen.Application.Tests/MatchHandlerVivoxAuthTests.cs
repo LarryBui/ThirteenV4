@@ -121,11 +121,11 @@ namespace TienLen.Application.Tests
 
         private sealed class FakeErrorBus : IAppErrorBus
         {
-            public event Action<CriticalError> CriticalErrorPublished;
+            public event Action<AppError> AppErrorPublished;
 
-            public void Publish(CriticalError error)
+            public void Publish(AppError error)
             {
-                CriticalErrorPublished?.Invoke(error);
+                AppErrorPublished?.Invoke(error);
             }
         }
     }

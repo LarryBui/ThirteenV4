@@ -1,19 +1,19 @@
 namespace TienLen.Application.Errors
 {
     /// <summary>
-    /// Represents a critical application error that should trigger user-facing recovery.
+    /// Represents an application error raised from server responses and catalog mappings.
     /// </summary>
-    public sealed class CriticalError
+    public sealed class AppError
     {
         /// <summary>
-        /// Initializes a new instance of the <see cref="CriticalError"/> class.
+        /// Initializes a new instance of the <see cref="AppError"/> class.
         /// </summary>
         /// <param name="appCode">Application error code.</param>
         /// <param name="category">Application error category.</param>
         /// <param name="message">User-safe message describing the error.</param>
         /// <param name="context">Optional context (operation or subsystem). Avoid PII.</param>
         /// <param name="correlationId">Optional correlation id for logs/traces.</param>
-        public CriticalError(int appCode, int category, string message, string context = "", string correlationId = "")
+        public AppError(int appCode, int category, string message, string context = "", string correlationId = "")
         {
             AppCode = appCode;
             Category = category;
