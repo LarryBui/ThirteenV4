@@ -1,7 +1,12 @@
+using System;
 using System.Collections.Generic;
+using System.Linq;
 using Cysharp.Threading.Tasks;
 using TMPro;
 using UnityEngine;
+using VContainer;
+using TienLen.Domain.ValueObjects;
+using TienLen.Domain.Enums;
 
 namespace TienLen.Presentation.GameRoomScreen.Views
 {
@@ -17,13 +22,99 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private float _rollSeconds = 0.5f;
         [SerializeField] private float _rollOffset = 24f;
 
+        private GameRoomPresenter _presenter;
         private readonly List<string> _entries = new();
         private Vector2[] _linePositions;
         private int _animationToken;
 
+        [Inject]
+        public void Construct(GameRoomPresenter presenter)
+        {
+            _presenter = presenter;
+        }
+
         private void Awake()
         {
             CacheLinePositions();
+        }
+
+        private void Start()
+        {
+            if (_presenter == null) return;
+
+            _presenter.OnGameStarted += HandleGameStarted;
+            _presenter.OnTurnPassed += HandleTurnPassed;
+            _presenter.OnCardsPlayed += HandleCardsPlayed;
+            _presenter.OnPresenceChanged += HandlePresenceChanged;
+        }
+
+        private void OnDestroy()
+        {
+            if (_presenter != null)
+            {
+                _presenter.OnGameStarted -= HandleGameStarted;
+                _presenter.OnTurnPassed -= HandleTurnPassed;
+                _presenter.OnCardsPlayed -= HandleCardsPlayed;
+                _presenter.OnPresenceChanged -= HandlePresenceChanged;
+            }
+        }
+
+        private void HandleGameStarted()
+        {
+            AddEntry("Game Started");
+        }
+
+        private void HandleTurnPassed(int seatIndex)
+        {
+            string name = _presenter.ResolveDisplayName(seatIndex);
+            AddEntry($"{name} passed.");
+        }
+
+        private void HandleCardsPlayed(int seatIndex, IReadOnlyList<Card> cards)
+        {
+            string name = _presenter.ResolveDisplayName(seatIndex);
+            string cardStr = string.Join(", ", cards.Select(FormatCard));
+            AddEntry($"{name} played: {cardStr}");
+        }
+
+        private void HandlePresenceChanged(IReadOnlyList<TienLen.Application.PresenceChange> changes)
+        {
+            foreach (var c in changes)
+            {
+                AddEntry($"{c.Username} {(c.Joined ? "joined" : "left")}.");
+            }
+        }
+
+        private string FormatCard(Card card)
+        {
+            string rankStr = card.Rank switch
+            {
+                Rank.Three => "3",
+                Rank.Four => "4",
+                Rank.Five => "5",
+                Rank.Six => "6",
+                Rank.Seven => "7",
+                Rank.Eight => "8",
+                Rank.Nine => "9",
+                Rank.Ten => "10",
+                Rank.Jack => "J",
+                Rank.Queen => "Q",
+                Rank.King => "K",
+                Rank.Ace => "A",
+                Rank.Two => "2",
+                _ => "?"
+            };
+
+            string suitStr = card.Suit switch
+            {
+                Suit.Spades => "<color=#FFFFFF>♠</color>",
+                Suit.Clubs => "<color=#FFFFFF>♣</color>",
+                Suit.Diamonds => "<color=#FF0000>♦</color>",
+                Suit.Hearts => "<color=#FF0000>♥</color>",
+                _ => ""
+            };
+
+            return $"{rankStr}{suitStr}";
         }
 
         /// <summary>

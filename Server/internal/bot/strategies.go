@@ -118,12 +118,22 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 
 			// Opponent Modeling: Is this move safe from next players?
 			safety := b.Estimator.IsSafeFromNextPlayers(scored[i].Combo, player.Seat)
-			scored[i].Score += safety * 15.0 // Reward safe plays
+			scored[i].Score += safety * 25.0 // Reward safe plays
+
+			// Dominance: Are we capitalizing on a known ceiling?
+			dominance := b.Estimator.GetDominanceScore(scored[i].Combo, player.Seat)
+			scored[i].Score += dominance * 30.0
 
 			// Strategic Leading: Favor types the NEXT player is likely exhausted of
 			nextSeat := (player.Seat + 1) % 4
 			likelihood := b.Estimator.GetComboLikelihood(nextSeat, scored[i].Combo.Type)
 			scored[i].Score += (1.0 - likelihood) * 10.0 // Reward "blocking" plays
+		}
+
+		// Reward Chopping High Value Targets (Pigs/Bombs)
+		// We use domain.DetectChop to see if this move qualifies as a special capture.
+		if isChop, _ := domain.DetectChop(lastCombo.Cards, scored[i].Move.Cards); isChop {
+			scored[i].Score += 500.0 // Massive priority to chop pigs/bombs
 		}
 	}
 

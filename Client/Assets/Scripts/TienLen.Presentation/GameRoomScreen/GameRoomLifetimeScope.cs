@@ -20,6 +20,8 @@ namespace TienLen.Presentation.GameRoomScreen
 
             // Register GameRoomView component in hierarchy so it gets injected
             builder.RegisterComponentInHierarchy<GameRoomView>();
+            // Register Log View component in hierarchy so it gets injected
+            builder.RegisterComponentInHierarchy<GameRoomLogView>();
             // Register CardDealer component in hierarchy so it gets injected
             builder.RegisterComponentInHierarchy<CardDealer>();
 

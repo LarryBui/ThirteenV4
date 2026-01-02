@@ -50,7 +50,11 @@ func (p *OpponentProfile) CanPossiblyBeat(combo domain.CardCombination) bool {
 		return true // No evidence yet
 	}
 	
-	// If the current combo is weaker than or equal to something they already failed to beat,
-	// they almost certainly cannot beat this one either.
-	return combo.Value > maxFailed
+	// If the current combo is stronger than (or equal to) something they already failed to beat,
+	// they certainly cannot beat this one either (assuming rational play).
+	if combo.Value >= maxFailed {
+		return false
+	}
+	
+	return true
 }

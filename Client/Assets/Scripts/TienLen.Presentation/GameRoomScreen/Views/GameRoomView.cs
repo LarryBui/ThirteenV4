@@ -26,7 +26,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         [SerializeField] private GameBoardView _boardView;
         [SerializeField] private LocalHandView _localHandView;
         [SerializeField] private GameRoomMessageView _messageView;
-        [SerializeField] private GameRoomLogView _logView;
         [SerializeField] private OpponentHandRevealer _opponentRevealer;
 
         private GameRoomPresenter _presenter;
@@ -287,7 +286,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
         {
             if (_isLeaving) return;
             
-            _logView?.AddEntry("Game Started");
             _isDealing = true;
             RefreshActionButtonsState();
 
@@ -308,19 +306,12 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         private void HandleTurnPassed(int seatIndex)
         {
-            string name = _presenter.ResolveDisplayName(seatIndex);
-            _logView?.AddEntry($"{name} passed.");
-            
             // Visual feedback?
             // _boardView.ShowFloatingText(seatIndex, "Pass");
         }
 
         private void HandleCardsPlayed(int seatIndex, IReadOnlyList<Card> cards)
         {
-            // 1. Log
-            string name = _presenter.ResolveDisplayName(seatIndex);
-            _logView?.AddEntry($"{name} played {cards.Count} cards.");
-
             // 2. Animate
             bool isLocal = seatIndex == (_presenter.CurrentMatch?.LocalSeatIndex ?? -1);
             
@@ -355,10 +346,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         private void HandlePresenceChanged(IReadOnlyList<PresenceChange> changes)
         {
-            foreach (var c in changes)
-            {
-                _logView?.AddEntry($"{c.Username} {(c.Joined ? "joined" : "left")}.");
-            }
             RefreshAll();
         }
 

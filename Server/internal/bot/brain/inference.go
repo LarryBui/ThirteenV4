@@ -177,3 +177,38 @@ func (e *Estimator) GetComboLikelihood(seat int, comboType domain.CardCombinatio
 
 	return 0.7 // Default high likelihood if few have been played
 }
+
+// GetDominanceScore calculates how "dominant" a move is relative to the opponent's known weaknesses.
+// It rewards playing high cards when the opponent has revealed they lack the "Boss" cards (by passing on even higher cards).
+func (e *Estimator) GetDominanceScore(combo domain.CardCombination, mySeat int) float64 {
+	// Check immediate next opponent (primary threat)
+	nextSeat := (mySeat + 1) % 4
+	profile, ok := e.Memory.Opponents[nextSeat]
+	if !ok {
+		return 0.0
+	}
+
+	// Check if they have a known weakness for this type
+	maxFailed, isWeak := profile.Weaknesses[combo.Type]
+	if !isWeak {
+		return 0.0
+	}
+
+	// Dominance Logic:
+	// If opponent passed on a specific value (maxFailed), they likely lack cards HIGHER than maxFailed (e.g., 2s, Aces).
+	// If we play a card that is High (e.g., > 10/Jack) but lower than maxFailed, we are exerting "Dominance".
+	// We are playing the strongest possible card that fits under their "Ceiling".
+	
+	// Only applies to Singles for now as it's the most common "Leading" scenario.
+	if combo.Type == domain.Single {
+		// If our card is High (Rank >= 8, i.e., 10 or higher)
+		if combo.Value >= 32 {
+			// And they passed on something strictly higher than us
+			if maxFailed > combo.Value {
+				return 1.0 // High dominance
+			}
+		}
+	}
+	
+	return 0.0
+}
