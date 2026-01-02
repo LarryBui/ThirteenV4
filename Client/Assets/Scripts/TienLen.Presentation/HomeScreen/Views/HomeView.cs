@@ -18,6 +18,7 @@ namespace TienLen.Presentation.HomeScreen.Views
         [SerializeField] private Button playButton;
         [SerializeField] private Button createVipTableButton;
         [SerializeField] private Button powerUpButton;
+        [SerializeField] private Button dailyButton;
         [SerializeField] private Button quitButton;
         [SerializeField] private TMP_Text statusText;
         [SerializeField] private GameObject contentRoot;
@@ -35,6 +36,7 @@ namespace TienLen.Presentation.HomeScreen.Views
             playButton?.onClick.AddListener(() => _presenter?.JoinCasualMatch());
             createVipTableButton?.onClick.AddListener(() => _presenter?.JoinVipMatch());
             quitButton?.onClick.AddListener(() => _presenter?.QuitGame());
+            dailyButton?.onClick.AddListener(() => _presenter?.OpenDailyScreen());
             
             // PowerUp placeholder
             powerUpButton?.onClick.AddListener(() => Debug.Log("PowerUp Clicked"));

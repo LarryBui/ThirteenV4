@@ -1,35 +1,42 @@
-using TienLen.Presentation.DailyScreen.Views;
-using VContainer.Unity;
+using TienLen.Application.Ads;
+using TienLen.Application.Economy;
+using UnityEngine.SceneManagement;
 
 namespace TienLen.Presentation.DailyScreen.Presenters
 {
-    public class DailyPresenter : IStartable
+    public class DailyPresenter
     {
-        private readonly DailyView _view;
+        private readonly IAdService _adService;
+        private readonly ICurrencyNKService _currencyService;
 
-        public DailyPresenter(DailyView view)
+        public DailyPresenter(
+            IAdService adService,
+            ICurrencyNKService currencyService)
         {
-            _view = view;
+            _adService = adService;
+            _currencyService = currencyService;
         }
 
-        public void Start()
+        public async void HandleAdClicked(int index, System.Action<bool, string> onStateUpdate)
         {
-            _view.Initialize();
-            _view.OnCloseClicked += HandleClose;
+            onStateUpdate?.Invoke(false, "Watching...");
+            
+            bool success = await _adService.ShowRewardedAdAsync($"daily_ad_{index}");
+            
+            if (success)
+            {
+                await _currencyService.AddGoldAsync(1000);
+                onStateUpdate?.Invoke(false, "Claimed");
+            }
+            else
+            {
+                onStateUpdate?.Invoke(true, "Watch Ad");
+            }
         }
 
-        private void HandleClose()
+        public void HandleClose()
         {
-            // Logic to unload the scene is handled by the parent scope or scene manager,
-            // but usually the View might trigger a self-unload or the Presenter asks a service.
-            // For this simple implementation, we'll let the View handle the Unity-specific unload 
-            // or bubble up an event.
-            // However, strictly sticking to MVP, the Presenter should decide.
-            
-            // For now, we will simply log or invoke a callback if we had a navigation service.
-            // Since we are loading additively, we might want to just unload the scene here.
-            
-            UnityEngine.SceneManagement.SceneManager.UnloadSceneAsync("Daily");
+            SceneManager.UnloadSceneAsync("Daily");
         }
     }
 }
