@@ -6,32 +6,35 @@ namespace TienLen.Presentation.ErrorScreen
 {
     /// <summary>
     /// Presenter for the Error Screen.
-    /// Manages the logic of retrieving error data and handling navigation.
+    /// Manages error handling, navigation, and UI data for the Error Scene.
     /// </summary>
-    public sealed class ErrorPresenter : IDisposable
+    public sealed class ErrorPresenter
     {
-        public string ErrorMessage => ErrorContext.CurrentErrorMessage;
-        public string PreviousSceneName => ErrorContext.PreviousSceneName;
+        private const string ErrorSceneName = "ErrorScene";
+        private readonly ErrorSceneState _state;
+
+        public string ErrorMessage => _state.Message;
+        public string PreviousSceneName => _state.PreviousSceneName;
+
+        public ErrorPresenter(ErrorSceneState state)
+        {
+            _state = state ?? throw new ArgumentNullException(nameof(state));
+        }
 
         public void GoBack()
         {
-            string target = string.IsNullOrEmpty(PreviousSceneName) ? "Home" : PreviousSceneName;
-            ErrorContext.Clear();
+            string target = string.IsNullOrWhiteSpace(_state.PreviousSceneName) ? "Home" : _state.PreviousSceneName;
+            _state.Clear();
 
             var previousScene = SceneManager.GetSceneByName(target);
             if (previousScene.IsValid() && previousScene.isLoaded)
             {
                 SceneManager.SetActiveScene(previousScene);
-                SceneManager.UnloadSceneAsync(ErrorContext.ErrorSceneName);
+                SceneManager.UnloadSceneAsync(ErrorSceneName);
                 return;
             }
 
             SceneManager.LoadScene(target);
-        }
-
-        public void Dispose()
-        {
-            // No resources to release yet
         }
     }
 }

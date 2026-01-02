@@ -4,6 +4,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
 using TienLen.Application.Errors;
+using TienLen.Presentation.Shared;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using VContainer.Unity;
@@ -20,6 +21,7 @@ namespace TienLen.Presentation.HomeScreen.Presenters
         private readonly TienLenMatchHandler _matchHandler;
         private readonly ILogger<HomePresenter> _logger;
         private readonly LifetimeScope _scope;
+        private readonly ErrorSceneState _errorSceneState;
 
         public event Action<bool> OnPlayInteractableChanged;
         public event Action<string> OnStatusTextChanged;
@@ -30,11 +32,13 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             IAuthenticationService authService,
             TienLenMatchHandler matchHandler,
             LifetimeScope scope,
+            ErrorSceneState errorSceneState,
             ILogger<HomePresenter> logger)
         {
             _authService = authService;
             _matchHandler = matchHandler;
             _scope = scope;
+            _errorSceneState = errorSceneState ?? throw new ArgumentNullException(nameof(errorSceneState));
             _logger = logger ?? NullLogger<HomePresenter>.Instance;
 
             SubscribeToServices();
@@ -84,6 +88,10 @@ namespace TienLen.Presentation.HomeScreen.Presenters
                 
                 OnHideViewRequested?.Invoke();
             }
+            catch (TienLenAppException ex)
+            {
+                await HandleAppExceptionAsync(ex, "Failed to find casual match.");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to find casual match.");
@@ -111,7 +119,11 @@ namespace TienLen.Presentation.HomeScreen.Presenters
 
                 OnHideViewRequested?.Invoke();
             }
-            
+            catch (TienLenAppException ex)
+            {
+                _logger.LogError(ex, " custom Exception. Failed to join VIP match.");
+                await HandleAppExceptionAsync(ex, "Failed to join VIP match.");
+            }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to join VIP match.");
@@ -122,6 +134,17 @@ namespace TienLen.Presentation.HomeScreen.Presenters
         {
             _logger.LogInformation("Quit clicked.");
             UnityEngine.Application.Quit();
+        }
+
+        public async void OpenDailyScreen()
+        {
+            _logger.LogInformation("Opening Daily Screen...");
+            
+            // Load Daily Additively with Parent Scope
+            using (LifetimeScope.EnqueueParent(_scope))
+            {
+                await SceneManager.LoadSceneAsync("Daily", LoadSceneMode.Additive);
+            }
         }
 
         public void HandleSceneUnloaded(string sceneName)
@@ -144,6 +167,27 @@ namespace TienLen.Presentation.HomeScreen.Presenters
         {
             OnPlayInteractableChanged?.Invoke(false);
             OnStatusTextChanged?.Invoke($"Auth Failed: {message}");
+        }
+
+        private async UniTask HandleAppExceptionAsync(TienLenAppException ex, string logMessage)
+        {
+            if (ex == null) return;
+
+
+            if (ex.Outcome == ErrorOutcome.ErrorScene)
+            {
+                _errorSceneState.Set(ex.Message, SceneManager.GetActiveScene().name);
+                using (LifetimeScope.EnqueueParent(_scope))
+                {
+            _logger.LogWarning(logMessage);
+                    await SceneManager.LoadSceneAsync("ErrorScene", LoadSceneMode.Additive);
+                }
+                OnPlayInteractableChanged?.Invoke(true);
+                return;
+            }
+
+            OnStatusTextChanged?.Invoke(ex.Message);
+            OnPlayInteractableChanged?.Invoke(true);
         }
     }
 }

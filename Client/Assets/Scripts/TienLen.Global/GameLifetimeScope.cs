@@ -1,6 +1,5 @@
 using System;
 using TienLen.Application;
-using TienLen.Application.Errors;
 using Microsoft.Extensions.Logging;
 using TienLen.Application.Session;
 using TienLen.Infrastructure.Config;
@@ -9,7 +8,6 @@ using TienLen.Infrastructure.Match;
 using TienLen.Application.Chat;
 using TienLen.Application.Speech;
 using TienLen.Infrastructure.Chat;
-using TienLen.Infrastructure.Errors;
 using TienLen.Infrastructure.Speech;
 using TienLen.Application.Voice;
 using TienLen.Infrastructure.Voice;
@@ -47,15 +45,8 @@ namespace TienLen.Global
             builder.Register<GameSessionContext>(Lifetime.Singleton)
                 .As<IGameSessionContext>();
 
-            // Register Network Error Source
-            builder.Register<ErrorNetworkClient>(Lifetime.Singleton)
-                .As<IErrorNetworkClient>();
-
-            // Register Application Error Handler
-            builder.Register<AppErrorHandler>(Lifetime.Singleton);
-
-            // Register Application Error Presenter
-            builder.Register<AppErrorPresenter>(Lifetime.Singleton);
+            // Register Error Scene State
+            builder.Register<ErrorSceneState>(Lifetime.Singleton);
 
             // Register Logging
             builder.Register<ZLoggerService>(Lifetime.Singleton);
@@ -102,7 +93,6 @@ namespace TienLen.Global
             // Register Bootstrap UI (Component in Hierarchy) so it receives Injection
             builder.RegisterComponentInHierarchy<BootstrapView>();
 
-            builder.RegisterBuildCallback(container => container.Resolve<AppErrorPresenter>());
         }
     }
 }

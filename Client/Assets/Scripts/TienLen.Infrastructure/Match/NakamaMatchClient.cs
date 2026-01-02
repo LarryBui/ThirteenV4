@@ -42,7 +42,6 @@ namespace TienLen.Infrastructure.Match
         }
 
         private readonly NakamaAuthenticationService _authService;
-        private readonly IErrorNetworkClient _errorNetworkClient;
         private readonly ILogger<NakamaMatchClient> _logger;
         private string _matchId;
         private ISocket _subscribedSocket;
@@ -69,15 +68,12 @@ namespace TienLen.Infrastructure.Match
         /// Initializes the match client with required services.
         /// </summary>
         /// <param name="authService">Authentication service used for socket access.</param>
-        /// <param name="errorNetworkClient">Network error source used to emit application errors.</param>
         /// <param name="logger">Logger used for structured match diagnostics.</param>
         public NakamaMatchClient(
             NakamaAuthenticationService authService,
-            IErrorNetworkClient errorNetworkClient,
             ILogger<NakamaMatchClient> logger)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
-            _errorNetworkClient = errorNetworkClient ?? throw new ArgumentNullException(nameof(errorNetworkClient));
             _logger = logger ?? NullLogger<NakamaMatchClient>.Instance;
         }
 
@@ -101,8 +97,7 @@ namespace TienLen.Infrastructure.Match
             }
             catch (ApiResponseException ex)
             {
-                RaiseRpcError(rpcId, ex);
-                throw new InvalidOperationException($"RPC '{rpcId}' failed.", ex);
+                throw CreateAppException(rpcId, ex);
             }
 
             if (rpcResponse == null || string.IsNullOrEmpty(rpcResponse.Payload))
@@ -495,9 +490,19 @@ namespace TienLen.Infrastructure.Match
             }
         }
 
-        private void RaiseRpcError(string context, ApiResponseException ex)
+        private TienLenAppException CreateAppException(string context, ApiResponseException ex)
         {
-            if (ex == null) return;
+            if (ex == null)
+            {
+                return new TienLenAppException(
+                    (int)Proto.ErrorCode.Unspecified,
+                    (int)Proto.ErrorCategory.Unspecified,
+                    ErrorOutcome.InlineScene,
+                    "An unexpected error occurred.",
+                    context ?? string.Empty);
+            }
+
+            _logger.LogWarning("RPC error payload: {Payload}", ex.Message);
 
             var appCode = (int)Proto.ErrorCode.Unspecified;
             var category = (int)Proto.ErrorCategory.Unspecified;
@@ -510,7 +515,8 @@ namespace TienLen.Infrastructure.Match
 
             var message = ResolveMessage(appCode);
             var outcome = ResolveOutcome(appCode);
-            _errorNetworkClient.Raise(new AppError(appCode, category, outcome, message, context ?? string.Empty));
+            _logger.LogWarning("RPC error resolved: app_code={AppCode} category={Category} outcome={Outcome}", appCode, category, outcome);
+            return new TienLenAppException(appCode, category, outcome, message, context ?? string.Empty, ex);
         }
 
         private static bool TryParseRpcErrorPayload(string message, out RpcErrorPayload payload)
