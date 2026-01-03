@@ -14,7 +14,7 @@ namespace TienLen.Presentation.GameRoomScreen.Views
     {
         [Header("Microphone Input")]
         [SerializeField] private Toggle _micToggle; // Controls STT (Dictation)
-        [SerializeField] private Toggle _voiceMuteToggle; // Controls Voice Audio Mute
+        [SerializeField] private Toggle _voiceChatToggle; // Controls Voice Audio Active State
         [SerializeField] private Image _micIcon;
         [SerializeField] private Sprite _micOnSprite;
         [SerializeField] private Sprite _micOffSprite;
@@ -45,16 +45,16 @@ namespace TienLen.Presentation.GameRoomScreen.Views
             if (_micToggle != null)
             {
                 _micToggle.onValueChanged.AddListener(HandleSttToggleChanged);
-                // Don't auto-set here, let user choose
             }
             
-            // Wire up Mute Toggle
-            if (_voiceMuteToggle != null)
+            // Wire up Voice Chat Toggle
+            if (_voiceChatToggle != null)
             {
-                _voiceMuteToggle.onValueChanged.AddListener(HandleMuteToggleChanged);
-                // Init Mute state? Default is usually Unmuted (Toggle OFF = Unmuted? Or ON = Muted?)
-                // Assuming Toggle ON = Muted.
-                _presenter.SetMicrophoneMuted(_voiceMuteToggle.isOn);
+                _voiceChatToggle.onValueChanged.AddListener(HandleMuteToggleChanged);
+                // Apply initial state: Toggle ON = Mic Active (Not Muted)
+                bool isMicActive = _voiceChatToggle.isOn;
+                _presenter.SetMicrophoneMuted(!isMicActive);
+                UpdateMicVisuals(isMicActive);
             }
 
             // Wire up Events
@@ -73,13 +73,15 @@ namespace TienLen.Presentation.GameRoomScreen.Views
 
         private void HandleSttToggleChanged(bool isOn)
         {
-            UpdateMicVisuals(isOn);
             _presenter?.SetSpeechToTextActive(isOn);
         }
         
-        private void HandleMuteToggleChanged(bool isMuted)
+        private void HandleMuteToggleChanged(bool isMicActive)
         {
-            _presenter?.SetMicrophoneMuted(isMuted);
+            // Toggle ON = Mic Active (Unmuted)
+            // Toggle OFF = Mic Muted
+            _presenter?.SetMicrophoneMuted(!isMicActive);
+            UpdateMicVisuals(isMicActive);
         }
 
         private void UpdateMicVisuals(bool isOn)
