@@ -52,21 +52,22 @@ namespace TienLen.Infrastructure.Voice
             // Set provider after initialization when Instance is available
             VivoxService.Instance.SetTokenProvider(this);
             
-            // Subscribe to transcription events
-            VivoxService.Instance.TranscribedMessageReceived += OnVivoxTranscribedMessage;
-        }
-
-        private void OnVivoxTranscribedMessage(VivoxTranscribedMessage message)
-        {
-            if (!_isSpeechToTextActive) return;
-            // Only forward if we have text
-            if (string.IsNullOrWhiteSpace(message.Text)) return;
-            
-            OnSpeechMessageReceived?.Invoke(message.SenderDisplayName, message.Text, message.FromSelf);
+            // Subscribe to channel messages (transcriptions appear here when STT is enabled)
+            VivoxService.Instance.ChannelMessageReceived += (message) => 
+            {
+                if (!_isSpeechToTextActive) return;
+                if (string.IsNullOrWhiteSpace(message.MessageText)) return;
+                OnSpeechMessageReceived?.Invoke(message.SenderDisplayName, message.MessageText, message.FromSelf);
+            };
         }
 
         public UniTask EnableSpeechToTextAsync(bool active)
         {
+            if (active)
+            {
+                Debug.Log("[Vivox] Speech-to-Text (STT) enabled in client. \n" +
+                          "IMPORTANT: STT is a paid add-on. You must contact Vivox Sales to enable 'Speech-to-Text Transcription' for your organization before this will work.");
+            }
             _isSpeechToTextActive = active;
             return UniTask.CompletedTask;
         }
@@ -87,8 +88,8 @@ namespace TienLen.Infrastructure.Voice
                 await LoginAsync();
             }
 
+            // NOTE: Transcription (STT) must be enabled in the Unity Dashboard > Vivox > Settings.
             var channelOptions = new ChannelOptions(); 
-            // Note: Transcription might need specific channel properties depending on Vivox backend config
             await VivoxService.Instance.JoinGroupChannelAsync(matchId, ChatCapability.TextAndAudio, channelOptions);
         }
 

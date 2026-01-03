@@ -33,7 +33,7 @@ namespace TienLen.Tests.Infrastructure
             const string expectedToken = "token_abc";
             
             _mockAuth.IsAuthenticated = true;
-            _mockAuth.RpcResponse = $"{{"token": "{expectedToken}"}}";
+            _mockAuth.RpcResponse = $"{{\"token\": \"{expectedToken}\"}}";
             
             // We need to trigger JoinChannelAsync or use reflection to set _currentContextMatchId
             // Since we can't easily call JoinChannelAsync (it calls static VivoxService), 
@@ -45,8 +45,8 @@ namespace TienLen.Tests.Infrastructure
             // Assert
             Assert.AreEqual(expectedToken, token);
             Assert.AreEqual("get_vivox_token", _mockAuth.LastRpcId);
-            Assert.Contains(matchId, _mockAuth.LastRpcPayload);
-            Assert.Contains("login", _mockAuth.LastRpcPayload);
+            StringAssert.Contains(matchId, _mockAuth.LastRpcPayload);
+            StringAssert.Contains("login", _mockAuth.LastRpcPayload);
         }
 
         [Test]
@@ -58,7 +58,7 @@ namespace TienLen.Tests.Infrastructure
             const string channelUri = "sip:confctl-g-domain." + matchId + "@domain.vivox.com";
             
             _mockAuth.IsAuthenticated = true;
-            _mockAuth.RpcResponse = $"{{"token": "{expectedToken}"}}";
+            _mockAuth.RpcResponse = $"{{\"token\": \"{expectedToken}\"}}";
             
             // Act
             var token = await _service.GetTokenAsync(action: "join", channelUri: channelUri);
@@ -66,8 +66,8 @@ namespace TienLen.Tests.Infrastructure
             // Assert
             Assert.AreEqual(expectedToken, token);
             Assert.AreEqual("get_vivox_token", _mockAuth.LastRpcId);
-            Assert.Contains(matchId, _mockAuth.LastRpcPayload);
-            Assert.Contains("join", _mockAuth.LastRpcPayload);
+            StringAssert.Contains(matchId, _mockAuth.LastRpcPayload);
+            StringAssert.Contains("join", _mockAuth.LastRpcPayload);
         }
 
         private class MockAuthService : IAuthenticationService

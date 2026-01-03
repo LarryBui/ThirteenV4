@@ -4,7 +4,6 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
 using TienLen.Application.Errors;
-using TienLen.Application.Speech;
 using TienLen.Application.Voice;
 using TienLen.Domain.Aggregates;
 using TienLen.Domain.Services;
