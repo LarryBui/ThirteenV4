@@ -101,6 +101,17 @@ namespace TienLen.Infrastructure.Services
             }
         }
 
+        public async UniTask<string> ExecuteRpcAsync(string id, string payload)
+        {
+            if (_socket == null)
+            {
+                throw new InvalidOperationException("Nakama socket is not available.");
+            }
+
+            var result = await _socket.RpcAsync(id, payload);
+            return result.Payload;
+        }
+
         private IClient CreateClient()
         {
             return new Client(_config.Scheme, _config.Host, _config.Port, _config.ServerKey, UnityWebRequestAdapter.Instance);

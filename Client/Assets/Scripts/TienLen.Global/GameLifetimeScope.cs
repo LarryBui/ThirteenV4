@@ -48,6 +48,9 @@ namespace TienLen.Global
             // Register Error Scene State
             builder.Register<ErrorSceneState>(Lifetime.Singleton);
 
+            // Register Global Message Handler
+            builder.Register<GlobalMessageHandler>(Lifetime.Singleton);
+
             // Register Logging
             builder.Register<ZLoggerService>(Lifetime.Singleton);
             builder.Register<ILoggerFactory>(container => container.Resolve<ZLoggerService>().LoggerFactory, Lifetime.Singleton);

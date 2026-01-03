@@ -1,15 +1,24 @@
 using System;
+using System.Collections.Generic;
+using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
 using Nakama;
+using TienLen.Application;
 using TienLen.Application.Voice;
 using TienLen.Infrastructure.Services;
+using TienLen.Infrastructure.Config;
 using UnityEngine;
+using Unity.Services.Core;
+using Unity.Services.Vivox;
 
 namespace TienLen.Infrastructure.Voice
 {
-    public class VivoxVoiceChatService : IVoiceChatService
+    public class VivoxVoiceChatService : IVoiceChatService, IVivoxTokenProvider
     {
-        private readonly NakamaAuthenticationService _authService;
+        private readonly IAuthenticationService _authService;
+        private readonly VivoxConfig _config;
+        private bool _isLoggedIn;
+        private string _currentContextMatchId;
 
         [Serializable]
         private class VivoxTokenResponse
@@ -24,45 +33,127 @@ namespace TienLen.Infrastructure.Voice
             public string match_id;
         }
 
-        public VivoxVoiceChatService(NakamaAuthenticationService authService)
+        public VivoxVoiceChatService(IAuthenticationService authService, VivoxConfig config)
         {
             _authService = authService ?? throw new ArgumentNullException(nameof(authService));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
-        public UniTask InitializeAsync() => UniTask.CompletedTask;
-
-        public UniTask JoinChannelAsync(string matchId) => UniTask.CompletedTask;
-
-        public UniTask LeaveChannelAsync() => UniTask.CompletedTask;
-
-        public async UniTask<string> RequestAuthTokenAsync(string matchId)
+        public async UniTask InitializeAsync()
         {
-            if (string.IsNullOrWhiteSpace(matchId))
+            if (UnityServices.State == ServicesInitializationState.Uninitialized)
             {
-                throw new ArgumentException("matchId is required.", nameof(matchId));
+                await UnityServices.InitializeAsync();
+            }
+            
+            // Set provider after initialization when Instance is available
+            VivoxService.Instance.SetTokenProvider(this);
+        }
+
+        public async UniTask JoinChannelAsync(string matchId)
+        {
+            _currentContextMatchId = matchId;
+            Debug.Log($"[Vivox] Joining channel for MatchId: {matchId}");
+
+            // Ensure initialized
+            if (UnityServices.State == ServicesInitializationState.Uninitialized)
+            {
+                await InitializeAsync();
             }
 
+            if (!_isLoggedIn)
+            {
+                await LoginAsync();
+            }
+
+            var channelOptions = new ChannelOptions();
+            await VivoxService.Instance.JoinGroupChannelAsync(matchId, ChatCapability.TextAndAudio, channelOptions);
+        }
+
+        public async UniTask LeaveChannelAsync()
+        {
+            await VivoxService.Instance.LeaveAllChannelsAsync();
+            if (_isLoggedIn)
+            {
+                await VivoxService.Instance.LogoutAsync();
+                _isLoggedIn = false;
+            }
+            _currentContextMatchId = null;
+        }
+
+        private async UniTask LoginAsync()
+        {
+            string playerId = _authService.CurrentUserId;
+            string displayName = _authService.CurrentUserDisplayName ?? "Player";
+            
+            Debug.Log($"[Vivox] Attempting Login. PlayerId: '{playerId}', DisplayName: '{displayName}'");
+
+            if (string.IsNullOrEmpty(playerId))
+            {
+                Debug.LogError("[Vivox] Login Aborted: PlayerId is null or empty!");
+                throw new InvalidOperationException("Cannot login to Vivox without a valid PlayerId.");
+            }
+
+            var loginOptions = new LoginOptions
+            {
+                DisplayName = displayName,
+                PlayerId = playerId
+            };
+
+            await VivoxService.Instance.LoginAsync(loginOptions);
+            _isLoggedIn = true;
+        }
+
+        public async Task<string> GetTokenAsync(string issuer = null, TimeSpan? expiration = null, string targetUserUri = null, string action = null, string channelUri = null, string fromUserUri = null, string realm = null)
+        {
+            string matchId = _currentContextMatchId ?? "";
+            Debug.Log($"[Vivox] GetTokenAsync called. Action: {action}, MatchId Context: {matchId}, ChannelUri: {channelUri}, UserUri: {fromUserUri}");
+
+            if (action == "join" && !string.IsNullOrEmpty(channelUri))
+            {
+                // ... extraction logic ...
+                int dashIndex = channelUri.LastIndexOf('-');
+                int atIndex = channelUri.IndexOf('@');
+                if (dashIndex != -1 && atIndex != -1 && atIndex > dashIndex)
+                {
+                    matchId = channelUri.Substring(dashIndex + 1, atIndex - dashIndex - 1);
+                    Debug.Log($"[Vivox] Extracted MatchId from URI: {matchId}");
+                }
+            }
+
+            // Convert UniTask to Task for interface compliance
+            return await RequestAuthTokenAsync(matchId, action).AsTask();
+        }
+
+        public UniTask<string> RequestAuthTokenAsync(string matchId)
+        {
+            return RequestAuthTokenAsync(matchId, "login");
+        }
+
+        private async UniTask<string> RequestAuthTokenAsync(string matchId, string action)
+        {
             if (!_authService.IsAuthenticated)
             {
                 throw new InvalidOperationException("User must be authenticated before requesting Vivox token.");
             }
 
-            if (_authService.Socket == null)
-            {
-                throw new InvalidOperationException("Nakama socket is not available.");
-            }
+            Debug.Log($"[Vivox] Requesting Auth Token from Nakama. Action: {action}, MatchId: {matchId}");
 
             var request = new VivoxTokenRequest
             {
-                action = "login",
+                action = action,
                 match_id = matchId
             };
 
-            var rpcResult = await _authService.Socket.RpcAsync("get_vivox_token", JsonUtility.ToJson(request));
-            var response = JsonUtility.FromJson<VivoxTokenResponse>(rpcResult.Payload);
+            var jsonPayload = JsonUtility.ToJson(request);
+            var rpcResult = await _authService.ExecuteRpcAsync("get_vivox_token", jsonPayload);
+            
+            Debug.Log($"[Vivox] Received RPC response: {rpcResult}");
+
+            var response = JsonUtility.FromJson<VivoxTokenResponse>(rpcResult);
             if (response == null || string.IsNullOrWhiteSpace(response.token))
             {
-                throw new InvalidOperationException("Vivox token response was empty.");
+                throw new InvalidOperationException($"Vivox {action} token response was empty.");
             }
 
             return response.token;

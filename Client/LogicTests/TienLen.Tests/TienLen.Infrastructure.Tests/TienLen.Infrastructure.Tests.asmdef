@@ -1,0 +1,29 @@
+{
+    "name": "TienLen.Infrastructure.Tests",
+    "rootNamespace": "TienLen.Infrastructure.Tests",
+    "references": [
+        "TienLen.Domain",
+        "TienLen.Application",
+        "TienLen.Infrastructure",
+        "UniTask",
+        "TienLen.Proto"
+    ],
+    "optionalUnityReferences": [
+        "TestAssemblies"
+    ],
+    "includePlatforms": [
+        "Editor"
+    ],
+    "excludePlatforms": [],
+    "allowUnsafeCode": false,
+    "overrideReferences": false,
+    "precompiledReferences": [
+        "nunit.framework.dll"
+    ],
+    "autoReferenced": false,
+    "defineConstraints": [
+        "UNITY_INCLUDE_TESTS"
+    ],
+    "versionDefines": [],
+    "noEngineReferences": false
+}

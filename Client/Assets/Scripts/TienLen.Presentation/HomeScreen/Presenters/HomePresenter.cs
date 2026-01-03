@@ -1,5 +1,4 @@
 using System;
-using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
@@ -21,7 +20,8 @@ namespace TienLen.Presentation.HomeScreen.Presenters
         private readonly TienLenMatchHandler _matchHandler;
         private readonly ILogger<HomePresenter> _logger;
         private readonly LifetimeScope _scope;
-        private readonly ErrorSceneState _errorSceneState;
+        private readonly GlobalMessageHandler _globalMessageHandler;
+        private Action _retryAction;
 
         public event Action<bool> OnPlayInteractableChanged;
         public event Action<string> OnStatusTextChanged;
@@ -32,15 +32,16 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             IAuthenticationService authService,
             TienLenMatchHandler matchHandler,
             LifetimeScope scope,
-            ErrorSceneState errorSceneState,
+            GlobalMessageHandler globalMessageHandler,
             ILogger<HomePresenter> logger)
         {
             _authService = authService;
             _matchHandler = matchHandler;
             _scope = scope;
-            _errorSceneState = errorSceneState ?? throw new ArgumentNullException(nameof(errorSceneState));
+            _globalMessageHandler = globalMessageHandler ?? throw new ArgumentNullException(nameof(globalMessageHandler));
             _logger = logger ?? NullLogger<HomePresenter>.Instance;
 
+            _globalMessageHandler.RetryRequested += HandleRetryRequested;
             SubscribeToServices();
         }
 
@@ -67,6 +68,8 @@ namespace TienLen.Presentation.HomeScreen.Presenters
                 _authService.OnAuthenticated -= HandleAuthComplete;
                 _authService.OnAuthenticationFailed -= HandleAuthFailed;
             }
+
+            _globalMessageHandler.RetryRequested -= HandleRetryRequested;
         }
 
         public async void JoinCasualMatch()
@@ -85,12 +88,13 @@ namespace TienLen.Presentation.HomeScreen.Presenters
                 {
                     await SceneManager.LoadSceneAsync("GameRoom", LoadSceneMode.Additive);
                 }
-                
+
+                _retryAction = null;
                 OnHideViewRequested?.Invoke();
             }
             catch (TienLenAppException ex)
             {
-                await HandleAppExceptionAsync(ex, "Failed to find casual match.");
+                HandleAppException(ex, "Matchmaking", JoinCasualMatch);
             }
             catch (Exception ex)
             {
@@ -118,17 +122,12 @@ namespace TienLen.Presentation.HomeScreen.Presenters
                     await SceneManager.LoadSceneAsync("VIPGameRoom", LoadSceneMode.Additive);
                 }
 
+                _retryAction = null;
                 OnHideViewRequested?.Invoke();
             }
             catch (TienLenAppException ex)
             {
-                _errorSceneState.Set(ex.Message, SceneManager.GetActiveScene().name);
-                using (LifetimeScope.EnqueueParent(_scope))
-                {
-                    await SceneManager.LoadSceneAsync("ErrorScene", LoadSceneMode.Additive);
-                }
-                _logger.LogError(ex, " custom Exception. Failed to join VIP match.");
-                // await HandleAppExceptionAsync(ex, "Failed to join VIP match.");
+                HandleAppException(ex, "VIP Match", JoinVipMatch);
             }
             catch (Exception ex)
             {
@@ -175,26 +174,22 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             OnStatusTextChanged?.Invoke($"Auth Failed: {message}");
         }
 
-        private async UniTask HandleAppExceptionAsync(TienLenAppException ex, string logMessage)
+        private void HandleRetryRequested(UiNotification _)
+        {
+            if (_retryAction == null) return;
+            var action = _retryAction;
+            _retryAction = null;
+            action.Invoke();
+        }
+
+        private void HandleAppException(TienLenAppException ex, string title, Action retryAction)
         {
             if (ex == null) return;
 
-
-            if (ex.Outcome == ErrorOutcome.ErrorScene)
-            {
-                 _errorSceneState.Set(ex.Message, SceneManager.GetActiveScene().name);
-                using (LifetimeScope.EnqueueParent(_scope))
-                {
-                    _logger.LogWarning(logMessage);
-                    await SceneManager.LoadSceneAsync("ErrorScene", LoadSceneMode.Additive);
-                }
-                // SceneManager.SetActiveScene(SceneManager.GetSceneByName("ErrorScene"));
-                OnHideViewRequested?.Invoke();
-                // OnPlayInteractableChanged?.Invoke(true);
-                return;
-            }
-
-            OnStatusTextChanged?.Invoke(ex.Message);
+            _retryAction = retryAction;
+            _logger.LogWarning(ex, "{Title} failed with app error.", title);
+            var notification = UiNotificationRouter.FromAppException(ex, title);
+            _globalMessageHandler.Publish(notification);
             OnPlayInteractableChanged?.Invoke(true);
         }
     }

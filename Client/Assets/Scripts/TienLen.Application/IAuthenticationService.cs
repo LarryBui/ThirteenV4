@@ -42,5 +42,13 @@ namespace TienLen.Application
         /// Authenticates the user and connects to the backend. Safe to call multiple times.
         /// </summary>
         UniTask LoginAsync();
+
+        /// <summary>
+        /// Executes a named RPC call on the backend.
+        /// </summary>
+        /// <param name="id">RPC identifier.</param>
+        /// <param name="payload">JSON payload.</param>
+        /// <returns>JSON response payload.</returns>
+        UniTask<string> ExecuteRpcAsync(string id, string payload);
     }
 }

@@ -5,6 +5,7 @@
 - **Git Rule:** NEVER suggest, mention, or perform Git actions unless explicitly commanded. When finished, simply say "Implementation complete."
 - **Testing:** Always run unit tests to verify changes.
 - **Deployment:** Always rebuild Nakama (Go) and refresh Docker containers if the changes need to be applied to the running server.
+- **Memory Rule:** Save context memory to `./.idea/project.md`. Do not use the `save_memory` tool for project context.
 
 ## 2. Architecture & Coding Standards (Clean Architecture & DDD)
 - **Structure:**
@@ -34,3 +35,38 @@
 - **Server:** Nakama (Go)
 - **Client:** Unity (C#)
 - **Protocol:** Protobuf
+
+## 5. Project Context: Tien Len (Thirteen)
+- **Frontend:** Unity (C#)
+- **Backend:** Nakama Server (Go-based distributed modules)
+- **Database:** PostgreSQL (via Nakama's storage engine)
+- **Architecture:** Hybrid Clean Architecture/DDD.
+  - **Source of Truth:** Nakama Go Modules (Server-Authoritative).
+  - **Client:** Unity acts as a View/Presenter with local state prediction.
+
+## 6. Nakama + Go Implementation Rules
+- **Match Loop:** Implement the `MatchLoop` in Go to handle tick-based state broadcasts.
+- **Concurrency:** Use Go channels and mutexes safely. Avoid global variables; maintain state within the Nakama `MatchState` struct.      
+- **Protocols:** Use JSON or Protobuf for messages. Ensure that any change to the Go message struct is reflected in the Unity C# DTOs immediately.
+
+## 7. Unity (C#) Coding Standards
+- **MVP Pattern:** Strictly follow Model-View-Presenter.
+  - **Presenters:** Pure C# classes (no MonoBehaviour) handling logic and state mapping. Name: `[Feature]Presenter`.
+  - **Views:** `MonoBehaviours` handling UI references and events. Name: `[Feature]View`.
+  - **NO Controllers:** Do not use the suffix "Controller". Refactor existing "Controllers" to Presenters or Views as appropriate.        
+- **Data-Driven UI:** The UI must react to the `GameState` DTO received from Nakama. Do not couple UI logic directly to input logic.      
+- **Async/Await:** Use `UniTask` or standard `Task` for all network calls. Do not use blocking calls or coroutines for API requests.      
+- **Event-Driven:** Use a local `EventBus` to decouple network messages from UI updates (e.g., `OnCardPlayed`, `OnTurnChanged`).
+
+## 8. Specific Game Rules: Tien Len
+- **Card Ranking:** 2 (Highest) > A > K > Q > J > 10 > 9 > 8 > 7 > 6 > 5 > 4 > 3 (Lowest).
+- **Suit Ranking:** Hearts > Diamonds > Clubs > Spades.
+- **Validation:**
+  - Valid combinations: Singles, Pairs, Triples, Sequences (3+), Bombs (Four of a Kind or 3+ pairs in sequence).
+  - "Chopping": Bombs can defeat 2s.
+- **Turn Logic:** Strict turn-based state machine. Passing skips the player until the round resets.
+
+## 9. Error Handling & Navigation
+- **Critical Errors:** For game-breaking errors (network loss, fatal logic exception) where the user cannot proceed, use `ErrorContext.ShowError(message)`.
+- **Error Scene:** This will load the `ErrorScene` which displays the message and provides a "Back" button to the previous context.       
+- **UI Feedback:** For non-critical errors (invalid move), use local UI feedback (toast, shake animation) instead of changing scenes.

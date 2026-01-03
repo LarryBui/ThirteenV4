@@ -3,6 +3,8 @@ using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application; // Updated
+using TienLen.Presentation.GlobalMessage;
+using TienLen.Presentation.GlobalMessage.Views;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
@@ -20,6 +22,8 @@ namespace TienLen.Presentation.BootstrapScreen
         private IAuthenticationService _authService;
         private LifetimeScope _parentLifetimeScope; // Inject the current scope
         private ILogger<BootstrapView> _logger;
+        private const string GlobalMessageRootName = "GlobalMessageRoot";
+        private GameObject _globalMessageRoot;
 
         /// <summary>
         /// Injects required services for bootstrap initialization.
@@ -41,6 +45,7 @@ namespace TienLen.Presentation.BootstrapScreen
         private void Start()
         {
             if (loadingScreenRoot) loadingScreenRoot.SetActive(true);
+            EnsureGlobalMessageRoot();
             InitializeGameAsync().Forget();
         }
 
@@ -78,6 +83,23 @@ namespace TienLen.Presentation.BootstrapScreen
             await UniTask.Delay(500);
             
             if (loadingScreenRoot) loadingScreenRoot.SetActive(false);
+        }
+
+        private void EnsureGlobalMessageRoot()
+        {
+            if (_globalMessageRoot != null) return;
+            if (GameObject.Find(GlobalMessageRootName) != null) return;
+
+            using (LifetimeScope.EnqueueParent(_parentLifetimeScope))
+            {
+                var root = new GameObject(GlobalMessageRootName);
+                root.SetActive(false);
+                root.AddComponent<GlobalMessageView>();
+                root.AddComponent<GlobalMessageLifetimeScope>();
+                DontDestroyOnLoad(root);
+                root.SetActive(true);
+                _globalMessageRoot = root;
+            }
         }
 
         private void UpdateProgress(float progress)
