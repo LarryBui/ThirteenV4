@@ -40,16 +40,12 @@ namespace TienLen.Presentation.GameRoomScreen
         // Expose current match for read-only binding in View
         public Match CurrentMatch => _matchHandler?.CurrentMatch;
 
-        private readonly ISpeechToTextService _sttService;
-
         public GameRoomPresenter(
             TienLenMatchHandler matchHandler,
-            ISpeechToTextService sttService,
             VoiceChatHandler voiceChatHandler,
             ILogger<GameRoomPresenter> logger)
         {
             _matchHandler = matchHandler;
-            _sttService = sttService;
             _voiceChatHandler = voiceChatHandler;
             _logger = logger ?? NullLogger<GameRoomPresenter>.Instance;
 
@@ -71,9 +67,9 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.InGameChatReceived += HandleInGameChatReceived;
             _matchHandler.PlayerFinished += HandlePlayerFinished;
 
-            if (_sttService != null)
+            if (_voiceChatHandler != null)
             {
-                _sttService.OnPhraseRecognized += HandleSttPhraseRecognized;
+                _voiceChatHandler.OnSpeechMessageReceived += HandleSttPhraseRecognized;
             }
 
             EnsureVoiceChatJoined();
@@ -93,10 +89,9 @@ namespace TienLen.Presentation.GameRoomScreen
             _matchHandler.GameEnded -= HandleGameEnded;
             _matchHandler.InGameChatReceived -= HandleInGameChatReceived;
 
-            if (_sttService != null)
+            if (_voiceChatHandler != null)
             {
-                _sttService.OnPhraseRecognized -= HandleSttPhraseRecognized;
-                _sttService.StopTranscribing();
+                _voiceChatHandler.OnSpeechMessageReceived -= HandleSttPhraseRecognized;
             }
 
             _voiceChatHandler?.LeaveGameRoomAsync().Forget(ex =>
@@ -142,8 +137,10 @@ namespace TienLen.Presentation.GameRoomScreen
         private void HandlePlayerFinished(int seat, int rank) => OnPlayerFinished?.Invoke(seat, rank);
         private void HandleInGameChatReceived(int seatIndex, string message) => OnInGameChatReceived?.Invoke(seatIndex, message);
 
-        private void HandleSttPhraseRecognized(string phrase)
+        private void HandleSttPhraseRecognized(string sender, string phrase, bool isFromSelf)
         {
+            if (!isFromSelf) return; // Only process my own speech as dictation
+            
             UnityEngine.Debug.Log($"[GameRoomPresenter] STT Phrase Recognized: '{phrase}'");
             SendInGameChat(phrase);
         }
@@ -159,9 +156,8 @@ namespace TienLen.Presentation.GameRoomScreen
 
         public void SetSpeechToTextActive(bool active)
         {
-            if (_sttService == null) return;
-            if (active) _sttService.StartTranscribing();
-            else _sttService.StopTranscribing();
+            if (_voiceChatHandler == null) return;
+            _voiceChatHandler.EnableSpeechToTextAsync(active).Forget();
         }
 
         private void EnsureVoiceChatJoined()

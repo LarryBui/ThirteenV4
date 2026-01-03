@@ -34,6 +34,21 @@ namespace TienLen.Presentation.Shared
         public event Action<UiNotification> BackRequested;
 
         /// <summary>
+        /// Raised when the user selects the Close action.
+        /// </summary>
+        public event Action<UiNotification> CloseRequested;
+
+        /// <summary>
+        /// Raised when the user selects the Yes action.
+        /// </summary>
+        public event Action<UiNotification> YesRequested;
+
+        /// <summary>
+        /// Raised when the user selects the No action.
+        /// </summary>
+        public event Action<UiNotification> NoRequested;
+
+        /// <summary>
         /// Gets the latest snapshot of active and queued messages.
         /// </summary>
         public GlobalMessageSnapshot GetSnapshot()
@@ -122,6 +137,52 @@ namespace TienLen.Presentation.Shared
             if (active != null)
             {
                 BackRequested?.Invoke(active);
+                DismissActiveBlocking();
+            }
+        }
+
+        /// <summary>
+        /// Requests a close for the currently active message.
+        /// </summary>
+        public void RequestClose()
+        {
+            var active = _activeFullscreen ?? _activeModal;
+            if (active != null)
+            {
+                CloseRequested?.Invoke(active);
+                DismissActiveBlocking();
+                return;
+            }
+
+            if (_activeToast != null)
+            {
+                CloseRequested?.Invoke(_activeToast);
+                DismissActiveToast();
+            }
+        }
+
+        /// <summary>
+        /// Requests a yes decision for the currently active blocking message.
+        /// </summary>
+        public void RequestYes()
+        {
+            var active = _activeFullscreen ?? _activeModal;
+            if (active != null)
+            {
+                YesRequested?.Invoke(active);
+                DismissActiveBlocking();
+            }
+        }
+
+        /// <summary>
+        /// Requests a no decision for the currently active blocking message.
+        /// </summary>
+        public void RequestNo()
+        {
+            var active = _activeFullscreen ?? _activeModal;
+            if (active != null)
+            {
+                NoRequested?.Invoke(active);
                 DismissActiveBlocking();
             }
         }

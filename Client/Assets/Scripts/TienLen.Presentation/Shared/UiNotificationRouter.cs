@@ -15,12 +15,6 @@ namespace TienLen.Presentation.Shared
         private const float WarningToastSeconds = 4f;
         private const string UnknownErrorMessage = "An unexpected error occurred.";
 
-        private static readonly IReadOnlyList<UiAction> BlockingActions = new[]
-        {
-            new UiAction(UiActionKind.Retry, "Retry", isPrimary: true),
-            new UiAction(UiActionKind.Back, "Back")
-        };
-
         /// <summary>
         /// Creates a notification from a server error exception.
         /// </summary>
@@ -41,7 +35,6 @@ namespace TienLen.Presentation.Shared
             var dedupeKey = ResolveErrorDedupeKey(appCode);
             var backgroundMode = ResolveBackgroundMode(displayMode);
             var autoDismiss = ResolveAutoDismissSeconds(displayMode, severity);
-            var actions = displayMode == UiNotificationDisplayMode.Toast ? Array.Empty<UiAction>() : BlockingActions;
             var message = !string.IsNullOrWhiteSpace(error.Message)
                 ? error.Message
                 : GlobalMessageCatalog.ResolveMessage(appCode);
@@ -57,7 +50,8 @@ namespace TienLen.Presentation.Shared
                 error.CorrelationId ?? string.Empty,
                 backgroundMode,
                 autoDismiss,
-                actions);
+                actions: null,
+                buttonSet: ResolveButtonSet(displayMode));
         }
 
         /// <summary>
@@ -82,7 +76,8 @@ namespace TienLen.Presentation.Shared
                 string.Empty,
                 ResolveBackgroundMode(displayMode),
                 ResolveAutoDismissSeconds(displayMode, severity),
-                displayMode == UiNotificationDisplayMode.Toast ? Array.Empty<UiAction>() : BlockingActions);
+                actions: null,
+                buttonSet: ResolveButtonSet(displayMode));
         }
 
         /// <summary>
@@ -104,7 +99,8 @@ namespace TienLen.Presentation.Shared
                 string.Empty,
                 UiBackgroundMode.None,
                 InfoToastSeconds,
-                Array.Empty<UiAction>());
+                actions: null,
+                buttonSet: UiButtonSet.None);
         }
 
         /// <summary>
@@ -129,7 +125,8 @@ namespace TienLen.Presentation.Shared
                 string.Empty,
                 ResolveBackgroundMode(displayMode),
                 ResolveAutoDismissSeconds(displayMode, severity),
-                displayMode == UiNotificationDisplayMode.Toast ? Array.Empty<UiAction>() : BlockingActions);
+                actions: null,
+                buttonSet: ResolveButtonSet(displayMode));
         }
 
         private static UiNotification CreateFallbackError(string title)
@@ -145,7 +142,8 @@ namespace TienLen.Presentation.Shared
                 string.Empty,
                 UiBackgroundMode.Blur,
                 null,
-                BlockingActions);
+                actions: null,
+                buttonSet: UiButtonSet.RetryBack);
         }
 
         private static UiNotificationDisplayMode ResolveDisplayMode(MessageDisplayMode displayMode)
@@ -195,6 +193,13 @@ namespace TienLen.Presentation.Shared
         private static string ResolveErrorDedupeKey(int appCode)
         {
             return appCode > 0 ? $"error.{appCode}" : "error.unknown";
+        }
+
+        private static UiButtonSet ResolveButtonSet(UiNotificationDisplayMode displayMode)
+        {
+            return displayMode == UiNotificationDisplayMode.Toast
+                ? UiButtonSet.None
+                : UiButtonSet.RetryBack;
         }
     }
 }

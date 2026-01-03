@@ -19,6 +19,9 @@ namespace TienLen.Infrastructure.Voice
         private readonly VivoxConfig _config;
         private bool _isLoggedIn;
         private string _currentContextMatchId;
+        private bool _isSpeechToTextActive;
+
+        public event Action<string, string, bool> OnSpeechMessageReceived;
 
         [Serializable]
         private class VivoxTokenResponse
@@ -48,6 +51,24 @@ namespace TienLen.Infrastructure.Voice
             
             // Set provider after initialization when Instance is available
             VivoxService.Instance.SetTokenProvider(this);
+            
+            // Subscribe to transcription events
+            VivoxService.Instance.TranscribedMessageReceived += OnVivoxTranscribedMessage;
+        }
+
+        private void OnVivoxTranscribedMessage(VivoxTranscribedMessage message)
+        {
+            if (!_isSpeechToTextActive) return;
+            // Only forward if we have text
+            if (string.IsNullOrWhiteSpace(message.Text)) return;
+            
+            OnSpeechMessageReceived?.Invoke(message.SenderDisplayName, message.Text, message.FromSelf);
+        }
+
+        public UniTask EnableSpeechToTextAsync(bool active)
+        {
+            _isSpeechToTextActive = active;
+            return UniTask.CompletedTask;
         }
 
         public async UniTask JoinChannelAsync(string matchId)
@@ -66,7 +87,8 @@ namespace TienLen.Infrastructure.Voice
                 await LoginAsync();
             }
 
-            var channelOptions = new ChannelOptions();
+            var channelOptions = new ChannelOptions(); 
+            // Note: Transcription might need specific channel properties depending on Vivox backend config
             await VivoxService.Instance.JoinGroupChannelAsync(matchId, ChatCapability.TextAndAudio, channelOptions);
         }
 

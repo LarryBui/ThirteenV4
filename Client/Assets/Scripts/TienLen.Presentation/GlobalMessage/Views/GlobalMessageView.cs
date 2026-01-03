@@ -41,6 +41,10 @@ namespace TienLen.Presentation.GlobalMessage.Views
         [SerializeField] private TMP_Text _fullscreenSecondaryLabel;
 
         private GlobalMessagePresenter _presenter;
+        private UiActionKind? _modalPrimaryAction;
+        private UiActionKind? _modalSecondaryAction;
+        private UiActionKind? _fullscreenPrimaryAction;
+        private UiActionKind? _fullscreenSecondaryAction;
 
         /// <summary>
         /// Injects the presenter to ensure it is constructed.
@@ -129,7 +133,15 @@ namespace TienLen.Presentation.GlobalMessage.Views
 
             EnsureUi();
             if (_modalRoot != null) _modalRoot.SetActive(true);
-            ApplyPanel(notification, _modalTitle, _modalMessage, _modalPrimaryLabel, _modalSecondaryLabel);
+            ApplyPanel(
+                notification,
+                _modalTitle,
+                _modalMessage,
+                _modalPrimaryButton,
+                _modalPrimaryLabel,
+                _modalSecondaryButton,
+                _modalSecondaryLabel,
+                SetModalActions);
         }
 
         /// <summary>
@@ -138,6 +150,7 @@ namespace TienLen.Presentation.GlobalMessage.Views
         public void HideModal()
         {
             if (_modalRoot != null) _modalRoot.SetActive(false);
+            SetModalActions(null, null);
         }
 
         /// <summary>
@@ -154,7 +167,15 @@ namespace TienLen.Presentation.GlobalMessage.Views
 
             EnsureUi();
             if (_fullscreenRoot != null) _fullscreenRoot.SetActive(true);
-            ApplyPanel(notification, _fullscreenTitle, _fullscreenMessage, _fullscreenPrimaryLabel, _fullscreenSecondaryLabel);
+            ApplyPanel(
+                notification,
+                _fullscreenTitle,
+                _fullscreenMessage,
+                _fullscreenPrimaryButton,
+                _fullscreenPrimaryLabel,
+                _fullscreenSecondaryButton,
+                _fullscreenSecondaryLabel,
+                SetFullscreenActions);
         }
 
         /// <summary>
@@ -163,14 +184,18 @@ namespace TienLen.Presentation.GlobalMessage.Views
         public void HideFullscreen()
         {
             if (_fullscreenRoot != null) _fullscreenRoot.SetActive(false);
+            SetFullscreenActions(null, null);
         }
 
         private void ApplyPanel(
             UiNotification notification,
             TMP_Text titleText,
             TMP_Text messageText,
+            Button primaryButton,
             TMP_Text primaryLabel,
-            TMP_Text secondaryLabel)
+            Button secondaryButton,
+            TMP_Text secondaryLabel,
+            Action<UiActionKind?, UiActionKind?> storeActions)
         {
             if (titleText != null)
             {
@@ -182,28 +207,46 @@ namespace TienLen.Presentation.GlobalMessage.Views
                 messageText.text = notification.Message ?? string.Empty;
             }
 
-            string retryLabel = "Retry";
-            string backLabel = "Back";
+            var actions = notification.ResolveActions();
+            UiAction primaryAction = null;
+            UiAction secondaryAction = null;
 
-            if (notification.Actions != null)
+            if (actions != null && actions.Count > 0)
             {
-                foreach (var action in notification.Actions)
+                foreach (var action in actions)
                 {
                     if (action == null) continue;
-                    switch (action.Kind)
+                    if (action.IsPrimary)
                     {
-                        case UiActionKind.Retry:
-                            retryLabel = string.IsNullOrWhiteSpace(action.Label) ? retryLabel : action.Label;
-                            break;
-                        case UiActionKind.Back:
-                            backLabel = string.IsNullOrWhiteSpace(action.Label) ? backLabel : action.Label;
-                            break;
+                        primaryAction = action;
+                        break;
+                    }
+                }
+
+                if (primaryAction == null)
+                {
+                    foreach (var action in actions)
+                    {
+                        if (action == null) continue;
+                        primaryAction = action;
+                        break;
+                    }
+                }
+
+                if (primaryAction != null)
+                {
+                    foreach (var action in actions)
+                    {
+                        if (action == null || ReferenceEquals(action, primaryAction)) continue;
+                        secondaryAction = action;
+                        break;
                     }
                 }
             }
 
-            if (primaryLabel != null) primaryLabel.text = retryLabel;
-            if (secondaryLabel != null) secondaryLabel.text = backLabel;
+            storeActions?.Invoke(primaryAction?.Kind, secondaryAction?.Kind);
+            ConfigureButton(primaryButton, primaryLabel, primaryAction);
+            ConfigureButton(secondaryButton, secondaryLabel, secondaryAction);
         }
 
         private void StartToastTimer(float seconds)
@@ -304,11 +347,11 @@ namespace TienLen.Presentation.GlobalMessage.Views
             if (_eventsHooked) return;
             _eventsHooked = true;
 
-            if (_modalPrimaryButton != null) _modalPrimaryButton.onClick.AddListener(() => _presenter?.RequestAction(UiActionKind.Retry));
-            if (_modalSecondaryButton != null) _modalSecondaryButton.onClick.AddListener(() => _presenter?.RequestAction(UiActionKind.Back));
+            if (_modalPrimaryButton != null) _modalPrimaryButton.onClick.AddListener(HandleModalPrimaryClicked);
+            if (_modalSecondaryButton != null) _modalSecondaryButton.onClick.AddListener(HandleModalSecondaryClicked);
 
-            if (_fullscreenPrimaryButton != null) _fullscreenPrimaryButton.onClick.AddListener(() => _presenter?.RequestAction(UiActionKind.Retry));
-            if (_fullscreenSecondaryButton != null) _fullscreenSecondaryButton.onClick.AddListener(() => _presenter?.RequestAction(UiActionKind.Back));
+            if (_fullscreenPrimaryButton != null) _fullscreenPrimaryButton.onClick.AddListener(HandleFullscreenPrimaryClicked);
+            if (_fullscreenSecondaryButton != null) _fullscreenSecondaryButton.onClick.AddListener(HandleFullscreenSecondaryClicked);
         }
 
         private void ApplySnapshot(GlobalMessageSnapshot snapshot)
@@ -358,6 +401,72 @@ namespace TienLen.Presentation.GlobalMessage.Views
             if (_modalSecondaryButton != null) _modalSecondaryButton.onClick.RemoveAllListeners();
             if (_fullscreenPrimaryButton != null) _fullscreenPrimaryButton.onClick.RemoveAllListeners();
             if (_fullscreenSecondaryButton != null) _fullscreenSecondaryButton.onClick.RemoveAllListeners();
+        }
+
+        private void HandleModalPrimaryClicked()
+        {
+            if (!_modalPrimaryAction.HasValue) return;
+            _presenter?.RequestAction(_modalPrimaryAction.Value);
+        }
+
+        private void HandleModalSecondaryClicked()
+        {
+            if (!_modalSecondaryAction.HasValue) return;
+            _presenter?.RequestAction(_modalSecondaryAction.Value);
+        }
+
+        private void HandleFullscreenPrimaryClicked()
+        {
+            if (!_fullscreenPrimaryAction.HasValue) return;
+            _presenter?.RequestAction(_fullscreenPrimaryAction.Value);
+        }
+
+        private void HandleFullscreenSecondaryClicked()
+        {
+            if (!_fullscreenSecondaryAction.HasValue) return;
+            _presenter?.RequestAction(_fullscreenSecondaryAction.Value);
+        }
+
+        private void SetModalActions(UiActionKind? primary, UiActionKind? secondary)
+        {
+            _modalPrimaryAction = primary;
+            _modalSecondaryAction = secondary;
+        }
+
+        private void SetFullscreenActions(UiActionKind? primary, UiActionKind? secondary)
+        {
+            _fullscreenPrimaryAction = primary;
+            _fullscreenSecondaryAction = secondary;
+        }
+
+        private static void ConfigureButton(Button button, TMP_Text label, UiAction action)
+        {
+            if (button == null) return;
+
+            var isActive = action != null;
+            button.gameObject.SetActive(isActive);
+
+            if (label != null)
+            {
+                label.text = action == null
+                    ? string.Empty
+                    : string.IsNullOrWhiteSpace(action.Label)
+                        ? ResolveDefaultLabel(action.Kind)
+                        : action.Label;
+            }
+        }
+
+        private static string ResolveDefaultLabel(UiActionKind kind)
+        {
+            return kind switch
+            {
+                UiActionKind.Retry => "Retry",
+                UiActionKind.Back => "Back",
+                UiActionKind.Close => "Close",
+                UiActionKind.Yes => "Yes",
+                UiActionKind.No => "No",
+                _ => "OK"
+            };
         }
 
         private static GameObject CreateToastRoot(Transform parent, out TMP_Text messageText)

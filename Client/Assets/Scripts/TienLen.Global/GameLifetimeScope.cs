@@ -6,9 +6,7 @@ using TienLen.Infrastructure.Config;
 using TienLen.Infrastructure.Logging;
 using TienLen.Infrastructure.Match;
 using TienLen.Application.Chat;
-using TienLen.Application.Speech;
 using TienLen.Infrastructure.Chat;
-using TienLen.Infrastructure.Speech;
 using TienLen.Application.Voice;
 using TienLen.Infrastructure.Voice;
 using TienLen.Infrastructure.Services;
@@ -66,15 +64,6 @@ namespace TienLen.Global
             builder.Register<NakamaChatClient>(Lifetime.Singleton)
                 .As<IChatNetworkClient>();
             builder.Register<GlobalChatHandler>(Lifetime.Singleton);
-
-            // Register Speech-to-Text
-#if UNITY_STANDALONE_WIN || UNITY_EDITOR_WIN
-            builder.Register<WindowsSpeechToTextService>(Lifetime.Singleton)
-                .As<ISpeechToTextService>();
-#else
-            builder.Register<UnsupportedSpeechToTextService>(Lifetime.Singleton)
-                .As<ISpeechToTextService>();
-#endif
 
             // Register Application Handler
             builder.Register<TienLenMatchHandler>(Lifetime.Singleton);

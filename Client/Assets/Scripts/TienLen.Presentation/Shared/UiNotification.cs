@@ -41,7 +41,22 @@ namespace TienLen.Presentation.Shared
     public enum UiActionKind
     {
         Retry = 0,
-        Back = 1
+        Back = 1,
+        Close = 2,
+        Yes = 3,
+        No = 4
+    }
+
+    /// <summary>
+    /// Standard button set presets for notifications.
+    /// </summary>
+    public enum UiButtonSet
+    {
+        None = 0,
+        CloseOnly = 1,
+        YesNo = 2,
+        RetryBack = 3,
+        Custom = 4
     }
 
     /// <summary>
@@ -97,6 +112,7 @@ namespace TienLen.Presentation.Shared
         /// <param name="backgroundMode">Background rendering mode.</param>
         /// <param name="autoDismissSeconds">Optional auto-dismiss duration in seconds.</param>
         /// <param name="actions">Optional action list.</param>
+        /// <param name="buttonSet">Optional button set preset.</param>
         public UiNotification(
             UiNotificationSeverity severity,
             UiNotificationDisplayMode displayMode,
@@ -108,7 +124,8 @@ namespace TienLen.Presentation.Shared
             string correlationId = "",
             UiBackgroundMode backgroundMode = UiBackgroundMode.Default,
             float? autoDismissSeconds = null,
-            IReadOnlyList<UiAction> actions = null)
+            IReadOnlyList<UiAction> actions = null,
+            UiButtonSet buttonSet = UiButtonSet.Custom)
         {
             if (autoDismissSeconds.HasValue && autoDismissSeconds.Value < 0f)
             {
@@ -125,6 +142,7 @@ namespace TienLen.Presentation.Shared
             CorrelationId = correlationId ?? string.Empty;
             BackgroundMode = backgroundMode;
             AutoDismissSeconds = autoDismissSeconds;
+            ButtonSet = buttonSet;
             Actions = actions == null || actions.Count == 0
                 ? Array.Empty<UiAction>()
                 : new ReadOnlyCollection<UiAction>(new List<UiAction>(actions));
@@ -181,8 +199,43 @@ namespace TienLen.Presentation.Shared
         public float? AutoDismissSeconds { get; }
 
         /// <summary>
+        /// Button set preset.
+        /// </summary>
+        public UiButtonSet ButtonSet { get; }
+
+        /// <summary>
         /// Action list for the notification.
         /// </summary>
         public IReadOnlyList<UiAction> Actions { get; }
+
+        /// <summary>
+        /// Resolves the effective actions for this notification.
+        /// </summary>
+        public IReadOnlyList<UiAction> ResolveActions()
+        {
+            if (Actions != null && Actions.Count > 0)
+            {
+                return Actions;
+            }
+
+            return ButtonSet switch
+            {
+                UiButtonSet.CloseOnly => new[]
+                {
+                    new UiAction(UiActionKind.Close, "Close", isPrimary: true)
+                },
+                UiButtonSet.YesNo => new[]
+                {
+                    new UiAction(UiActionKind.Yes, "Yes", isPrimary: true),
+                    new UiAction(UiActionKind.No, "No")
+                },
+                UiButtonSet.RetryBack => new[]
+                {
+                    new UiAction(UiActionKind.Retry, "Retry", isPrimary: true),
+                    new UiAction(UiActionKind.Back, "Back")
+                },
+                _ => Array.Empty<UiAction>()
+            };
+        }
     }
 }

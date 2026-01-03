@@ -63,6 +63,15 @@ namespace TienLen.Presentation.GlobalMessage.Presenters
                 case UiActionKind.Back:
                     _handler.RequestBack();
                     break;
+                case UiActionKind.Close:
+                    _handler.RequestClose();
+                    break;
+                case UiActionKind.Yes:
+                    _handler.RequestYes();
+                    break;
+                case UiActionKind.No:
+                    _handler.RequestNo();
+                    break;
             }
         }
 

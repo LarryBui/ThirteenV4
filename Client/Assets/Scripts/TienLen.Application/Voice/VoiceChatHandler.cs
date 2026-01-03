@@ -17,6 +17,8 @@ namespace TienLen.Application.Voice
         private string? _currentMatchId;
         private bool _isJoined;
 
+        public event Action<string, string, bool> OnSpeechMessageReceived;
+
         /// <summary>
         /// Creates a new voice chat handler.
         /// </summary>
@@ -26,6 +28,17 @@ namespace TienLen.Application.Voice
         {
             _voiceChatService = voiceChatService ?? throw new ArgumentNullException(nameof(voiceChatService));
             _logger = logger ?? NullLogger<VoiceChatHandler>.Instance;
+            _voiceChatService.OnSpeechMessageReceived += HandleSpeechMessage;
+        }
+
+        private void HandleSpeechMessage(string sender, string message, bool isFromSelf)
+        {
+            OnSpeechMessageReceived?.Invoke(sender, message, isFromSelf);
+        }
+
+        public async UniTask EnableSpeechToTextAsync(bool active)
+        {
+            await _voiceChatService.EnableSpeechToTextAsync(active);
         }
 
         /// <summary>
@@ -105,6 +118,10 @@ namespace TienLen.Application.Voice
         /// <inheritdoc />
         public void Dispose()
         {
+            if (_voiceChatService != null)
+            {
+                _voiceChatService.OnSpeechMessageReceived -= HandleSpeechMessage;
+            }
             _joinLock.Dispose();
         }
     }
