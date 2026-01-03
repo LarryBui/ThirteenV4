@@ -92,11 +92,13 @@ namespace TienLen.Application.Tests
         private sealed class FakeVoiceChatService : IVoiceChatService
         {
             public event Action<string, string, bool> OnSpeechMessageReceived;
+            public event Action<string, bool> OnParticipantSpeaking;
             public UniTask InitializeAsync() => UniTask.CompletedTask;
             public UniTask JoinChannelAsync(string matchId) => UniTask.CompletedTask;
             public UniTask LeaveChannelAsync() => UniTask.CompletedTask;
             public UniTask<string> RequestAuthTokenAsync(string matchId) => UniTask.FromResult(string.Empty);
             public UniTask EnableSpeechToTextAsync(bool active) => UniTask.CompletedTask;
+            public UniTask MuteInputAsync(bool isMuted) => UniTask.CompletedTask;
         }
 
     }

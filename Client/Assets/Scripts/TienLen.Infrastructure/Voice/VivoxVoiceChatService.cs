@@ -44,6 +44,9 @@ namespace TienLen.Infrastructure.Voice
             _config = config ?? throw new ArgumentNullException(nameof(config));
         }
 
+        private readonly HashSet<VivoxParticipant> _activeParticipants = new HashSet<VivoxParticipant>();
+        private readonly Dictionary<string, bool> _speakingStates = new Dictionary<string, bool>();
+
         public async UniTask InitializeAsync()
         {
             if (UnityServices.State == ServicesInitializationState.Uninitialized)
@@ -54,7 +57,7 @@ namespace TienLen.Infrastructure.Voice
             // Set provider after initialization when Instance is available
             VivoxService.Instance.SetTokenProvider(this);
             
-            // Subscribe to channel messages (transcriptions appear here when STT is enabled)
+            // Subscribe to channel messages
             VivoxService.Instance.ChannelMessageReceived += (message) => 
             {
                 if (!_isSpeechToTextActive) return;
@@ -62,17 +65,51 @@ namespace TienLen.Infrastructure.Voice
                 OnSpeechMessageReceived?.Invoke(message.SenderDisplayName, message.MessageText, message.FromSelf);
             };
 
-            // Subscribe to participant events for speaking indicators
+            // Track participants for polling
             VivoxService.Instance.ParticipantAddedToChannel += OnParticipantAdded;
+            VivoxService.Instance.ParticipantRemovedFromChannel += OnParticipantRemoved;
+
+            // Start Polling Loop
+            PollSpeakingStatusAsync().Forget();
         }
 
         private void OnParticipantAdded(VivoxParticipant participant)
         {
-            Debug.Log($"[Vivox] Participant Added to Channel: {participant.PlayerId} (DisplayName: {participant.DisplayName})");
-            
-            // TODO: Vivox SDK 16.8.0 VivoxParticipant does not expose IsSpeaking/AudioEnergy directly via INotifyPropertyChanged.
-            // We need to find the correct event (likely on VivoxService.Instance) to track audio energy.
-            // For now, speaking indicators are disabled to ensure compilation.
+            Debug.Log($"[Vivox] Participant Added: {participant.PlayerId}");
+            _activeParticipants.Add(participant);
+        }
+
+        private void OnParticipantRemoved(VivoxParticipant participant)
+        {
+            _activeParticipants.Remove(participant);
+            if (_speakingStates.ContainsKey(participant.PlayerId))
+            {
+                OnParticipantSpeaking?.Invoke(participant.PlayerId, false);
+                _speakingStates.Remove(participant.PlayerId);
+            }
+        }
+
+        private async UniTaskVoid PollSpeakingStatusAsync()
+        {
+            while (true)
+            {
+                if (_isLoggedIn && _activeParticipants.Count > 0)
+                {
+                    foreach (var p in _activeParticipants)
+                    {
+                        // Note: If AudioEnergy is also missing in this SDK version, we will need another fix.
+                        // Threshold of 0.1 avoids noise flickering.
+                        bool isSpeaking = p.AudioEnergy > 0.05f; 
+                        
+                        if (!_speakingStates.TryGetValue(p.PlayerId, out var wasSpeaking) || wasSpeaking != isSpeaking)
+                        {
+                            _speakingStates[p.PlayerId] = isSpeaking;
+                            OnParticipantSpeaking?.Invoke(p.PlayerId, isSpeaking);
+                        }
+                    }
+                }
+                await UniTask.Delay(100); // Check 10 times a second
+            }
         }
 
         public UniTask MuteInputAsync(bool isMuted)
@@ -149,6 +186,20 @@ namespace TienLen.Infrastructure.Voice
 
             await VivoxService.Instance.LoginAsync(loginOptions);
             _isLoggedIn = true;
+            
+            // Debug Microphone Status
+            Debug.Log($"[Vivox] Active Input Device: {VivoxService.Instance.ActiveInputDevice?.DeviceName}");
+            foreach (var device in VivoxService.Instance.AvailableInputDevices)
+            {
+                Debug.Log($"[Vivox] Detected Input Device: {device.DeviceName}");
+            }
+            
+            if (VivoxService.Instance.ActiveInputDevice == null && VivoxService.Instance.AvailableInputDevices.Count > 0)
+            {
+                var firstDevice = VivoxService.Instance.AvailableInputDevices[0];
+                Debug.LogWarning($"[Vivox] No active input device! Force setting to: {firstDevice.DeviceName}");
+                await VivoxService.Instance.SetActiveInputDeviceAsync(firstDevice);
+            }
         }
 
         public async Task<string> GetTokenAsync(string issuer = null, TimeSpan? expiration = null, string targetUserUri = null, string action = null, string channelUri = null, string fromUserUri = null, string realm = null)

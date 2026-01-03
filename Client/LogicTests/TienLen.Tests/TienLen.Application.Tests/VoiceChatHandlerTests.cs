@@ -66,6 +66,7 @@ namespace TienLen.Application.Tests
             public string? LastMatchId { get; private set; }
 
             public event Action<string, string, bool> OnSpeechMessageReceived;
+            public event Action<string, bool> OnParticipantSpeaking;
 
             public UniTask InitializeAsync() => UniTask.CompletedTask;
 
@@ -88,6 +89,11 @@ namespace TienLen.Application.Tests
             }
 
             public UniTask EnableSpeechToTextAsync(bool active)
+            {
+                return UniTask.CompletedTask;
+            }
+
+            public UniTask MuteInputAsync(bool isMuted)
             {
                 return UniTask.CompletedTask;
             }
