@@ -33,7 +33,6 @@ namespace TienLen.Presentation.GameRoomScreen.Views
                 Debug.LogError("[WinnerBadgeManager] Presenter is NULL! Injection failed.");
                 return;
             }
-            Debug.Log("[WinnerBadgeManager] Started and listening for events.");
             _presenter.OnPlayerFinished += HandlePlayerFinished;
             _presenter.OnGameStarted += HandleGameStarted;
             _presenter.OnGameEnded += HandleGameEnded;
