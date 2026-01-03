@@ -56,8 +56,8 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 		b.Estimator = brain.NewEstimator(b.Memory)
 	}
 
-	// Tactical Hand Organization
-	organized := internal.PartitionHand(player.Hand)
+	// Tactical Hand Organization (Multi-Strategy)
+	options := internal.GetTacticalOptions(player.Hand)
 
 	// 2. Generate all valid moves
 	lastCombo := game.LastPlayedCombination
@@ -97,12 +97,23 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 	// 4. Apply State-Aware reasoning (Boss Bonus / Lead Chance / Opponent Safety / Tactical Protection)
 	for i := range scored {
 		// Penalty for breaking tactical structures
-		if isBreakingBomb(scored[i].Move.Cards, organized.Bombs) {
-			scored[i].Score -= 1000.0 // Protect Nukes
+		// We use the MINIMUM penalty across all tactical options. 
+		// If a move fits ANY valid strategy, it shouldn't be penalized.
+		minPenalty := 100000.0
+		
+		for _, opt := range options {
+			currentPenalty := 0.0
+			if isBreakingBomb(scored[i].Move.Cards, opt.Bombs) {
+				currentPenalty += 1000.0 // Protect Nukes
+			}
+			if isBreakingStraight(scored[i].Move.Cards, opt.Straights) {
+				currentPenalty += 50.0 // Protect fragile straights
+			}
+			if currentPenalty < minPenalty {
+				minPenalty = currentPenalty
+			}
 		}
-		if isBreakingStraight(scored[i].Move.Cards, organized.Straights) {
-			scored[i].Score -= 50.0 // Protect fragile straights
-		}
+		scored[i].Score -= minPenalty
 
 		if b.Estimator != nil {
 			// Bonus for Boss cards

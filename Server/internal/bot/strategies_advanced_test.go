@@ -117,3 +117,65 @@ func TestStandardBot_PlaysBossOnFreeTurn(t *testing.T) {
 		t.Errorf("Bot played %+v. Expected Boss 2H to maintain control.", move.Cards)
 	}
 }
+
+func TestStandardBot_Flexibility_PairsVsStraight(t *testing.T) {
+	// Hand: Pair 4s, Pair 6s, Single 5.
+	// 4S, 4C, 5S, 6S, 6C.
+	// Structure A (Straights First): Straight 4S-5S-6S, Trash 4C, 6C.
+	// Structure B (Pairs First): Pair 4s, Pair 6s, Trash 5S.
+	
+	hand := []domain.Card{
+		{Rank: 1, Suit: 0}, {Rank: 1, Suit: 1}, // Pair 4s (Rank 1)
+		{Rank: 2, Suit: 0},                   // Single 5 (Rank 2)
+		{Rank: 3, Suit: 0}, {Rank: 3, Suit: 1}, // Pair 6s (Rank 3)
+	}
+	player := &domain.Player{Seat: 0, Hand: hand}
+	bot := &StandardBot{Memory: brain.NewMemory()}
+
+	// Scenario 1: Opponent plays Pair 5s. 
+	// Bot SHOULD play Pair 6s (Structure B).
+	// Under Structure A, Pair 6s breaks the straight (Penalty 50).
+	// Under Structure B, Pair 6s is a perfect unit (Penalty 0).
+	// Min Penalty = 0.
+	game := &domain.Game{
+		Players: map[string]*domain.Player{"bot": player},
+		LastPlayedCombination: domain.CardCombination{
+			Type: domain.Pair, Value: 11, // Pair 5s (Rank 2, Hearts)
+			Cards: []domain.Card{{Rank: 2, Suit: 0}, {Rank: 2, Suit: 1}},
+		},
+	}
+	
+	move, err := bot.CalculateMove(game, player)
+	if err != nil { t.Fatalf("CalculateMove failed: %v", err) }
+	
+	if move.Pass {
+		t.Error("Bot passed on Pair 5s when it had Pair 6s!")
+	} else {
+		// Verify it played Pair 6s
+		if len(move.Cards) != 2 || move.Cards[0].Rank != 3 {
+			t.Errorf("Bot played %+v, expected Pair 6s", move.Cards)
+		} else {
+			t.Log("Bot correctly switched to Pairs strategy to beat Pair 5s.")
+		}
+	}
+	
+	// Scenario 2: Opponent plays Single 5.
+	// Bot can play Single 6.
+	// Structure A: Breaks straight (Penalty 50).
+	// Structure B: Breaks Pair 6. (Penalty 0, pairs not protected).
+	// Min Penalty = 0.
+	game2 := &domain.Game{
+		Players: map[string]*domain.Player{"bot": player},
+		LastPlayedCombination: domain.CardCombination{
+			Type: domain.Single, Value: 8, // Single 5 (Rank 2*4)
+			Cards: []domain.Card{{Rank: 2, Suit: 0}},
+		},
+	}
+	
+	move2, _ := bot.CalculateMove(game2, player)
+	if move2.Pass {
+		t.Error("Bot passed on Single 5 when it had Single 6!")
+	} else {
+		t.Logf("Bot played %+v against Single 5 (Correct: Choose path with min penalty).", move2.Cards)
+	}
+}

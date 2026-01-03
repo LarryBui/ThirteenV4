@@ -13,6 +13,43 @@ type OrganizedHand struct {
 	Trash     []domain.Card // Cards not part of any strong structure
 }
 
+// GetTacticalOptions generates multiple valid partitioning strategies for the hand.
+func GetTacticalOptions(hand []domain.Card) []OrganizedHand {
+	// Option 1: Straights First (Standard/Aggressive)
+	opt1 := PartitionHand(hand)
+
+	// Option 2: Pairs First (Defensive/Cohesive)
+	opt2 := PartitionHandPairsFirst(hand)
+
+	return []OrganizedHand{opt1, opt2}
+}
+
+// PartitionHandPairsFirst organizes a hand prioritizing Pairs over Straights.
+func PartitionHandPairsFirst(hand []domain.Card) OrganizedHand {
+	organized := OrganizedHand{}
+	if len(hand) == 0 {
+		return organized
+	}
+
+	// Working copy of the hand
+	pool := make([]domain.Card, len(hand))
+	copy(pool, hand)
+	domain.SortHand(pool)
+
+	// Priority 1: Extract Bombs (Quads and Pines) - Always top priority
+	organized.Bombs, pool = ExtractBombs(pool)
+
+	// Priority 2: Extract Triples and Pairs (Sets) - PRIORITIZED over Straights here
+	organized.Triples, organized.Pairs, pool = ExtractSets(pool)
+
+	// Priority 3: Extract Straights
+	organized.Straights, pool = ExtractStraights(pool)
+
+	organized.Trash = pool
+
+	return organized
+}
+
 // PartitionHand organizes a hand into logical structures following a priority hierarchy.
 func PartitionHand(hand []domain.Card) OrganizedHand {
 	organized := OrganizedHand{}
