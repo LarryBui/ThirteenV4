@@ -470,6 +470,8 @@ func RpcGetVivoxToken(ctx context.Context, logger runtime.Logger, db *sql.DB, nk
 		return "", fmt.Errorf("invalid context")
 	}
 
+	logger.Info("[VivoxRPC] Request received for User: %s, Payload: %s", userID, payload)
+
 	type request struct {
 		Action  string `json:"action"`
 		MatchID string `json:"match_id"`
@@ -480,6 +482,7 @@ func RpcGetVivoxToken(ctx context.Context, logger runtime.Logger, db *sql.DB, nk
 	}
 
 	if vivoxService == nil {
+		logger.Error("[VivoxRPC] Vivox service not initialized!")
 		return "", fmt.Errorf("vivox service not initialized")
 	}
 
@@ -490,13 +493,19 @@ func RpcGetVivoxToken(ctx context.Context, logger runtime.Logger, db *sql.DB, nk
 
 	channelName := strings.TrimSpace(req.MatchID)
 	if action == app.VivoxTokenActionJoin && channelName == "" {
+		logger.Error("[VivoxRPC] Join action missing match_id")
 		return "", fmt.Errorf("match_id is required for join tokens")
 	}
 
+	logger.Info("[VivoxRPC] Generating token. User: %s, Action: %s, Channel: %s", userID, action, channelName)
+
 	token, err := vivoxService.GenerateToken(userID, action, channelName)
 	if err != nil {
+		logger.Error("[VivoxRPC] Token generation failed: %v", err)
 		return "", fmt.Errorf("failed to generate vivox token: %w", err)
 	}
+
+	logger.Info("[VivoxRPC] Token generated successfully. Length: %d", len(token))
 
 	return fmt.Sprintf("{\"token\":\"%s\"}", token), nil
 }

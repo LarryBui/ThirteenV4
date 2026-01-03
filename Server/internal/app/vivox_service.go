@@ -2,6 +2,7 @@ package app
 
 import (
 	"fmt"
+	"math/rand"
 	"time"
 
 	"github.com/form3tech-oss/jwt-go"
@@ -44,14 +45,13 @@ func (s *VivoxService) GenerateToken(user, action, channelName string) (string, 
 	}
 
 	claims := jwt.MapClaims{
-		"iss":  s.vivoxIssuer,
-		"sub":  user,
-		"exp":  time.Now().Add(time.Hour * 1).Unix(),
-		"vxa":  action,
-		"vxi":  1,
-		"f":    userURI,
-		"t":    targetURI,
-		"from": user,
+		"iss": s.vivoxIssuer,
+		"sub": user,
+		"exp": time.Now().Add(time.Hour * 1).Unix(),
+		"vxa": action,
+		"vxi": fmt.Sprintf("%d-%d", time.Now().UnixNano(), rand.Int63()),
+		"f":   userURI,
+		"t":   targetURI,
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)

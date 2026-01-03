@@ -20,6 +20,8 @@ func InitModule(ctx context.Context, logger runtime.Logger, db *sql.DB, nk runti
 	vivoxIssuer := envOrOs(env, "VIVOX_ISSUER")
 	vivoxDomain := envOrOs(env, "VIVOX_DOMAIN")
 
+	logger.Info("[Init] Vivox Config: Issuer=%s, Domain=%s, SecretLength=%d", vivoxIssuer, vivoxDomain, len(vivoxSecret))
+
 	// Initialize the Vivox service
 	vivoxService = app.NewVivoxService(vivoxSecret, vivoxIssuer, vivoxDomain)
 
