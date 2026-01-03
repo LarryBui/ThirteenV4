@@ -15,12 +15,6 @@ EditorBuildSettings:
     path: Assets/Scenes/GameRoom.unity
     guid: 903285963ff60b74f9838727dcb7e7a8
   - enabled: 1
-    path: Assets/Scenes/ErrorScene2.unity
-    guid: c5e6389ab31fecb438d17f1250ef7a44
-  - enabled: 1
-    path: Assets/Scenes/ErrorScene.unity
-    guid: 3976f18b25106c448bf45641bf8ab181
-  - enabled: 1
     path: Assets/Scenes/VIPGameRoom.unity
     guid: efa36e3b8723aae40b75d5ed1098576e
   - enabled: 1

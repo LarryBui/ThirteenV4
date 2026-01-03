@@ -20,7 +20,6 @@ namespace TienLen.Presentation.HomeScreen.Views
         [SerializeField] private Button powerUpButton;
         [SerializeField] private Button dailyButton;
         [SerializeField] private Button quitButton;
-        [SerializeField] private TMP_Text statusText;
         [SerializeField] private GameObject contentRoot;
 
         private HomePresenter _presenter;
@@ -54,7 +53,6 @@ namespace TienLen.Presentation.HomeScreen.Views
 
             // Subscribe to Presenter Events
             _presenter.OnPlayInteractableChanged += SetPlayInteractable;
-            _presenter.OnStatusTextChanged += SetStatusText;
             _presenter.OnHideViewRequested += Hide;
             _presenter.OnShowViewRequested += Show;
 
@@ -69,7 +67,6 @@ namespace TienLen.Presentation.HomeScreen.Views
             if (_presenter != null)
             {
                 _presenter.OnPlayInteractableChanged -= SetPlayInteractable;
-                _presenter.OnStatusTextChanged -= SetStatusText;
                 _presenter.OnHideViewRequested -= Hide;
                 _presenter.OnShowViewRequested -= Show;
                 _presenter.Dispose();
@@ -87,11 +84,6 @@ namespace TienLen.Presentation.HomeScreen.Views
         {
             if (playButton) playButton.interactable = interactable;
             if (createVipTableButton) createVipTableButton.interactable = interactable;
-        }
-
-        private void SetStatusText(string text)
-        {
-            if (statusText) statusText.text = text;
         }
 
         private void Hide()

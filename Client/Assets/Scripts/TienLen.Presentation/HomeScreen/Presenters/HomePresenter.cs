@@ -24,7 +24,6 @@ namespace TienLen.Presentation.HomeScreen.Presenters
         private Action _retryAction;
 
         public event Action<bool> OnPlayInteractableChanged;
-        public event Action<string> OnStatusTextChanged;
         public event Action OnHideViewRequested;
         public event Action OnShowViewRequested;
 
@@ -58,7 +57,6 @@ namespace TienLen.Presentation.HomeScreen.Presenters
         {
             bool isReady = _authService != null && _authService.IsAuthenticated;
             OnPlayInteractableChanged?.Invoke(isReady);
-            OnStatusTextChanged?.Invoke(isReady ? "Connected." : "");
         }
 
         public void Dispose()
@@ -77,7 +75,6 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             if (_matchHandler == null) return;
 
             OnPlayInteractableChanged?.Invoke(false);
-            OnStatusTextChanged?.Invoke("Searching for Casual match...");
 
             try
             {
@@ -92,14 +89,19 @@ namespace TienLen.Presentation.HomeScreen.Presenters
                 _retryAction = null;
                 OnHideViewRequested?.Invoke();
             }
-            catch (TienLenAppException ex)
+            catch (ServerErrorException ex)
             {
-                HandleAppException(ex, "Matchmaking", JoinCasualMatch);
+                HandleServerError(ex, "Matchmaking", JoinCasualMatch);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to find casual match.");
-                OnStatusTextChanged?.Invoke("Error finding match.");
+                _globalMessageHandler.Publish(new UiNotification(
+                    UiNotificationSeverity.Error,
+                    UiNotificationDisplayMode.Toast,
+                    "Failed to find casual match.",
+                    "Error"
+                ));
                 OnPlayInteractableChanged?.Invoke(true);
             }
         }
@@ -110,7 +112,6 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             if (_matchHandler == null) return;
 
             OnPlayInteractableChanged?.Invoke(false);
-            OnStatusTextChanged?.Invoke("Creating VIP table...");
 
             try
             {
@@ -125,20 +126,32 @@ namespace TienLen.Presentation.HomeScreen.Presenters
                 _retryAction = null;
                 OnHideViewRequested?.Invoke();
             }
-            catch (TienLenAppException ex)
+            catch (ServerErrorException ex)
             {
-                HandleAppException(ex, "VIP Match", JoinVipMatch);
+                HandleServerError(ex, "VIP Match", JoinVipMatch);
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Failed to join VIP match.");
+                _globalMessageHandler.Publish(new UiNotification(
+                    UiNotificationSeverity.Error,
+                    UiNotificationDisplayMode.Toast,
+                    "Failed to join VIP match.",
+                    "Error"
+                ));
                 OnPlayInteractableChanged?.Invoke(true);
             }
         }
         public void QuitGame()
         {
             _logger.LogInformation("Quit clicked.");
+#if UNITY_EDITOR
+            // Use reflection to stop play mode in Editor without adding UnityEditor assembly reference
+            var type = Type.GetType("UnityEditor.EditorApplication, UnityEditor");
+            type?.GetProperty("isPlaying")?.SetValue(null, false);
+#else
             UnityEngine.Application.Quit();
+#endif
         }
 
         public async void OpenDailyScreen()
@@ -158,20 +171,23 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             {
                 OnShowViewRequested?.Invoke();
                 OnPlayInteractableChanged?.Invoke(true);
-                OnStatusTextChanged?.Invoke("Connected.");
             }
         }
 
         private void HandleAuthComplete()
         {
             OnPlayInteractableChanged?.Invoke(true);
-            OnStatusTextChanged?.Invoke("Connected.");
         }
 
         private void HandleAuthFailed(string message)
         {
             OnPlayInteractableChanged?.Invoke(false);
-            OnStatusTextChanged?.Invoke($"Auth Failed: {message}");
+            _globalMessageHandler.Publish(new UiNotification(
+                UiNotificationSeverity.Error,
+                UiNotificationDisplayMode.Toast,
+                $"Auth Failed: {message}",
+                "Authentication"
+            ));
         }
 
         private void HandleRetryRequested(UiNotification _)
@@ -182,13 +198,13 @@ namespace TienLen.Presentation.HomeScreen.Presenters
             action.Invoke();
         }
 
-        private void HandleAppException(TienLenAppException ex, string title, Action retryAction)
+        private void HandleServerError(ServerErrorException ex, string title, Action retryAction)
         {
             if (ex == null) return;
 
             _retryAction = retryAction;
-            _logger.LogWarning(ex, "{Title} failed with app error.", title);
-            var notification = UiNotificationRouter.FromAppException(ex, title);
+            _logger.LogWarning(ex, "{Title} failed with server error.", title);
+            var notification = UiNotificationRouter.FromServerError(ex, title);
             _globalMessageHandler.Publish(notification);
             OnPlayInteractableChanged?.Invoke(true);
         }

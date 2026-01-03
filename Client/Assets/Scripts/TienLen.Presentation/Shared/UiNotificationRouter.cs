@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using TienLen.Application.Errors;
+using TienLen.Presentation.GlobalMessage;
 using Proto = Tienlen.V1;
 
 namespace TienLen.Presentation.Shared
@@ -21,58 +22,42 @@ namespace TienLen.Presentation.Shared
         };
 
         /// <summary>
-        /// Creates a notification from an application error.
+        /// Creates a notification from a server error exception.
         /// </summary>
-        /// <param name="error">Application error to route.</param>
+        /// <param name="exception">Server error exception to route.</param>
         /// <param name="title">Optional notification title.</param>
-        public static UiNotification FromAppError(AppError error, string title = "")
+        public static UiNotification FromServerError(ServerErrorException exception, string title = "")
         {
-            if (error == null)
+            if (exception == null || exception.Error == null)
             {
                 return CreateFallbackError(title);
             }
 
-            var displayMode = ResolveDisplayMode(error.Outcome);
-            var severity = ResolveSeverity(error.Category);
-            var dedupeKey = ResolveErrorDedupeKey(error.AppCode);
+            var error = exception.Error;
+            var appCode = error.AppCode;
+            var category = GlobalMessageCatalog.ResolveCategory(appCode, error.Category);
+            var displayMode = ResolveDisplayMode(GlobalMessageCatalog.ResolveDisplayMode(appCode));
+            var severity = ResolveSeverity(category);
+            var dedupeKey = ResolveErrorDedupeKey(appCode);
             var backgroundMode = ResolveBackgroundMode(displayMode);
             var autoDismiss = ResolveAutoDismissSeconds(displayMode, severity);
             var actions = displayMode == UiNotificationDisplayMode.Toast ? Array.Empty<UiAction>() : BlockingActions;
+            var message = !string.IsNullOrWhiteSpace(error.Message)
+                ? error.Message
+                : GlobalMessageCatalog.ResolveMessage(appCode);
 
             return new UiNotification(
                 severity,
                 displayMode,
-                error.Message,
+                message,
                 title,
                 dedupeKey,
-                error.AppCode,
-                error.Category,
-                error.CorrelationId,
+                appCode,
+                category,
+                error.CorrelationId ?? string.Empty,
                 backgroundMode,
                 autoDismiss,
                 actions);
-        }
-
-        /// <summary>
-        /// Creates a notification from an application exception.
-        /// </summary>
-        /// <param name="exception">Application exception to route.</param>
-        /// <param name="title">Optional notification title.</param>
-        public static UiNotification FromAppException(TienLenAppException exception, string title = "")
-        {
-            if (exception == null)
-            {
-                return CreateFallbackError(title);
-            }
-
-            var error = new AppError(
-                exception.AppCode,
-                exception.Category,
-                exception.Outcome,
-                exception.Message,
-                exception.Context);
-
-            return FromAppError(error, title);
         }
 
         /// <summary>
@@ -163,11 +148,14 @@ namespace TienLen.Presentation.Shared
                 BlockingActions);
         }
 
-        private static UiNotificationDisplayMode ResolveDisplayMode(ErrorOutcome outcome)
+        private static UiNotificationDisplayMode ResolveDisplayMode(MessageDisplayMode displayMode)
         {
-            return outcome == ErrorOutcome.ErrorScene
-                ? UiNotificationDisplayMode.Modal
-                : UiNotificationDisplayMode.Toast;
+            return displayMode switch
+            {
+                MessageDisplayMode.Modal => UiNotificationDisplayMode.Modal,
+                MessageDisplayMode.Fullscreen => UiNotificationDisplayMode.Fullscreen,
+                _ => UiNotificationDisplayMode.Toast
+            };
         }
 
         private static UiNotificationSeverity ResolveSeverity(int category)

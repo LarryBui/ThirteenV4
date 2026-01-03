@@ -9,7 +9,6 @@ using Nakama;
 using TienLen.Application; // Updated for IMatchNetworkClient and PlayerAvatar
 using TienLen.Application.Errors;
 using TienLen.Domain.ValueObjects;
-using TienLen.Infrastructure.Errors;
 using TienLen.Infrastructure.Services;
 using Google.Protobuf;
 using Proto = Tienlen.V1;
@@ -39,6 +38,12 @@ namespace TienLen.Infrastructure.Match
 
             [JsonProperty("retryable")]
             public bool Retryable { get; set; }
+
+            [JsonProperty("message")]
+            public string Message { get; set; }
+
+            [JsonProperty("correlation_id")]
+            public string CorrelationId { get; set; }
         }
 
         private readonly NakamaAuthenticationService _authService;
@@ -59,7 +64,7 @@ namespace TienLen.Infrastructure.Match
         /// <inheritdoc />
         public event Action<int, string> OnPlayerLeft;
         public event Action<GameEndedResultDto> OnGameEnded;
-        public event Action<int, string> OnGameError;
+        public event Action<ServerErrorDto> OnGameError;
         public event Action<int, string> OnInGameChatReceived;
         public event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
         public event Action<int, int> OnPlayerFinished;
@@ -97,7 +102,7 @@ namespace TienLen.Infrastructure.Match
             }
             catch (ApiResponseException ex)
             {
-                throw CreateAppException(rpcId, ex);
+                throw CreateServerErrorException(rpcId, ex);
             }
 
             if (rpcResponse == null || string.IsNullOrEmpty(rpcResponse.Payload))
@@ -441,7 +446,14 @@ namespace TienLen.Infrastructure.Match
                     try
                     {
                         var payload = Proto.GameErrorEvent.Parser.ParseFrom(state.State);
-                        OnGameError?.Invoke(payload.Code, payload.Message);
+                        var error = new ServerErrorDto(
+                            payload.Code,
+                            category: 0,
+                            payload.Message,
+                            retryable: false,
+                            correlationId: string.Empty,
+                            rawPayload: TrySerializeForDebug(payload));
+                        OnGameError?.Invoke(error);
                     }
                     catch (Exception e)
                     {
@@ -490,14 +502,17 @@ namespace TienLen.Infrastructure.Match
             }
         }
 
-        private TienLenAppException CreateAppException(string context, ApiResponseException ex)
+        private ServerErrorException CreateServerErrorException(string context, ApiResponseException ex)
         {
             if (ex == null)
             {
-                return new TienLenAppException(
+                var fallbackError = new ServerErrorDto(
                     (int)Proto.ErrorCode.Unspecified,
                     (int)Proto.ErrorCategory.Unspecified,
-                    ErrorOutcome.InlineScene,
+                    string.Empty,
+                    retryable: false);
+                return new ServerErrorException(
+                    fallbackError,
                     "An unexpected error occurred.",
                     context ?? string.Empty);
             }
@@ -506,17 +521,36 @@ namespace TienLen.Infrastructure.Match
 
             var appCode = (int)Proto.ErrorCode.Unspecified;
             var category = (int)Proto.ErrorCategory.Unspecified;
+            var retryable = false;
+            var serverMessage = string.Empty;
+            var correlationId = string.Empty;
+            var rawPayload = ExtractJsonObject(ex.Message);
 
             if (TryParseRpcErrorPayload(ex.Message, out var payload))
             {
                 appCode = payload.AppCode;
-                category = ResolveCategory(payload.AppCode, payload.Category);
+                category = payload.Category > 0 ? payload.Category : category;
+                retryable = payload.Retryable;
+                serverMessage = payload.Message ?? string.Empty;
+                correlationId = payload.CorrelationId ?? string.Empty;
             }
 
-            var message = ResolveMessage(appCode);
-            var outcome = ResolveOutcome(appCode);
-            _logger.LogWarning("RPC error resolved: app_code={AppCode} category={Category} outcome={Outcome}", appCode, category, outcome);
-            return new TienLenAppException(appCode, category, outcome, message, context ?? string.Empty, ex);
+            var message = string.IsNullOrWhiteSpace(serverMessage)
+                ? "An unexpected error occurred."
+                : serverMessage;
+            _logger.LogWarning(
+                "RPC error resolved: app_code={AppCode} category={Category} retryable={Retryable}",
+                appCode,
+                category,
+                retryable);
+            var error = new ServerErrorDto(
+                appCode,
+                category,
+                serverMessage,
+                retryable,
+                correlationId,
+                rawPayload);
+            return new ServerErrorException(error, message, context ?? string.Empty, ex);
         }
 
         private static bool TryParseRpcErrorPayload(string message, out RpcErrorPayload payload)
@@ -547,53 +581,6 @@ namespace TienLen.Infrastructure.Match
             if (start < 0 || end <= start) return string.Empty;
 
             return message.Substring(start, end - start + 1);
-        }
-
-        private static string ResolveMessage(int appCode)
-        {
-            if (ErrorCatalog.TryGet(appCode, out var entry))
-            {
-                return entry.Message;
-            }
-
-            if (ErrorCatalog.TryGet((int)Proto.ErrorCode.Unspecified, out var fallback))
-            {
-                return fallback.Message;
-            }
-
-            return "An unexpected error occurred.";
-        }
-
-        private static int ResolveCategory(int appCode, int category)
-        {
-            if (category > 0) return category;
-
-            if (ErrorCatalog.TryGet(appCode, out var entry))
-            {
-                return entry.Category;
-            }
-
-            if (ErrorCatalog.TryGet((int)Proto.ErrorCode.Unspecified, out var fallback))
-            {
-                return fallback.Category;
-            }
-
-            return category;
-        }
-
-        private static ErrorOutcome ResolveOutcome(int appCode)
-        {
-            if (ErrorCatalog.TryGet(appCode, out var entry))
-            {
-                return entry.Outcome;
-            }
-
-            if (ErrorCatalog.TryGet((int)Proto.ErrorCode.Unspecified, out var fallback))
-            {
-                return fallback.Outcome;
-            }
-
-            return ErrorOutcome.InlineScene;
         }
 
         private async UniTask SendAsync(long opcode, byte[] payload)

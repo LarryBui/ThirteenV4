@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using TienLen.Application;
+using TienLen.Application.Errors;
 using TienLen.Application.Speech;
 using TienLen.Application.Voice;
 using TienLen.Domain.Aggregates;
@@ -105,12 +106,23 @@ namespace TienLen.Presentation.GameRoomScreen
         // --- Event Forwarding ---
         private void HandleStateUpdated()
         {
-            EnsureVoiceChatJoined();
             OnStateUpdated?.Invoke();
         }
         private void HandleGameStarted() => OnGameStarted?.Invoke();
         private void HandleBoardUpdated(int seat, bool newRound) => OnBoardUpdated?.Invoke(seat, newRound);
-        private void HandleError(int code, string msg) => OnError?.Invoke(msg);
+        private void HandleError(ServerErrorDto error)
+        {
+            if (error == null)
+            {
+                OnError?.Invoke("An unexpected error occurred.");
+                return;
+            }
+
+            var message = string.IsNullOrWhiteSpace(error.Message)
+                ? "An unexpected error occurred."
+                : error.Message;
+            OnError?.Invoke(message);
+        }
         private void HandleCardsPlayed(int seat, IReadOnlyList<Card> cards)
         {
             if (_clientSideCardCounts.ContainsKey(seat))

@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
+using TienLen.Application.Errors;
 using TienLen.Application.Session;
 using TienLen.Application.Voice;
 using TienLen.Domain.Aggregates;
@@ -74,7 +75,7 @@ namespace TienLen.Application
         /// <summary>
         /// Raised when the server reports a gameplay error (e.g., invalid play).
         /// </summary>
-        public event Action<int, string> GameErrorReceived;
+        public event Action<ServerErrorDto> GameErrorReceived;
 
         /// <summary>
         /// Raised when the game ends, providing the full result details.
@@ -95,11 +96,6 @@ namespace TienLen.Application
         /// Raised when an in-game chat message is received.
         /// </summary>
         public event Action<int, string> InGameChatReceived; // seatIndex, message
-
-        /// <summary>
-        /// Latest Vivox auth token requested for the local player.
-        /// </summary>
-        public string? VivoxAuthToken { get; private set; }
 
         public TienLenMatchHandler(
             IMatchNetworkClient networkClient,
@@ -331,10 +327,20 @@ namespace TienLen.Application
             GameRoomStateUpdated?.Invoke();
         }
 
-        private void HandleGameError(int code, string message)
+        private void HandleGameError(ServerErrorDto error)
         {
-            _logger.LogWarning("MatchHandler: Game error received. code={code}, message={message}", code, message);
-            GameErrorReceived?.Invoke(code, message);
+            if (error == null)
+            {
+                _logger.LogWarning("MatchHandler: Game error received with no payload.");
+                return;
+            }
+
+            _logger.LogWarning(
+                "MatchHandler: Game error received. code={code}, category={category}, message={message}",
+                error.AppCode,
+                error.Category,
+                error.Message);
+            GameErrorReceived?.Invoke(error);
         }
 
         private void HandleMatchPresenceChanged(IReadOnlyList<PresenceChange> changes)
@@ -443,11 +449,6 @@ namespace TienLen.Application
                     }
                 }
             }
-
-            UniTask.Void(async () =>
-            {
-                VivoxAuthToken = await _voiceChatService.RequestAuthTokenAsync(CurrentMatch.Id);
-            });
         }
 
         private void HandlePlayerLeft(int seat, string userId)

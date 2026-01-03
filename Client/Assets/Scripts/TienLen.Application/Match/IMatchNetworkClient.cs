@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using Cysharp.Threading.Tasks;
+using TienLen.Application.Errors;
 using TienLen.Domain.ValueObjects; // Still needed for Card
 
 namespace TienLen.Application
@@ -57,7 +58,7 @@ namespace TienLen.Application
         /// <summary>
         /// Fired when a game error occurs.
         /// </summary>
-        event Action<int, string> OnGameError; // code, message
+        event Action<ServerErrorDto> OnGameError;
 
         /// <summary>
         /// Fired when an in-game chat message is received.
