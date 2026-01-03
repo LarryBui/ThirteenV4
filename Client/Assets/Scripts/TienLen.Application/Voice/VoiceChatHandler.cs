@@ -18,6 +18,7 @@ namespace TienLen.Application.Voice
         private bool _isJoined;
 
         public event Action<string, string, bool> OnSpeechMessageReceived;
+        public event Action<string, bool> OnParticipantSpeaking;
 
         /// <summary>
         /// Creates a new voice chat handler.
@@ -29,6 +30,7 @@ namespace TienLen.Application.Voice
             _voiceChatService = voiceChatService ?? throw new ArgumentNullException(nameof(voiceChatService));
             _logger = logger ?? NullLogger<VoiceChatHandler>.Instance;
             _voiceChatService.OnSpeechMessageReceived += HandleSpeechMessage;
+            _voiceChatService.OnParticipantSpeaking += HandleParticipantSpeaking;
         }
 
         private void HandleSpeechMessage(string sender, string message, bool isFromSelf)
@@ -36,9 +38,19 @@ namespace TienLen.Application.Voice
             OnSpeechMessageReceived?.Invoke(sender, message, isFromSelf);
         }
 
+        private void HandleParticipantSpeaking(string sender, bool isSpeaking)
+        {
+            OnParticipantSpeaking?.Invoke(sender, isSpeaking);
+        }
+
         public async UniTask EnableSpeechToTextAsync(bool active)
         {
             await _voiceChatService.EnableSpeechToTextAsync(active);
+        }
+
+        public async UniTask SetInputMutedAsync(bool isMuted)
+        {
+            await _voiceChatService.MuteInputAsync(isMuted);
         }
 
         /// <summary>
@@ -121,6 +133,7 @@ namespace TienLen.Application.Voice
             if (_voiceChatService != null)
             {
                 _voiceChatService.OnSpeechMessageReceived -= HandleSpeechMessage;
+                _voiceChatService.OnParticipantSpeaking -= HandleParticipantSpeaking;
             }
             _joinLock.Dispose();
         }

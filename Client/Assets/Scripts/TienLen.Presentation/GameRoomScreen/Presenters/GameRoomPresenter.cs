@@ -35,6 +35,7 @@ namespace TienLen.Presentation.GameRoomScreen
         public event Action<int, int> OnSeatCardCountUpdated; // seatIndex, newCount
         public event Action<int, UnityEngine.Vector3> OnCardArrived; // seatIndex, worldPosition
         public event Action<int, string> OnInGameChatReceived; // seatIndex, message
+        public event Action<int, bool> OnSeatSpeaking; // seatIndex, isSpeaking
 
         // Expose current match for read-only binding in View
         public Match CurrentMatch => _matchHandler?.CurrentMatch;
@@ -69,6 +70,7 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_voiceChatHandler != null)
             {
                 _voiceChatHandler.OnSpeechMessageReceived += HandleSttPhraseRecognized;
+                _voiceChatHandler.OnParticipantSpeaking += HandleParticipantSpeaking;
             }
 
             EnsureVoiceChatJoined();
@@ -91,6 +93,7 @@ namespace TienLen.Presentation.GameRoomScreen
             if (_voiceChatHandler != null)
             {
                 _voiceChatHandler.OnSpeechMessageReceived -= HandleSttPhraseRecognized;
+                _voiceChatHandler.OnParticipantSpeaking -= HandleParticipantSpeaking;
             }
 
             _voiceChatHandler?.LeaveGameRoomAsync().Forget(ex =>
@@ -144,6 +147,16 @@ namespace TienLen.Presentation.GameRoomScreen
             SendInGameChat(phrase);
         }
 
+        private void HandleParticipantSpeaking(string senderId, bool isSpeaking)
+        {
+            // Map userId to seat
+            int seat = FindSeatByUserId(senderId);
+            if (seat >= 0)
+            {
+                OnSeatSpeaking?.Invoke(seat, isSpeaking);
+            }
+        }
+
 
         // --- Actions ---
 
@@ -157,6 +170,12 @@ namespace TienLen.Presentation.GameRoomScreen
         {
             if (_voiceChatHandler == null) return;
             _voiceChatHandler.EnableSpeechToTextAsync(active).Forget();
+        }
+
+        public void SetMicrophoneMuted(bool isMuted)
+        {
+            if (_voiceChatHandler == null) return;
+            _voiceChatHandler.SetInputMutedAsync(isMuted).Forget();
         }
 
         private void EnsureVoiceChatJoined()

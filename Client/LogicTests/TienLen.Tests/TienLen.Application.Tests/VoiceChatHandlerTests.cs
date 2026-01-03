@@ -65,6 +65,8 @@ namespace TienLen.Application.Tests
             public int LeaveCalls { get; private set; }
             public string? LastMatchId { get; private set; }
 
+            public event Action<string, string, bool> OnSpeechMessageReceived;
+
             public UniTask InitializeAsync() => UniTask.CompletedTask;
 
             public UniTask JoinChannelAsync(string matchId)
@@ -83,6 +85,11 @@ namespace TienLen.Application.Tests
             public UniTask<string> RequestAuthTokenAsync(string matchId)
             {
                 return UniTask.FromResult(string.Empty);
+            }
+
+            public UniTask EnableSpeechToTextAsync(bool active)
+            {
+                return UniTask.CompletedTask;
             }
         }
     }

@@ -4,6 +4,7 @@ using Cysharp.Threading.Tasks;
 using Microsoft.Extensions.Logging.Abstractions;
 using NUnit.Framework;
 using TienLen.Application;
+using TienLen.Application.Errors;
 using TienLen.Application.Session;
 using TienLen.Application.Voice;
 using TienLen.Domain.ValueObjects;
@@ -51,7 +52,7 @@ namespace TienLen.Application.Tests
             public event Action<IReadOnlyList<PresenceChange>> OnMatchPresenceChanged;
             public event Action<GameEndedResultDto> OnGameEnded;
             public event Action<int, int> OnPlayerFinished;
-            public event Action<int, string> OnGameError;
+            public event Action<ServerErrorDto> OnGameError;
             public event Action<int, string> OnInGameChatReceived;
 
             public UniTask SendJoinMatchAsync(string matchId) => UniTask.CompletedTask;
@@ -85,14 +86,17 @@ namespace TienLen.Application.Tests
             public event Action OnAuthenticated;
             public event Action<string> OnAuthenticationFailed;
             public UniTask LoginAsync() => UniTask.CompletedTask;
+            public UniTask<string> ExecuteRpcAsync(string id, string payload) => UniTask.FromResult(string.Empty);
         }
 
         private sealed class FakeVoiceChatService : IVoiceChatService
         {
+            public event Action<string, string, bool> OnSpeechMessageReceived;
             public UniTask InitializeAsync() => UniTask.CompletedTask;
             public UniTask JoinChannelAsync(string matchId) => UniTask.CompletedTask;
             public UniTask LeaveChannelAsync() => UniTask.CompletedTask;
             public UniTask<string> RequestAuthTokenAsync(string matchId) => UniTask.FromResult(string.Empty);
+            public UniTask EnableSpeechToTextAsync(bool active) => UniTask.CompletedTask;
         }
 
     }

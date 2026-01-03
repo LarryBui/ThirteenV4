@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Cysharp.Threading.Tasks;
@@ -22,6 +23,7 @@ namespace TienLen.Infrastructure.Voice
         private bool _isSpeechToTextActive;
 
         public event Action<string, string, bool> OnSpeechMessageReceived;
+        public event Action<string, bool> OnParticipantSpeaking;
 
         [Serializable]
         private class VivoxTokenResponse
@@ -59,6 +61,28 @@ namespace TienLen.Infrastructure.Voice
                 if (string.IsNullOrWhiteSpace(message.MessageText)) return;
                 OnSpeechMessageReceived?.Invoke(message.SenderDisplayName, message.MessageText, message.FromSelf);
             };
+
+            // Subscribe to participant events for speaking indicators
+            VivoxService.Instance.ParticipantAddedToChannel += OnParticipantAdded;
+        }
+
+        private void OnParticipantAdded(VivoxParticipant participant)
+        {
+            Debug.Log($"[Vivox] Participant Added to Channel: {participant.PlayerId} (DisplayName: {participant.DisplayName})");
+            
+            // TODO: Vivox SDK 16.8.0 VivoxParticipant does not expose IsSpeaking/AudioEnergy directly via INotifyPropertyChanged.
+            // We need to find the correct event (likely on VivoxService.Instance) to track audio energy.
+            // For now, speaking indicators are disabled to ensure compilation.
+        }
+
+        public UniTask MuteInputAsync(bool isMuted)
+        {
+            if (isMuted)
+                VivoxService.Instance.MuteInputDevice();
+            else
+                VivoxService.Instance.UnmuteInputDevice();
+            
+            return UniTask.CompletedTask;
         }
 
         public UniTask EnableSpeechToTextAsync(bool active)
