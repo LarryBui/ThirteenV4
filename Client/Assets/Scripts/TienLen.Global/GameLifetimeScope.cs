@@ -45,9 +45,6 @@ namespace TienLen.Global
             builder.Register<GameSessionContext>(Lifetime.Singleton)
                 .As<IGameSessionContext>();
 
-            // Register Error Scene State
-            builder.Register<ErrorSceneState>(Lifetime.Singleton);
-
             // Register Global Message Handler
             builder.Register<GlobalMessageHandler>(Lifetime.Singleton);
 
