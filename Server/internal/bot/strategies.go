@@ -11,6 +11,7 @@ import (
 type StandardBot struct {
 	Memory    *brain.GameMemory
 	Estimator *brain.Estimator
+	HandRules []SelectionRule // The pipeline of rules for organizing the hand
 }
 
 func (b *StandardBot) OnEvent(event interface{}, isRecipient bool) {
@@ -18,9 +19,15 @@ func (b *StandardBot) OnEvent(event interface{}, isRecipient bool) {
 		return
 	}
 
-	// Initialize Estimator if missing
+	// Initialize Estimator and Rules if missing
 	if b.Estimator == nil {
 		b.Estimator = brain.NewEstimator(b.Memory)
+	}
+	if b.HandRules == nil {
+		b.HandRules = []SelectionRule{
+			&FavorStraightsRule{}, // Default preference
+			&FavorPairsRule{},     // Override: Prefer Pairs if available (Late Rule wins)
+		}
 	}
 
 	switch e := event.(type) {
@@ -55,9 +62,28 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 	if b.Estimator == nil && b.Memory != nil {
 		b.Estimator = brain.NewEstimator(b.Memory)
 	}
+	if b.HandRules == nil {
+		b.HandRules = []SelectionRule{
+			&FavorStraightsRule{},
+			&FavorPairsRule{},
+		}
+	}
 
-	// Tactical Hand Organization (Multi-Strategy)
+	// Tactical Hand Organization (Selector Pipeline)
 	options := internal.GetTacticalOptions(player.Hand)
+	
+	// Pipeline Execution
+	ctx := &SelectionContext{
+		Candidates:    options,
+		CurrentBest:   options[0], // Default to first
+		SelectedIndex: 0,
+	}
+	for _, rule := range b.HandRules {
+		rule.Apply(ctx)
+	}
+	
+	// The winner determines our "Plan"
+	organized := ctx.CurrentBest
 
 	// 2. Generate all valid moves
 	lastCombo := game.LastPlayedCombination
@@ -97,23 +123,13 @@ func (b *StandardBot) CalculateMove(game *domain.Game, player *domain.Player) (M
 	// 4. Apply State-Aware reasoning (Boss Bonus / Lead Chance / Opponent Safety / Tactical Protection)
 	for i := range scored {
 		// Penalty for breaking tactical structures
-		// We use the MINIMUM penalty across all tactical options. 
-		// If a move fits ANY valid strategy, it shouldn't be penalized.
-		minPenalty := 100000.0
-		
-		for _, opt := range options {
-			currentPenalty := 0.0
-			if isBreakingBomb(scored[i].Move.Cards, opt.Bombs) {
-				currentPenalty += 1000.0 // Protect Nukes
-			}
-			if isBreakingStraight(scored[i].Move.Cards, opt.Straights) {
-				currentPenalty += 50.0 // Protect fragile straights
-			}
-			if currentPenalty < minPenalty {
-				minPenalty = currentPenalty
-			}
+		// We calculate penalty against the CHOSEN organization strategy.
+		if isBreakingBomb(scored[i].Move.Cards, organized.Bombs) {
+			scored[i].Score -= 1000.0 // Protect Nukes
 		}
-		scored[i].Score -= minPenalty
+		if isBreakingStraight(scored[i].Move.Cards, organized.Straights) {
+			scored[i].Score -= 50.0 // Protect fragile straights
+		}
 
 		if b.Estimator != nil {
 			// Bonus for Boss cards

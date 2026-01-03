@@ -118,6 +118,50 @@ func TestStandardBot_PlaysBossOnFreeTurn(t *testing.T) {
 	}
 }
 
+func TestStandardBot_Pipeline_PairsPreference(t *testing.T) {
+	// Hand: Pair 4s, Pair 6s, Single 5.
+	// 4S, 4C, 5S, 6S, 6C.
+	// Option A (Straights): Straight 4S-5S-6S.
+	// Option B (Pairs): Pair 4s, Pair 6s.
+	// Pipeline: FavorStraights -> FavorPairs (Last wins).
+	// Result: Bot should choose Option B.
+	
+	hand := []domain.Card{
+		{Rank: 1, Suit: 0}, {Rank: 1, Suit: 1}, // Pair 4s
+		{Rank: 2, Suit: 0},                   // Single 5
+		{Rank: 3, Suit: 0}, {Rank: 3, Suit: 1}, // Pair 6s
+	}
+	player := &domain.Player{Seat: 0, Hand: hand}
+	bot := &StandardBot{Memory: brain.NewMemory()}
+	// Ensure default rules are applied (Straights then Pairs)
+	
+	// Scenario: Opponent plays Pair 5s.
+	// If Bot chose Option A (Straight), Pair 6s would break the straight (Penalty 50).
+	// If Bot chose Option B (Pairs), Pair 6s is free (Penalty 0).
+	// Since FavorPairs is last, it should win, so Bot plays Pair 6s.
+	
+	game := &domain.Game{
+		Players: map[string]*domain.Player{"bot": player},
+		LastPlayedCombination: domain.CardCombination{
+			Type: domain.Pair, Value: 11, // Pair 5s
+			Cards: []domain.Card{{Rank: 2, Suit: 0}, {Rank: 2, Suit: 1}},
+		},
+	}
+	
+	move, err := bot.CalculateMove(game, player)
+	if err != nil { t.Fatalf("CalculateMove failed: %v", err) }
+	
+	if move.Pass {
+		t.Error("Bot passed on Pair 5s! It failed to select the Pairs strategy.")
+	} else {
+		if len(move.Cards) != 2 {
+			t.Errorf("Bot played %+v, expected Pair 6s", move.Cards)
+		} else {
+			t.Log("Bot correctly selected Pairs strategy via Pipeline.")
+		}
+	}
+}
+
 func TestStandardBot_Flexibility_PairsVsStraight(t *testing.T) {
 	// Hand: Pair 4s, Pair 6s, Single 5.
 	// 4S, 4C, 5S, 6S, 6C.
